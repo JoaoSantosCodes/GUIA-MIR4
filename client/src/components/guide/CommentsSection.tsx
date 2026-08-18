@@ -18,7 +18,10 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
   const [content, setContent] = useState("");
   const utils = trpc.useUtils();
 
-  const { data: comments, isLoading } = trpc.comments.list.useQuery({ farmKey });
+  const { data: comments, isLoading } = trpc.comments.list.useQuery(
+    { farmKey },
+    { refetchInterval: 30_000 },
+  );
   const { data: myFavs } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
 
   const commentsWithNames = useMemo(

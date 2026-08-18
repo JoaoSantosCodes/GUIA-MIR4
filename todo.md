@@ -49,4 +49,5 @@
 - [x] Ordenação de espíritos (rarity, nome) na página Espíritos
 - [x] Testes vitest para favoritos raid/boss e comentários (16 testes aprovados)
 - [x] Screenshot desktop e mobile das novas páginas (/raids, /espiritos, /farm)
-- [ ] Checkpoint e entrega
+- [x] Checkpoint (v b36ea8c8) salvo — todas as 3 funcionalidades novas implementadas e testadas (16 testes)
+- [x] Comentários com polling de 30s para atualização quase em tempo real (auto-publish já ativo: checkpoint = publicação)
