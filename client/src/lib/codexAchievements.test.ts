@@ -84,6 +84,28 @@ describe("evaluateCodexAchievements", () => {
     expect(evaluateCodexAchievements(ucOnly.slice(0, -1)).find(a => a.key === "faixa-t1")!.earned).toBe(false);
   });
 
+  it.each(["faixa-t2", "faixa-t3", "faixa-t4", "faixa-t5"])("%s só é concedida quando todos os itens daquela raridade estão coletados", key => {
+    const rarity =
+      key === "faixa-t2" ? "Raro" : key === "faixa-t3" ? "Épico" : key === "faixa-t4" ? "Lendário" : "Mítico";
+    const allKeys = CODEX_ITEMS.map(c => c.key);
+    const withAll = evaluateCodexAchievements(allKeys);
+    expect(withAll.find(a => a.key === key)!.earned).toBe(true);
+    const tierItems = keysByRarity(rarity);
+    if (tierItems.length > 0) {
+      expect(evaluateCodexAchievements(tierItems.slice(0, -1)).find(a => a.key === key)!.earned).toBe(false);
+      expect(evaluateCodexAchievements(tierItems).find(a => a.key === key)!.earned).toBe(true);
+      expect(evaluateCodexAchievements(tierItems).find(a => a.key === key)!.progress).toBe(tierItems.length);
+    }
+  });
+
+  it("progress das conquistas de faixa fica truncado na meta (min(done,all))", () => {
+    const all = CODEX_ITEMS.map(c => c.key);
+    for (const key of ["faixa-t2", "faixa-t3", "faixa-t4", "faixa-t5"]) {
+      const a = evaluateCodexAchievements(all).find(x => x.key === key)!;
+      expect(a.progress).toBeLessThanOrEqual(a.goal);
+    }
+  });
+
   it("rep-6 e consumiveis-6 exigem 6 itens das respectivas categorias", () => {
     const rep6 = keysByRarity("Raro").concat(keysByRarity("Épico")).slice(0, 6);
     const rep = CODEX_ITEMS.filter(c => c.category === "Badges de Reputação").slice(0, 6).map(c => c.key);

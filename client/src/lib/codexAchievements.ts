@@ -23,6 +23,10 @@ export const CODEX_ACHIEVEMENTS: CodexAchievement[] = [
   { key: "colecionaveis-6", title: "Curador de Relíquias", description: "Colete 6 itens de Colecionáveis", icon: "Gem", iconKey: "gem" },
   { key: "rep-6", title: "Herói Reconhecido", description: "Colete 6 Badges de Reputação", icon: "Star", iconKey: "star" },
   { key: "faixa-t1", title: "Forja Completa UC", description: "Registre todos os itens UC do Codex", icon: "Swords", iconKey: "sword" },
+  { key: "faixa-t2", title: "Ascensão Rara", description: "Registre todos os itens Raros do Codex", icon: "Gem", iconKey: "gem" },
+  { key: "faixa-t3", title: "Mestre Épico", description: "Registre todos os itens Épicos do Codex", icon: "Sparkles", iconKey: "sparkle" },
+  { key: "faixa-t4", title: "Lenda da Arena", description: "Registre todos os itens Lendários do Codex", icon: "Crown", iconKey: "crown" },
+  { key: "faixa-t5", title: "Ascensão Mítica", description: "Registre todos os itens Míticos do Codex", icon: "Crown", iconKey: "crown" },
   { key: "raro-5", title: "Caçador de Raros", description: "Colete 5 itens de raridade Raro ou superior", icon: "Gem", iconKey: "gem" },
   { key: "lendario-1", title: "Glória Lendária", description: "Colete 1 item Lendário ou Mítico", icon: "Crown", iconKey: "crown" },
   { key: "codex-50", title: "Mestre do Codex", description: "Marque 50 itens do Codex (meta aspiracional)", icon: "Star", iconKey: "star" },
@@ -61,6 +65,17 @@ export function evaluateCodexAchievements(collectedIds: string[]): AchievementSt
   const repCount = CODEX_ITEMS.filter(c => c.category === "Badges de Reputação" && collected.has(c.key)).length;
   const ucCount = CODEX_ITEMS.filter(c => c.rarity === "UC" && collected.has(c.key)).length;
   const ucTotal = CODEX_ITEMS.filter(c => c.rarity === "UC").length;
+  const tierCounts: Record<string, { done: number; all: number }> = {};
+  for (const c of CODEX_ITEMS) {
+    const t = String(c.tier);
+    let entry = tierCounts[t];
+    if (!entry) {
+      entry = { done: 0, all: 0 };
+      tierCounts[t] = entry;
+    }
+    entry.all += 1;
+    if (collected.has(c.key)) entry.done += 1;
+  }
   const rareCount = CODEX_ITEMS.filter(c => RARE_OR_BETTER.has(c.rarity) && collected.has(c.key)).length;
   const legendCount = CODEX_ITEMS.filter(c => LEGENDARY_OR_BETTER.has(c.rarity) && collected.has(c.key)).length;
 
@@ -86,6 +101,10 @@ export function evaluateCodexAchievements(collectedIds: string[]): AchievementSt
     "colecionaveis-6": Math.min(collCount, 6),
     "rep-6": Math.min(repCount, 6),
     "faixa-t1": Math.min(ucCount, ucTotal),
+    "faixa-t2": Math.min(tierCounts["2"]?.done ?? 0, tierCounts["2"]?.all ?? 0),
+    "faixa-t3": Math.min(tierCounts["3"]?.done ?? 0, tierCounts["3"]?.all ?? 0),
+    "faixa-t4": Math.min(tierCounts["4"]?.done ?? 0, tierCounts["4"]?.all ?? 0),
+    "faixa-t5": Math.min(tierCounts["5"]?.done ?? 0, tierCounts["5"]?.all ?? 0),
     "raro-5": Math.min(rareCount, 5),
     "lendario-1": Math.min(legendCount, 1),
     "codex-50": Math.min(total, 50),
@@ -105,7 +124,11 @@ export function evaluateCodexAchievements(collectedIds: string[]): AchievementSt
                 : a.key === "colecionaveis-6" ? collCount >= 6
                   : a.key === "rep-6" ? repCount >= 6
                     : a.key === "faixa-t1" ? ucCount >= ucTotal
-                      : a.key === "raro-5" ? rareCount >= 5
+                      : a.key === "faixa-t2" ? (tierCounts["2"]?.done ?? 0) >= (tierCounts["2"]?.all ?? 0) && (tierCounts["2"]?.all ?? 0) > 0
+                        : a.key === "faixa-t3" ? (tierCounts["3"]?.done ?? 0) >= (tierCounts["3"]?.all ?? 0) && (tierCounts["3"]?.all ?? 0) > 0
+                          : a.key === "faixa-t4" ? (tierCounts["4"]?.done ?? 0) >= (tierCounts["4"]?.all ?? 0) && (tierCounts["4"]?.all ?? 0) > 0
+                            : a.key === "faixa-t5" ? (tierCounts["5"]?.done ?? 0) >= (tierCounts["5"]?.all ?? 0) && (tierCounts["5"]?.all ?? 0) > 0
+                              : a.key === "raro-5" ? rareCount >= 5
                         : a.key === "lendario-1" ? legendCount >= 1
                           : a.key === "codex-50" ? total >= 50
                             : a.key === "codex-100" ? total >= 100
@@ -120,7 +143,11 @@ export function evaluateCodexAchievements(collectedIds: string[]): AchievementSt
                 : a.key === "colecionaveis-6" ? 6
                   : a.key === "rep-6" ? 6
                     : a.key === "faixa-t1" ? ucTotal
-                      : a.key === "raro-5" ? 5
+                      : a.key === "faixa-t2" ? (tierCounts["2"]?.all ?? 0)
+                        : a.key === "faixa-t3" ? (tierCounts["3"]?.all ?? 0)
+                          : a.key === "faixa-t4" ? (tierCounts["4"]?.all ?? 0)
+                            : a.key === "faixa-t5" ? (tierCounts["5"]?.all ?? 0)
+                              : a.key === "raro-5" ? 5
                         : a.key === "lendario-1" ? 1
                           : a.key === "codex-50" ? 50
                             : a.key === "codex-100" ? 100

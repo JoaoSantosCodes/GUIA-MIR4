@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { CODEX_BONUSES, CODEX_CATEGORIES, CODEX_ITEMS, CODEX_RANKING, SECTION_IMAGES } from "@shared/guideData";
+import { CODEX_BONUSES, CODEX_CATEGORIES, CODEX_ITEMS, CODEX_RANKING, SECTION_IMAGES, type CodexItem } from "@shared/guideData";
 import PageBanner from "@/components/guide/PageBanner";
+import ItemCardDialog from "@/components/ItemCardDialog";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
@@ -8,20 +9,31 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast as sonnerToast } from "sonner";
-import { BookOpen, LogIn } from "lucide-react";
+import { BookOpen, Image, LogIn, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function Codex() {
   const { isAuthenticated, loading } = useAuth();
   const utils = trpc.useUtils();
   const { data: progress } = trpc.codexProgress.list.useQuery(undefined, { enabled: isAuthenticated });
   const [category, setCategory] = useState<string | "Todas">("Todas");
+  const [query, setQuery] = useState("");
+  const [rarity, setRarity] = useState<string | "Todas">("Todas");
+  const [tier, setTier] = useState<string | "Todas">("Todas");
+  const [exportingItem, setExportingItem] = useState<CodexItem | null>(null);
   const [pending, setPending] = useState<Record<string, boolean>>({});
 
   const collected = useMemo(() => new Set(progress?.map(p => p.itemId) ?? []), [progress]);
-  const filtered = useMemo(
-    () => CODEX_ITEMS.filter(c => category === "Todas" || c.category === category),
-    [category],
-  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return CODEX_ITEMS.filter(c => {
+      if (category !== "Todas" && c.category !== category) return false;
+      if (rarity !== "Todas" && c.rarity !== rarity) return false;
+      if (tier !== "Todas" && String(c.tier) !== tier) return false;
+      if (q && !c.name.toLowerCase().includes(q) && !c.tip.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [category, query, rarity, tier]);
   const totalCollected = collected.size;
   const totalItems = CODEX_ITEMS.length;
   const pct = Math.round((totalCollected / totalItems) * 100);
@@ -37,6 +49,15 @@ export default function Codex() {
   );
   const catMap = useMemo(
     () => new Map(categoryStats.map(c => [c.cat, c])),
+    [categoryStats],
+  );
+  // stats por categoria reutilizadas no card individual (Map<string, number>)
+  const catTotal = useMemo(
+    () => new Map<string, number>(categoryStats.map(s => [s.cat, s.total])),
+    [categoryStats],
+  );
+  const catDone = useMemo(
+    () => new Map<string, number>(categoryStats.map(s => [s.cat, s.done])),
     [categoryStats],
   );
 
@@ -156,29 +177,86 @@ export default function Codex() {
           <p className="text-sm text-slate-400 mt-2">
             Marque os itens que você já registrou. Filtre por categoria para focar no que falta.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {(["Todas", ...CODEX_CATEGORIES] as const).map(c => {
-              const stats = c !== "Todas" ? catMap.get(c) : undefined;
-              return (
-                <button
-                  key={c}
-                  onClick={() => setCategory(c)}
-                  className={cn(
-                    "rounded-md border px-4 py-1.5 text-sm font-medium transition-all active:scale-[0.97]",
-                    category === c
-                      ? "border-amber-500 bg-amber-900/40 text-amber-300"
-                      : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200 hover:border-amber-700/50",
-                  )}
-                >
-                  {c}
-                  {stats && (
-                    <span className="ml-1.5 text-[10px] text-slate-500">
-                      {stats.done}/{stats.total}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <div className="mt-4 flex flex-col gap-3">
+            {/* Busca por nome */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Input
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Buscar por nome ou dica de farm..."
+                  className="pl-9 bg-black/30 border-amber-800/40 placeholder:text-slate-500"
+                />
+                {query && (
+                  <button
+                    aria-label="Limpar busca"
+                    onClick={() => setQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-500 hover:text-amber-300"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              {/* Filtro por raridade */}
+              <select
+                value={rarity}
+                onChange={e => setRarity(e.target.value)}
+                aria-label="Filtrar por raridade"
+                className="rounded-md border border-amber-800/40 bg-black/30 px-3 py-1.5 text-sm text-slate-200 focus:border-amber-600 focus:outline-none"
+              >
+                <option value="Todas">Todas raridades</option>
+                <option value="UC">UC</option>
+                <option value="Raro">Raro</option>
+                <option value="Épico">Épico</option>
+                <option value="Lendário">Lendário</option>
+                <option value="Mítico">Mítico</option>
+              </select>
+              {/* Filtro por faixa de nível */}
+              <select
+                value={tier}
+                onChange={e => setTier(e.target.value)}
+                aria-label="Filtrar por faixa de nível"
+                className="rounded-md border border-amber-800/40 bg-black/30 px-3 py-1.5 text-sm text-slate-200 focus:border-amber-600 focus:outline-none"
+              >
+                <option value="Todas">Todas as faixas</option>
+                <option value="1">Nível 1–20</option>
+                <option value="2">Nível 20–40</option>
+                <option value="3">Nível 40–60</option>
+                <option value="4">Nível 60–80</option>
+                <option value="5">Nível 80–100+</option>
+              </select>
+            </div>
+            {/* Filtro por categoria */}
+            <div className="flex flex-wrap gap-2">
+              {(["Todas", ...CODEX_CATEGORIES] as const).map(c => {
+                const stats = c !== "Todas" ? catMap.get(c) : undefined;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setCategory(c)}
+                    className={cn(
+                      "rounded-md border px-4 py-1.5 text-sm font-medium transition-all active:scale-[0.97]",
+                      category === c
+                        ? "border-amber-500 bg-amber-900/40 text-amber-300"
+                        : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200 hover:border-amber-700/50",
+                    )}
+                  >
+                    {c}
+                    {stats && (
+                      <span className="ml-1.5 text-[10px] text-slate-500">
+                        {stats.done}/{stats.total}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {(query || rarity !== "Todas" || tier !== "Todas") && (
+              <p className="text-xs text-slate-500">
+                {filtered.length} {filtered.length === 1 ? "item encontrado" : "itens encontrados"} com os filtros atuais.
+              </p>
+            )}
           </div>
 
           {/* Progresso por categoria */}
@@ -236,10 +314,35 @@ export default function Codex() {
                     </div>
                     <p className="mt-1 text-xs text-slate-400">{c.tip}</p>
                   </div>
+                  <button
+                    aria-label={`Exportar card do item ${c.name}`}
+                    onClick={() => setExportingItem(c)}
+                    className="shrink-0 rounded-md border border-amber-800/40 bg-black/30 p-1.5 text-slate-400 transition-colors hover:border-amber-600 hover:text-amber-300 active:scale-[0.95]"
+                    title="Exportar card do item"
+                  >
+                    <Image className="h-4 w-4" />
+                  </button>
                 </div>
               );
             })}
+            {filtered.length === 0 && (
+              <div className="col-span-full rounded-lg border border-dashed border-amber-800/40 bg-black/20 p-8 text-center text-sm text-slate-400">
+                Nenhum item encontrado com os filtros atuais. Tente limpar a busca ou alterar os filtros.
+              </div>
+            )}
           </div>
+          {exportingItem && (
+            <ItemCardDialog
+              item={{
+                ...exportingItem,
+                collected: collected.has(exportingItem.key),
+                collectedCount: catDone.get(exportingItem.category) ?? 0,
+                categoryTotal: catTotal.get(exportingItem.category) ?? 0,
+              }}
+              collected={collected.has(exportingItem.key)}
+              onClose={() => setExportingItem(null)}
+            />
+          )}
         </section>
 
         {/* Dicas de farm por categoria */}

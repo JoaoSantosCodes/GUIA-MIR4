@@ -173,3 +173,9 @@
 - [x] Expandir itens do Codex: adicionar Consumíveis e Colecionáveis por faixa de nível (1-20, 20-40, 40-60, 60-80, 80-100+) e Badges de Reputação por faixa, em shared/guideData.ts (46 itens no total)
 - [x] Revisar conquistas (metas de total, categorias e raridade) para o novo dataset ampliado (13 conquistas: novas consumiveis-6, colecionaveis-6, rep-6, faixa-t1; equipamentos-5 ajustado)
 - [x] Testes vitest atualizados para os novos itens/categorias (78 aprovados) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: busca/filtros do Codex, conquistas por faixa e card individual de item
+- [x] Busca por nome e filtros (categoria, raridade, faixa de nível 1-20/20-40/40-60/60-80/80-100+) na página do Codex
+- [x] Conquistas por faixa de raridade completa: faixa-t2..t5 (Ascensão Rara, Mestre Épico, Lenda da Arena, Ascensão Mítica)
+- [x] Card individual por item do Codex: ItemCardDialog com preview (nome, raridade, dica de farm, tier, progresso da categoria) e exportação PNG
+- [x] Testes vitest para novas conquistas de faixa (83 aprovados) + screenshots verificados + checkpoint e entrega

@@ -304,6 +304,94 @@ export async function exportCardShared(
   await downloadCanvas(canvas, userName);
 }
 
+export interface CodexItemCardData {
+  name: string;
+  category: string;
+  rarity: string;
+  tier: number;
+  tip: string;
+  collected: boolean;
+  collectedCount: number;
+  categoryTotal: number;
+}
+
+/**
+ * Exporta um card individual de um item do Codex com nome, raridade, tier,
+ * dica de farm e progresso da categoria.
+ */
+export async function exportItemCard({ item, style = DEFAULT_CARD_STYLE, onDone, drawTo }: { item: CodexItemCardData; style?: CardStyle; onDone?: () => void; drawTo?: HTMLCanvasElement }): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  canvas.width = WIDTH;
+  canvas.height = HEADER_H + 330 + FOOTER_H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, { userName: item.category, subtitle: "— Item do Codex" });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const midY = HEADER_H + 24;
+
+  // Raridade como badge
+  ctx.font = "bold 22px 'Segoe UI', Arial, sans-serif";
+  const rarColor = item.rarity === "Mítico" ? "#a78bfa" : item.rarity === "Lendário" ? "#f59e0b" : item.rarity === "Épico" ? "#f87171" : item.rarity === "Raro" ? "#60a5fa" : "#94a3b8";
+  ctx.fillStyle = rarColor;
+  const rarText = `${item.rarity} · Tier ${item.tier}`;
+  ctx.fillText(rarText, MARGIN, midY);
+
+  // Nome do item (grande)
+  ctx.fillStyle = palette.title;
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.fillText(truncate(item.name, 42), MARGIN, midY + 44);
+
+  // Dica de farm
+  ctx.fillStyle = palette.sub;
+  ctx.font = "26px 'Segoe UI', Arial, sans-serif";
+  const tipWrapped = wrapText(ctx, item.tip, WIDTH - MARGIN * 2);
+  tipWrapped.slice(0, 3).forEach((line, i) => {
+    ctx.fillText(line, MARGIN, midY + 130 + i * 36);
+  });
+
+  // Status da coleção
+  ctx.fillStyle = item.collected ? "#34d399" : palette.faded;
+  ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
+  const statusText = item.collected ? "✓ Registrado no seu Codex" : "✗ Ainda não registrado";
+  ctx.fillText(statusText, MARGIN, midY + 262);
+
+  // Barra de progresso da categoria
+  const barW = 420;
+  const ratio = item.categoryTotal > 0 ? item.collectedCount / item.categoryTotal : 0;
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.fillRect(MARGIN, midY + 292, barW, 12);
+  ctx.fillStyle = "#b8860b";
+  ctx.fillRect(MARGIN, midY + 292, barW * ratio, 12);
+  ctx.fillStyle = palette.faded;
+  ctx.font = "20px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`${item.collectedCount}/${item.categoryTotal} itens de ${item.category}`, MARGIN + barW + 16, midY + 304);
+
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "codex-item");
+  onDone?.();
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 async function downloadCanvas(canvas: HTMLCanvasElement, userName: string) {
   const dataUrl = canvas.toDataURL("image/png");
   const link = document.createElement("a");
