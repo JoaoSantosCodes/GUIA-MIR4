@@ -137,3 +137,9 @@
 - [x] UI de votos nas páginas refletir o voto do usuário logado (CommentsSection setUserVote + myVotes) (highlight do voto atual)
 - [x] Rotas, navegação, busca e testes para as novas funcionalidades
 - [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: selo Dica de Ouro, filtros de histórico e pulso no banner
+- [x] Selo "Dica de Ouro" visual (ícone + badge dourado) para dicas com upvotes >= 10 nos componentes de comentários (CommentsSection) e na página FAQ
+- [x] Filtros no histórico de votos do perfil: ordenação por data (mais recente/mais antiga) e por categoria da dica
+- [x] Animação de pulso suave no banner de evento ao vivo (LiveEventBanner) com prefers-reduced-motion respeitado
+- [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega

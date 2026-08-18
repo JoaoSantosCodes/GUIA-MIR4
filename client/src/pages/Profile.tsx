@@ -5,7 +5,8 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -22,13 +23,46 @@ const SECTION_META: Record<string, { label: string; path: string; Icon: typeof S
   materials: { label: "Materiais", path: "/materiais", Icon: Package },
 };
 
+const PAGE_KEY_LABEL: Record<string, string> = {
+  farm: "Locais de Farm",
+  sabuk: "Sabuk & Guildas",
+  mystery: "Mistérios",
+  seal: "Selos",
+  skills: "Subclasses & Skills",
+  gear: "Equipamentos",
+  materials: "Materiais",
+  classes: "Classes",
+  economy: "Economia",
+  raids: "Raids e Bosses",
+};
+
+type VoteSort = "recent" | "oldest";
+
 export default function Profile() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const utils = trpc.useUtils();
+  const [voteFilter, setVoteFilter] = useState<string>("all");
+  const [voteSort, setVoteSort] = useState<VoteSort>("recent");
 
   const { data: favorites, isLoading: favLoading } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const { data: progress, isLoading: progLoading } = trpc.codexProgress.list.useQuery(undefined, { enabled: isAuthenticated });
   const { data: voteHistory, isLoading: voteLoading } = trpc.user.voteHistory.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 30_000 });
+
+  const voteCategories = useMemo(
+    () => Array.from(new Set((voteHistory ?? []).map(v => v.pageKey ?? ""))).filter(Boolean),
+    [voteHistory],
+  );
+
+  const filteredVotes = useMemo(() => {
+    let list = (voteHistory ?? []).slice();
+    if (voteFilter !== "all") list = list.filter(v => v.pageKey === voteFilter);
+    list.sort((a, b) => {
+      const ta = new Date(a.votedAt).getTime();
+      const tb = new Date(b.votedAt).getTime();
+      return voteSort === "recent" ? tb - ta : ta - tb;
+    });
+    return list;
+  }, [voteHistory, voteFilter, voteSort]);
 
   const toggleFav = trpc.favorites.toggle.useMutation({
     onSuccess: () => utils.favorites.list.invalidate(),
@@ -170,8 +204,41 @@ export default function Profile() {
         {voteLoading ? (
           <Loader2 className="mt-3 h-5 w-5 animate-spin text-amber-500" />
         ) : voteHistory && voteHistory.length > 0 ? (
-          <div className="mt-3 space-y-2">
-            {voteHistory.map(v => (
+          <>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setVoteFilter("all")}
+                  className={voteFilter === "all" ? "rounded-full border border-amber-500/70 bg-amber-900/50 px-2.5 py-1 text-[11px] font-medium text-amber-200" : "rounded-full border border-slate-700/60 px-2.5 py-1 text-[11px] text-slate-400 hover:text-amber-200 transition-colors"}
+                >
+                  Todas ({voteHistory.length})
+                </button>
+                {voteCategories.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setVoteFilter(cat)}
+                    className={voteFilter === cat ? "rounded-full border border-amber-500/70 bg-amber-900/50 px-2.5 py-1 text-[11px] font-medium text-amber-200" : "rounded-full border border-slate-700/60 px-2.5 py-1 text-[11px] text-slate-400 hover:text-amber-200 transition-colors"}
+                  >
+                    {PAGE_KEY_LABEL[cat] ?? cat}
+                  </button>
+                ))}
+              </div>
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setVoteSort(s => (s === "recent" ? "oldest" : "recent"))}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-700/60 px-2.5 py-1 text-[11px] text-slate-400 transition-colors hover:text-amber-200"
+                  aria-label="Alternar ordenação por data"
+                >
+                  <ArrowUpDown className="h-3 w-3" />
+                  {voteSort === "recent" ? "Mais recentes" : "Mais antigas"}
+                </button>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+            {filteredVotes.map(v => (
               <div key={`${v.commentId}-${v.pageKey}`} className="flex items-start gap-3 rounded-md border border-slate-800/60 bg-black/25 px-3 py-2">
                 {v.vote === 1 ? (
                   <ThumbsUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -212,7 +279,11 @@ export default function Profile() {
                 </div>
               </div>
             ))}
-          </div>
+            {filteredVotes.length === 0 && (
+              <p className="py-4 text-center text-xs text-slate-500">Nenhum voto nesta categoria.</p>
+            )}
+            </div>
+          </>
         ) : (
           <p className="mt-3 text-xs text-slate-400">
             Você ainda não votou em nenhuma dica. Os votos que registrar aparecerão aqui e poderão ser alterados.

@@ -4,13 +4,14 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThumbsUp, ThumbsDown, ArrowRight, MessageCircle, TrendingUp } from "lucide-react";
+import { ThumbsUp, ThumbsDown, ArrowRight, MessageCircle, TrendingUp, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { toast } from "sonner";
 import type { TopTip } from "@/lib/faq";
 import { enrichTipPaths } from "@/lib/faq";
+import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 
 export default function Faq() {
   const { user, isAuthenticated } = useAuth();
@@ -101,8 +102,16 @@ export default function Faq() {
               </span>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {enriched.find(p => p.pageKey === page.pageKey)?.tips.map(tip => (
-                <Card key={tip.id} className="group border-amber-800/40 bg-[oklch(0.16_0.015_280)] p-4 transition-colors hover:border-amber-600/60">
+              {enriched.find(p => p.pageKey === page.pageKey)?.tips.map(tip => {
+                const isGoldTip = tip.upvotes >= GOLD_TIP_UPVOTES;
+                return (
+                <Card key={tip.id} className={cn("group relative p-4 transition-colors", isGoldTip ? "border-amber-500/70 bg-gradient-to-br from-amber-950/40 to-[oklch(0.16_0.015_280)]" : "border-amber-800/40 bg-[oklch(0.16_0.015_280)] hover:border-amber-600/60")}>
+                  {isGoldTip && (
+                    <div className="mb-1.5 flex items-center gap-1 self-start rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-600 to-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow-sm shadow-amber-500/30">
+                      <Crown className="h-3 w-3" />
+                      Dica de Ouro
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-sm text-slate-200 leading-relaxed">{tip.content}</p>
                     <Link href={`/faq#${tip.id}`} className="shrink-0 text-[10px] font-mono text-slate-600 opacity-0 transition-opacity group-hover:opacity-100">#{tip.id}</Link>
@@ -152,7 +161,8 @@ export default function Faq() {
                     <ArrowRight className="h-3 w-3" /> Ver na página original
                   </Link>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}

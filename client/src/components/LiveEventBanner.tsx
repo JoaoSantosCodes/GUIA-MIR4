@@ -56,6 +56,7 @@ export default function LiveEventBanner() {
       className={cn(
         "fixed left-0 right-0 top-16 z-40 flex items-center justify-center gap-3 bg-gradient-to-r from-red-950 via-red-900 to-red-950 px-3 py-2 text-center",
         "border-b border-red-700/50",
+        "pulse-banner",
       )}
     >
       <Flame className="h-4 w-4 shrink-0 animate-pulse text-red-400" />

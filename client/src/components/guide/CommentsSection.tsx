@@ -6,7 +6,10 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Trash2, UserCircle2, Loader2, ThumbsUp, ThumbsDown } from "lucide-react";
+import { MessageSquare, Trash2, UserCircle2, Loader2, ThumbsUp, ThumbsDown, Crown } from "lucide-react";
+
+/** Limiar de upvotes que qualifica uma dica como "Dica de Ouro". */
+export const GOLD_TIP_UPVOTES = 10;
 
 interface Props {
   farmKey: string;
@@ -137,14 +140,25 @@ export default function CommentsSection({
             {commentsWithNames.map(c => {
               const isMine = isAuthenticated && (c as { userId?: number }).userId === user?.id;
               const myVote = myVoteMap.get(c.id) ?? 0;
+              const isGoldTip = (c.upvotes ?? 0) >= GOLD_TIP_UPVOTES;
               return (
                 <div
                   key={c.id}
                   className={cn(
-                    "rounded-md border px-3 py-2 text-sm",
-                    isMine ? "border-amber-700/50 bg-amber-950/20" : "border-slate-800/60 bg-black/20",
+                    "relative rounded-md border px-3 py-2 text-sm",
+                    isGoldTip
+                      ? "border-amber-500/70 bg-gradient-to-br from-amber-950/40 to-black/30"
+                      : isMine
+                        ? "border-amber-700/50 bg-amber-950/20"
+                        : "border-slate-800/60 bg-black/20",
                   )}
                 >
+                  {isGoldTip && (
+                    <div className="absolute -top-2.5 right-3 flex items-center gap-1 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-600 to-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 shadow-sm shadow-amber-500/30">
+                      <Crown className="h-3 w-3" />
+                      Dica de Ouro
+                    </div>
+                  )}
                   <div className="flex items-center justify-between gap-2">
                     <p className="flex items-center gap-1.5 text-xs text-amber-300/80">
                       <UserCircle2 className="h-3.5 w-3.5" />
