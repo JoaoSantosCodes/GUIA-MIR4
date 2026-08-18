@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,49 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ---------- Favorites ----------
+
+export async function listFavorites(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(favorites).where(eq(favorites.userId, userId));
+}
+
+export async function addFavorite(userId: number, fav: Omit<InsertFavorite, "userId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .insert(favorites)
+    .values({ ...fav, userId })
+    .onDuplicateKeyUpdate({ set: { itemId: fav.itemId } });
+  return { success: true };
+}
+
+export async function removeFavorite(userId: number, itemId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(favorites).where(and(eq(favorites.userId, userId), eq(favorites.itemId, itemId)));
+  return { success: true };
+}
+
+// ---------- Codex progress ----------
+
+export async function listCodexProgress(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(codexProgress).where(eq(codexProgress.userId, userId));
+}
+
+export async function setCodexProgress(userId: number, itemId: string, collected: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (collected) {
+    await db
+      .insert(codexProgress)
+      .values({ userId, itemId })
+      .onDuplicateKeyUpdate({ set: { collectedAt: new Date() } });
+  } else {
+    await db.delete(codexProgress).where(and(eq(codexProgress.userId, userId), eq(codexProgress.itemId, itemId)));
+  }
+  return { success: true };
+}

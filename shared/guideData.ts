@@ -1,0 +1,390 @@
+/**
+ * Conteúdo do guia MIR4 — dados compartilhados entre servidor e cliente.
+ * Chaves estáveis: `itemType:itemKey` (usadas em favoritos e progresso do Codex).
+ */
+
+export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
+
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy";
+
+export const RARITY_ORDER: Rarity[] = ["UC", "Raro", "Épico", "Lendário", "Mítico"];
+
+export const RARITY_STYLES: Record<Rarity, { label: string; color: string; border: string; bg: string }> = {
+  UC: { label: "UC (Incomum)", color: "text-slate-300", border: "border-slate-500/50", bg: "bg-slate-800/60" },
+  Raro: { label: "Raro", color: "text-emerald-400", border: "border-emerald-600/50", bg: "bg-emerald-950/40" },
+  "Épico": { label: "Épico", color: "text-violet-400", border: "border-violet-600/50", bg: "bg-violet-950/40" },
+  "Lendário": { label: "Lendário", color: "text-amber-400", border: "border-amber-600/50", bg: "bg-amber-950/30" },
+  "Mítico": { label: "Mítico", color: "text-red-400", border: "border-red-600/50", bg: "bg-red-950/30" },
+};
+
+export interface Spirit {
+  key: string;
+  name: string;
+  title: string;
+  rarity: Rarity;
+  effects: string[];
+  passive: string;
+  tip: string;
+  obtain: string;
+}
+
+export const SPIRITS: Spirit[] = [
+  // ---------- UC ----------
+  { key: "grifforse", name: "Grifforse", title: "Cavalo Sombrio", rarity: "UC", effects: ["Max MP +1400", "PvP ATK +6%", "PvP DMG Reduction −6%", "Boss ATK +15%", "Debilitação Success +30%", "Item Drop +10%", "Max HP +10%"], passive: "Ao ser atingido por um Ultimate: recupera 20% do HP máximo e +20% ATK por 20s (CD 40s)", tip: "Bom espírito PvP de nível inicial; o boost de drop ajuda no farm.", obtain: "Drop de mobs e baús de nível 20+; invocação com tickets UC." },
+  { key: "styx", name: "Styx", title: "Cavaleiro Fantasma", rarity: "UC", effects: ["Max HP +1800", "Max MP +900", "CRIT +90", "CRIT EVA +90", "Monstro ATK +15%", "Silence Success +30%", "Skill CD −5%", "Coleta −10%", "Mineração −10%"], passive: "Com HP abaixo de 20%: −50% de todo dano por 15s (CD 60s)", tip: "Um dos melhores core spirits do jogo — usado até na versão Lendária. Acelera coleta e mineração.", obtain: "Dungeon e eventos; disponível na tela de invocação desde o início." },
+  { key: "darknyan", name: "Darknyan", title: "Ressuscitador", rarity: "UC", effects: ["Max HP +6000", "Skill ATK +12%", "Skill DMG Reduction −12%", "Boss DMG Reduction −15%", "Debilitação RES +30%", "Cura +25%", "Coleta −10%"], passive: "Ressuscita o personagem com 25% do HP máximo (CD 75s)", tip: "Essencial para sobrevivência em raids e zonas PvP de alto risco.", obtain: "Drops de elites e eventos rotativos; invocação UC." },
+  { key: "inferno", name: "Inferno", title: "Senhor do Inferno", rarity: "UC", effects: ["Max HP +1600", "Bash ATK +30%", "Bash DMG Reduction −30%", "Boss DMG Reduction −15%", "Knockdown RES +30%", "Efeito de Poção de HP +12%", "Custo de MP −10%"], passive: "25% de chance de recuperar 15% do HP por 5s ao atacar (CD 18s)", tip: "Recomendado como 3º/4º spirit nos builds da comunidade.", obtain: "Drops em áreas PvP e raids de clã; invocação UC." },
+  { key: "goldking", name: "Goldking", title: "Falcão de Fogo", rarity: "UC", effects: ["Max HP +4400", "ATK Físico +70", "ATK Mágico +70", "Monstro ATK +15%", "Stun Success +30%", "Copper +10%", "Skill CD −5%"], passive: "Cura de Stun instantânea; +20% ATK e +20% DMG Reduction por 10s (CD 30s)", tip: "Segundo core spirit mais recomendado — forte em ATK e utilidade.", obtain: "Eventos de invocação e drops de boss." },
+  { key: "galesoul", name: "Galesoul", title: "Invocador do Vento", rarity: "UC", effects: ["Max HP +4000", "CRIT ATK +20%", "CRIT DMG Reduction −20%", "Boss ATK +15%", "Knockdown Success +30%", "MP Potion +8%", "Max HP +5%", "Custo de MP −10%"], passive: "Com HP abaixo de 15%: recupera 50% do HP em 5s (CD 75s)", tip: "Ótimo para builds CRIT com sustain de emergência.", obtain: "Drops em áreas PvE e loot boxes de evento." },
+  { key: "drago", name: "Drago", title: "Sangue-Ponta", rarity: "UC", effects: ["Max HP +2200", "Max MP +700", "ATK Físico +100", "ATK Mágico +100", "Debilitação Success +30%", "PvP ATK +10%", "Poção HP +10%", "Poção MP +5%", "Coleta −10%"], passive: "Após ataque Letal: recupera 40% do HP instantaneamente (CD 30s)", tip: "Hybrid ATK alto; forte em PvP e raids.", obtain: "Drops de elites de nível médio e eventos." },
+  { key: "dreamfly", name: "Dreamfly", title: "Fada Borboleta", rarity: "UC", effects: ["Max HP +2400", "Max MP +800", "DEF Física +70", "DEF Mágica +70", "Monstro DMG Reduction −15%", "Stun Success +30%", "Lucky Drop +10%", "Poção HP +20%"], passive: "Cura de Silêncio instantânea; +30% ATK por 10s (CD 30s)", tip: "Frequentemente aparece em eventos de troca — fique de olho nas lojas de evento.", obtain: "Eventos de troca sazonais e loja de evento." },
+  { key: "khalion", name: "Khalion", title: "Grande General", rarity: "UC", effects: ["Max HP +3600", "ATK +6%", "DMG Reduction −6%", "Monstro DMG Reduction −15%", "Silence RES +30%", "Hunting EXP +20%", "Drop +5%"], passive: "3% de chance ao atacar de Despertar: +500 CRIT DMG por 15s", tip: "O melhor espírito UC para levelar — +20% de EXP de caça.", obtain: "Eventos de novo jogador e drops de níveis iniciais — o mais comum para começar." },
+  { key: "leocrat", name: "Leocrat Khun", title: "Coração de Leão", rarity: "UC", effects: ["Max MP +280", "CRIT EVA +110", "PvP DMG Reduction −8%", "Boss DMG Reduction −8%", "Knockdown RES +10%", "Coleta −10%", "Mineração −10%"], passive: "Ao ser derrubado: 50% de chance de +50% Knockdown RES por 8s (CD 30s)", tip: "Combo de farm com Styx: mineração e coleta aceleradas.", obtain: "Drops de mineração e áreas de coleta; invocação UC." },
+  { key: "nyanja", name: "Nyanja", title: "Assassino", rarity: "UC", effects: ["Max MP +160", "ATK +7%", "Boss ATK +8%", "Copper +15%", "Lucky Drop +10%", "Poção MP +5%"], passive: "30% de chance de ativar Evade instantaneamente ao usar Evade", tip: "Bom para farm de Copper e drops em zonas PvP.", obtain: "Drops em áreas PvP e raids." },
+  { key: "koiga", name: "Koiga", title: "Coração de Leão Brutal", rarity: "UC", effects: ["Monstro ATK +12%", "Monstro DMG Reduction −12%", "DMG Reduction −10%", "Hunting EXP +15%", "Lucky Drop +10%", "Coleta −10%"], passive: "Ao matar: +2 CRIT, +2 ATK físico/mágico por 30s (até 50 stacks)", tip: "Espírito XP alternativo ao Khalion, com Lucky Drop extra.", obtain: "Drops de mobs em áreas de grind; invocação UC." },
+  { key: "baratan", name: "Baratan", title: "Besta Trovão", rarity: "UC", effects: ["Max HP +2200", "ATK Físico +70", "Monstro ATK +8%", "Stun Success +20%", "Efeito de Poção HP +12%"], passive: "Cura instantânea de Stun (CD 30s)", tip: "Anti-stun acessível para early game; útil em áreas PvP.", obtain: "Drops básicos e loja de evento." },
+  { key: "sparkler", name: "Sparkler", title: "Gema Brilhante", rarity: "UC", effects: ["Max MP +240", "DMG Reduction −7%", "Bash DMG Reduction −30%", "Hunting EXP +15%", "Coleta −10%", "Mineração −10%"], passive: "Cura instantânea de Silêncio (CD 30s)", tip: "Alternativa de EXP + velocidade de coleta para farm.", obtain: "Drops comuns de áreas AFK; invocação UC." },
+  { key: "solari", name: "Solari", title: "Raposa Milenar", rarity: "UC", effects: ["Todas as chances de Drop +10%"], passive: "25% de chance de recuperar 8% do MP por 4s ao atacar (CD 18s)", tip: "Drop +10% geral — valioso para qualquer build de coleta.", obtain: "Eventos de troca; disponível na invocação UC." },
+  { key: "luckster", name: "Luckster", title: "Gato da Sorte", rarity: "UC", effects: ["Max MP +160", "DEF Mágica +70", "CRIT DMG Reduction −20%", "Boss DMG Reduction −8%", "Silence RES +20%", "Cura +10%", "Skill CD −3%"], passive: "Ao usar Ultimate: recupera 15% do HP por 5s", tip: "Espírito de evento (Dreamfly's Jelly) — bom suporte defensivo.", obtain: "Evento Dreamfly's Jelly; loja de evento." },
+  { key: "suparna", name: "Suparna", title: "Pássaro Dourado", rarity: "UC", effects: ["Max HP +1800", "DEF Física +70", "CRIT ATK +20%", "Bash ATK +30%", "Stun RES +20%", "Custo de MP −10%"], passive: "25% de chance de recuperar 6% do HP por 3s ao atacar (CD 18s)", tip: "Build CRIT/Bash com sustain passivo.", obtain: "Drops em áreas de caça PvE; invocação UC." },
+  { key: "flamehorn", name: "Flamehorn", title: "Diabo de Fogo", rarity: "UC", effects: ["Max MP +300", "CRIT EVA +100", "Skill DMG Reduction −10%", "Boss DMG Reduction −8%", "Debilitação Success +20%", "Poção HP +7%", "Max HP +3%"], passive: "Ataques de Burn: 80% chance de +1 nível, 50% de +2 níveis", tip: "Único espírito com escalonamento de nível por Burn.", obtain: "Eventos rotativos de invocação UC." },
+  { key: "crystaglass", name: "Crystaglass", title: "Pavão Branco", rarity: "UC", effects: ["Max HP +1600", "PvP ATK +7%", "Bash DMG Reduction −30%", "Knockdown Success +20%", "Lucky Drop +5%"], passive: "Ao atacar: +200 ATK físico por 10s (CD 30s)", tip: "PvP agressivo com proco curto de ATK.", obtain: "Drops em zonas PvP e raids; invocação UC." },
+  { key: "shaoshao", name: "Shaoshao", title: "Maníaco de Gemas", rarity: "UC", effects: ["Max HP +1600", "PvP DMG Reduction −7%", "Monstro DMG Reduction −8%", "Knockdown RES +20%", "Hunting EXP +15%"], passive: "25% de chance de recuperar 15% do HP por 5s ao atacar (CD 18s)", tip: "EXP + sustain — bom para builds de grind.", obtain: "Drops comuns em grind; invocação UC." },
+  { key: "whaley", name: "Whaley", title: "Beleza Absoluta", rarity: "UC", effects: ["Max MP +200", "ATK Mágico +70", "Monstro DMG Reduction −8%", "Silence Success +20%", "Poção MP +5%", "Max HP +6%", "Custo de MP −5%"], passive: "Aumenta duração de Stun em 1s e Silence em 2s", tip: "Suporte CC para Sorcerers e Taoists.", obtain: "Eventos de invocação UC; drops de elites." },
+  { key: "reaper", name: "Reaper", title: "Ceifador de Almas", rarity: "UC", effects: ["Max HP +2400", "CRIT +100", "Skill ATK +10%", "Bash ATK +30%", "Debilitação RES +20%", "Skill CD −3%"], passive: "Ataques de Chill: 80% chance de +1 nível, 50% de +2 níveis", tip: "Par do Flamehorn para builds Chill/Burn.", obtain: "Eventos rotativos de invocação UC." },
+  { key: "biyoho", name: "Biyoho", title: "Chama Infernal", rarity: "UC", effects: ["Max MP +300", "CRIT +100", "CRIT ATK +20%", "Hunting EXP +15%", "Item Drop +15%", "Custo de MP −5%"], passive: "10% de chance ao atacar de causar dano em área (CD 25s)", tip: "Melhor drop de item entre os UC — excelente para farm.", obtain: "Drops em áreas de grind de nível médio; eventos." },
+  { key: "piggio", name: "Piggio", title: "Porquinho", rarity: "UC", effects: ["Monstro DMG Reduction −6%", "Hunting EXP +10%"], passive: "—", tip: "Espírito de entrada; útil enquanto não se obtém melhores.", obtain: "Concedido no tutorial / início do jogo." },
+  { key: "oronki", name: "Oroonki", title: "Leão Esqueleto", rarity: "UC", effects: ["Skill ATK +6%", "Efeito de Poção HP +6%"], passive: "—", tip: "Básico; substitua assim que possível.", obtain: "Concedido no início do jogo." },
+  { key: "dracusip", name: "Dracusip", title: "Morcego Vampiro", rarity: "UC", effects: ["CRIT ATK +10%", "Bash ATK +10%", "Lucky Drop +2%", "Max HP +2%"], passive: "—", tip: "Drop baixo; use como preenchedor de slot.", obtain: "Drops básicos iniciais." },
+  { key: "lamper", name: "Lamper", title: "Mensageiro da Alma", rarity: "UC", effects: ["Bash ATK +10%", "Monstro ATK +6%", "Copper +10%", "Coleta de Energia −10%"], passive: "—", tip: "Farm de Copper; colete energia com ele.", obtain: "Drops de mobs; útil como espírito de coleta." },
+  { key: "flory", name: "Flory", title: "Anjo Verde", rarity: "UC", effects: ["DMG Reduction −3%", "Coleta −10%", "Mineração −10%"], passive: "—", tip: "Apenas para acelerar coleta/mineração no início.", obtain: "Drops de coleta iniciais." },
+  { key: "horyong", name: "Horyong", title: "Pequeno Dragão Azul", rarity: "UC", effects: ["Coleta de Energia −10%"], passive: "10% de chance de recuperar 3% do HP por 3s ao atacar", tip: "Coleta de energia; aparece em eventos de assistência mensal.", obtain: "Eventos de assistência mensal." },
+  { key: "doggo", name: "Doggo", title: "Lobo Vermelho", rarity: "UC", effects: ["Bônus básicos de sobrevivência"], passive: "—", tip: "Espírito inicial comum.", obtain: "Concedido no início do jogo." },
+  { key: "snowfox", name: "Snow Fox", title: "Raposa de Cauda Tripla", rarity: "UC", effects: ["CRIT DMG Reduction −10%", "Boss DMG Reduction −6%"], passive: "30% de chance de ativar Evade instantaneamente", tip: "Evasão defensiva para iniciantes.", obtain: "Drops de eventos iniciais." },
+  // ---------- Raro ----------
+  { key: "raro-placeholder", name: "Espíritos Raros", title: "Raridade Raro", rarity: "Raro", effects: ["Atributos superiores aos UC", "Habilidades passivas mais fortes", "Bônus de farm aprimorados"], passive: "Variam por espírito — consulte a tela de invocação", tip: "Obtidos em summons com tickets e eventos; base dos builds de meio de jogo.", obtain: "Invocação com tickets Raros; drops de raids de clã e eventos rotativos." },
+  // ---------- Épico ----------
+  { key: "epico-placeholder", name: "Espíritos Épicos", title: "Raridade Épico", rarity: "Épico", effects: ["Atributos elevados de ATK/HP/DEF", "Passivas de alto impacto", "Bônus de EXP e Drop significativos"], passive: "Variam por espírito — ex.: Biyoho e Reaper (versões superiores)", tip: "Farmáveis via Epic Dragon Statues dos Clan Boss semanais e eventos.", obtain: "Epic Dragon Statues dos Clan Boss semanais; eventos e summons Épicos." },
+  // ---------- Lendário ----------
+  { key: "lulu", name: "Lulu", title: "a Felina Encantada", rarity: "Lendário", effects: ["Atributos de nível lendário", "Habilidade definitiva poderosa"], passive: "Varia conforme a versão do evento", tip: "Obtida em eventos de invocação lendária rotativos — fique atento aos patches.", obtain: "Eventos de invocação Lendária rotativos (patches sazonais)." },
+  { key: "wooska", name: "Wooska", title: "Príncipe Herdeiro das Trevas", rarity: "Lendário", effects: ["Atributos de nível lendário", "Habilidade definitiva poderosa"], passive: "Varia conforme a versão do evento", tip: "Evento de invocação encerrado; lendários sazonais voltam com frequência.", obtain: "Evento de invocação encerrado; lendários sazonais costumam retornar em patches." },
+  { key: "lendario-placeholder", name: "Espíritos Lendários", title: "Raridade Lendário", rarity: "Lendário", effects: ["Styx (L) e Goldking (L): melhores core spirits do jogo", "Atributos esmagadores", "Passivas de raid"], passive: "Consulte a tela de invocação e tier lists por classe", tip: "Concentre resources neles primeiro: são os slots 1 e 2 do seu build.", obtain: "Eventos de invocação Lendária (Styx L e Goldking L); summons premium." },
+  // ---------- Mítico ----------
+  { key: "mitico-placeholder", name: "Espíritos Míticos", title: "Raridade Mítico", rarity: "Mítico", effects: ["Raridade acima do Lendário (desde 2025)", "Atributos esmagadores", "Skills definitivas exclusivas"], passive: "Varia por espírito", tip: "Topo da cadeia — obtidos em summons lendários e eventos premium.", obtain: "Summons lendários, eventos premium e trocas de longo prazo." },
+];
+
+/** Itens do Codex que o usuário pode marcar como coletados. */
+export interface CodexItem {
+  key: string;
+  name: string;
+  category: string;
+  rarity: Rarity;
+  tier: number;
+  tip: string;
+}
+
+export const CODEX_CATEGORIES = [
+  "Equipamentos",
+  "Materiais",
+  "Consumíveis",
+  "Colecionáveis",
+  "Badges de Reputação",
+] as const;
+
+export const CODEX_ITEMS: CodexItem[] = [
+  // Equipamentos UC tier 1 (mais fáceis de registrar)
+  { key: "uc-weapon-t1", name: "Arma UC Tier 1", category: "Equipamentos", rarity: "UC", tier: 1, tip: "Farma em Secret Mine e áreas de caça de nível baixo." },
+  { key: "uc-armor-t1", name: "Armadura UC Tier 1", category: "Equipamentos", rarity: "UC", tier: 1, tip: "Drops comuns de mobs; base do codex F2P." },
+  { key: "uc-acc-t1", name: "Acessório UC Tier 1", category: "Equipamentos", rarity: "UC", tier: 1, tip: "Bicheon Labyrinth e Crystalline Forest." },
+  { key: "uc-jewel-t1", name: "Joia UC Tier 1", category: "Equipamentos", rarity: "UC", tier: 1, tip: "Drops de mini-bosses de nível baixo." },
+  { key: "uc-relic-t1", name: "Relíquia UC Tier 1", category: "Equipamentos", rarity: "UC", tier: 1, tip: "Mysteries e baús de missão." },
+  // Materiais
+  { key: "uc-magicstone", name: "Magic Stone UC", category: "Materiais", rarity: "UC", tier: 1, tip: "Magic Stone Chambers do Magic Square." },
+  { key: "uc-flower-oil", name: "Flower Oil", category: "Materiais", rarity: "UC", tier: 1, tip: "Bicheon Labyrinth 3F — usado em Constitution." },
+  { key: "uc-blue-devil", name: "Blue Devil Stone", category: "Materiais", rarity: "UC", tier: 1, tip: "Bicheon Labyrinth 3F." },
+  { key: "uc-enhance", name: "Enhancement Stone UC", category: "Materiais", rarity: "UC", tier: 1, tip: "Drops em quase todas as áreas de caça." },
+  { key: "uc-skilltome", name: "Skill Tome UC", category: "Materiais", rarity: "UC", tier: 1, tip: "Leader's Chambers do Magic Square." },
+  { key: "uc-quintessence", name: "Quintessence UC", category: "Materiais", rarity: "UC", tier: 1, tip: "Crystalline Forest." },
+  { key: "uc-exorcism", name: "Exorcism Bauble", category: "Materiais", rarity: "UC", tier: 1, tip: "Crystalline Forest." },
+  { key: "uc-dragon-leather", name: "Dragon Leather", category: "Materiais", rarity: "UC", tier: 1, tip: "Crystalline Forest — usado para craftar armadura UC." },
+  { key: "uc-greater-yang", name: "Greater Yang Pill", category: "Materiais", rarity: "UC", tier: 1, tip: "Demon Bull Labyrinth — usado em Inner Force." },
+  { key: "uc-unihorn", name: "Unihorn Slice", category: "Materiais", rarity: "UC", tier: 1, tip: "Demon Bull Labyrinth — boost de Constitution." },
+  // Consumíveis
+  { key: "uc-heal-potion", name: "Poção de Cura UC", category: "Consumíveis", rarity: "UC", tier: 1, tip: "Craft e drops básicos; registre sempre." },
+  { key: "uc-energy-box", name: "Caixa de Energia 100K", category: "Consumíveis", rarity: "UC", tier: 1, tip: "Craft com Red Energy — também vendável no Mercado." },
+  // Colecionáveis
+  { key: "soul-orb", name: "Magical Soul Orb", category: "Colecionáveis", rarity: "UC", tier: 1, tip: "Primeiro item do Collection Codex (2024) — coletado automaticamente." },
+  // Badges
+  { key: "uc-rep-badge", name: "Badge de Reputação UC", category: "Badges de Reputação", rarity: "UC", tier: 1, tip: "Missões de reputação; combine badges que você não usa." },
+  { key: "r-rep-badge", name: "Badge de Reputação Rara", category: "Badges de Reputação", rarity: "Raro", tier: 2, tip: "Missões de reputação avançadas; priorize completar." },
+];
+
+export interface CodexBonus {
+  completion: string;
+  bonus: string;
+}
+
+export const CODEX_BONUSES: CodexBonus[] = [
+  { completion: "Categoria 25%", bonus: "Bônus iniciais de atributos (ATK/DEF/HP)" },
+  { completion: "Categoria 50%", bonus: "Aumento de CRIT DMG e Hunting EXP" },
+  { completion: "Categoria 75%", bonus: "Lucky Drop Chance e bônus de EXP" },
+  { completion: "Categoria 100%", bonus: "Bônus máximos da categoria + EXP bônus" },
+  { completion: "A cada 8 tiers", bonus: "Bônus especiais e grande quantidade de EXP" },
+];
+
+export const CODEX_RANKING: { rank: string; buff: string }[] = [
+  { rank: "1º", buff: "+5% Hunting EXP, +5% Lucky Drop" },
+  { rank: "2º", buff: "+4% Hunting EXP, +4% Lucky Drop" },
+  { rank: "3º", buff: "+3% Hunting EXP, +3% Lucky Drop" },
+  { rank: "4º–10º", buff: "+2% Hunting EXP, +2% Lucky Drop" },
+  { rank: "11º–20º", buff: "+1,5% Hunting EXP, +1,5% Lucky Drop" },
+  { rank: "21º–50º", buff: "+1,2% Hunting EXP, +1,2% Lucky Drop" },
+  { rank: "51º–100º", buff: "+1% Hunting EXP, +1% Lucky Drop" },
+  { rank: "101º–200º", buff: "+0,8% Hunting EXP, +0,8% Lucky Drop" },
+  { rank: "201º–500º", buff: "+0,5% Hunting EXP, +0,5% Lucky Drop" },
+];
+
+export interface FarmSpot {
+  key: string;
+  name: string;
+  area: string;
+  level: string;
+  highlights: string[];
+  pvp: boolean;
+  note: string;
+}
+
+export const FARM_SPOTS: FarmSpot[] = [
+  { key: "necropolis", name: "Nefariox Necropolis", area: "Bicheon", level: "20–26", highlights: ["Kills rápidas", "Bom início de AFK"], pvp: false, note: "Troque de canal se estiver lotado; [Elite] 2F dá mais EXP." },
+  { key: "bicheon-labyrinth", name: "Bicheon Labyrinth 3F", area: "Bicheon", level: "~26", highlights: ["Magic Stones UC", "Skill Tomes", "Enhancement Stones"], pvp: false, note: "4 andares que chegam a monstros nível 70+." },
+  { key: "crystalline-forest", name: "Crystalline Forest", area: "Bicheon", level: "~30", highlights: ["Quintessence UC", "Dragon Leather", "Ancient Dragon Tokens"], pvp: false, note: "Mini-bosses dão boa EXP; troque canal se lotado." },
+  { key: "demon-bull-temple", name: "Demon Bull Temple 1F", area: "Bicheon Valley", level: "31–35", highlights: ["Linear e seguro", "Bom para AFK longo"], pvp: false, note: "Ideal até o fim dos 30s." },
+  { key: "demon-bull-labyrinth", name: "Demon Bull Labyrinth", area: "Bicheon", level: "30–80", highlights: ["Greater Yang Pill", "Unihorn Slice", "Adamant Axe"], pvp: false, note: "[Elite] Demon Bull Temple 1F para mobs 32+." },
+  { key: "bicheon-valley", name: "Bicheon Valley 1F/2F", area: "Bicheon", level: "40–45", highlights: ["Combine com Main Quest", "Secret Peak", "Magic Square"], pvp: false, note: "Pode levar até 5 dias F2P apenas com EXP." },
+  { key: "secret-passage", name: "Bicheon Valley Secret Passage 1–3", area: "Bicheon Valley", level: "31–75", highlights: ["Drops valiosos no fundo"], pvp: true, note: "Zona PvP — leve 10k+ poções e use Vigor ativo." },
+  { key: "snake-pit", name: "Snake Pit", area: "Snake Pit", level: "45–60", highlights: ["Serpentes em bandos", "Ótimo para AOE"], pvp: false, note: "Fique perto da entrada do Crystalline Mountain." },
+  { key: "snake-valley", name: "Snake Valley F3/F4", area: "Snake Pit", level: "61–95", highlights: ["Spot de mineração famoso", "~12k Darksteel/h AFK", "Rochas raras"], pvp: true, note: "Nível alto desencoraja PvP casual; ótimo para Darksteel." },
+  { key: "crystalline-mountain", name: "Crystalline Mountain", area: "Snake Pit", level: "70+", highlights: ["Farm endgame inicial"], pvp: true, note: "Área deserta e de mineração." },
+  { key: "phantasia", name: "Phantasia Desert", area: "Phantasia", level: "~100", highlights: ["Ervas de nível médio", "Progressão média"], pvp: true, note: "Progressão para o Sabuk." },
+  { key: "sabuk", name: "Sabuk Castle", area: "Sabuk", level: "105+", highlights: ["PvP histórico", "Farm forte"], pvp: true, note: "Território disputado entre clãs." },
+  { key: "nine-dragon", name: "Nine Dragon Ice Field", area: "Sabuk", level: "130+", highlights: ["Ervas lendárias", "Endgame"], pvp: true, note: "Azureum e Eternal Snow Panax nesta região." },
+  { key: "mirage-ship", name: "Mirage Ship (World 2)", area: "World 2", level: "143+", highlights: ["Nível máximo 200", "Bosses Deity GEN"], pvp: true, note: "Heaven's Way Peak e Illusion Temple (World 5)." },
+];
+
+export const MAGIC_SQUARE_CHAMBERS: { name: string; chance: string; purpose: string; pvp: boolean }[] = [
+  { name: "Experience I–III", chance: "4,4% cada", purpose: "Farm de EXP", pvp: true },
+  { name: "Training I–III", chance: "4,4% cada", purpose: "EXP sem PvP (ideal para nível baixo)", pvp: false },
+  { name: "Gold I–III", chance: "4,4% cada", purpose: "Copper", pvp: true },
+  { name: "White Silver I–III", chance: "4,4% cada", purpose: "Old Silver e materiais", pvp: true },
+  { name: "Magic Stone I–III", chance: "4,4% cada", purpose: "Pedras mágicas", pvp: true },
+  { name: "Leader's I–III", chance: "4,4% cada", purpose: "Chefes com materiais de Skill Tomes", pvp: true },
+  { name: "Mining", chance: "4,4%", purpose: "Nodos de minério", pvp: true },
+  { name: "Gathering", chance: "4,4%", purpose: "Nodos de plantas/ervas", pvp: true },
+  { name: "Energy", chance: "4,4%", purpose: "Nodos de energia", pvp: true },
+  { name: "Dark Steel", chance: "2,2%", purpose: "Darksteel (PvP ativo, nodos épicos/lendários)", pvp: true },
+  { name: "Treasure", chance: "2,2%", purpose: "Tesouros", pvp: true },
+  { name: "Protection", chance: "2,2%", purpose: "Baú guardado (multiplayer)", pvp: true },
+  { name: "Cooperation", chance: "2,2%", purpose: "2 baús guardados (multiplayer)", pvp: true },
+  { name: "Sealing", chance: "2,2%", purpose: "Baú de 60s (interrompível por outros)", pvp: true },
+  { name: "Demon's", chance: "2,2%", purpose: "Chefe com shards", pvp: true },
+];
+
+export const BOSS_RESPAWN = [
+  { boss: "Leader's Chamber I", time: "A cada 30 minutos" },
+  { boss: "Leader's Chamber II", time: "A cada 45 minutos" },
+  { boss: "Leader's Chamber III", time: "A cada 3 horas (03, 06, 09, 12, 15, 18, 21, 00 UTC+8)" },
+];
+
+export interface GameClass {
+  key: string;
+  name: string;
+  role: string;
+  gender: string;
+  image: string;
+  description: string;
+  strengths: string[];
+  weaknesses: string[];
+  skills: { name: string; desc: string }[];
+  combos: string[];
+  strategy: string;
+  build: { title: string; desc: string }[];
+}
+
+export const CLASSES: GameClass[] = [
+  {
+    key: "warrior",
+    name: "Warrior",
+    role: "Tanque",
+    gender: "Masculino",
+    image: "/manus-storage/class-warrior_b55b2474.jpg",
+    description: "O Warrior é o tanque clássico do MIR4: melhor sustentação e sobrevivência do jogo, com defesa e HP elevados. Ideal para iniciantes e para puxar aggro de bosses em raids.",
+    strengths: ["Melhor sobrevivência do jogo", "Alta defesa e HP", "CC e debuffs fortes", "Seguro para farm AFK"],
+    weaknesses: ["Baixa mobilidade", "Sem dano mágico", "Menos DPS que Lancer"],
+    skills: [
+      { name: "Dragon Flame", desc: "Ultimate: infunde ATK com Chi Fire; o ambiente arde e o Warrior ganha boost de dano." },
+      { name: "Splitting Slash", desc: "Cancela skills inimigas, abrindo espaço para contra-ataque." },
+      { name: "Iron Shackle", desc: "Puxa inimigos na direção do Warrior com baixo custo." },
+      { name: "Unbreakable Stance", desc: "Pequeno AOE com boost imenso de ATK e evasão." },
+      { name: "Barbaric Charge / Void Slash / Ground Smash / Gale Slash / Lion's Roar", desc: "Sequência de limpeza de mobs." },
+      { name: "Riposte / Body Check / Crescent Strike", desc: "Habilidades de combo contra elites." },
+    ],
+    combos: [
+      "Limpar mobs (Bar 1): Barbaric Charge → Berserk → Void Slash → Ground Smash → Gale Slash → Lion's Roar",
+      "Contra elites (Bar 2): Crescent Strike → Body Check → Splitting Slash → Riposte / Iron Shackle / Unbreakable Stance",
+    ],
+    strategy: "Organize suas barras para capitalizar o dano: Bar 1 foca em CC e eliminação de mobs iniciais, Bar 2 em elites com taunt (Riposte), pull (Iron Shackle) e evasão (Unbreakable Stance).",
+    build: [
+      { title: "PvE / Raids", desc: "Foque HP e DMG Reduction; use Inferno ou Darknyan como spirit de sobrevivência. Set de EXP (Hunting EXP) para levelar; espíritos com Lucky Drop para farm." },
+      { title: "PvP", desc: "Priorize PvP ATK e debuff Success; Grifforse é o spirit inicial ideal. Leve poções de HP em abundância — sua mobilidade é baixa." },
+      { title: "Farm AFK", desc: "Combos de mobs longos na Bar 1 e espíritos de EXP (Khalion + Koiga). Áreas PvE seguras: Demon Bull Temple 1F, Crystalline Forest." },
+    ],
+  },
+  {
+    key: "sorcerer",
+    name: "Sorcerer",
+    role: "DPS Mágico",
+    gender: "Feminino",
+    image: "/manus-storage/class-sorcerer_9257ccb9.jpg",
+    description: "A Sorcerer domina o dano mágico à distância e o AOE, com forte controle de multidão. É extremamente frágil no corpo a corpo, exigindo posicionamento constante.",
+    strengths: ["Maior dano mágico/AOE", "Forte controle de multidão", "Adaptável a quase qualquer situação", "Spells de suporte"],
+    weaknesses: ["Frágil no corpo a corpo", "Sem sustentação", "Vulnerável a engajamentos rápidos"],
+    skills: [
+      { name: "Dragon Tornado", desc: "Ultimate: tornado de fogo devastador em área." },
+      { name: "Frozen Block", desc: "Congela o corpo e dá imunidade temporária; atacantes também são congelados." },
+      { name: "Chain Lightning", desc: "AOE elétrico que atinge o alvo e inimigos ao redor." },
+      { name: "Dark Vortex", desc: "Abre um portal dimensional que suga inimigos próximos." },
+      { name: "Frost Orb + Flame Orb", desc: "Slow + burst: a combinação clássica da classe." },
+      { name: "Blizzard / Flame Strike", desc: "Finaliza mobs e desgasta elites à distância." },
+    ],
+    combos: [
+      "Combo padrão: Frost Orb (slow) → Flame Orb (burst) → Chain Lightning / Blizzard para limpar",
+      "Defesa: Frozen Block quando focada + Flame Strike de contra-ataque",
+    ],
+    strategy: "Mantenha sempre a distância máxima. Aplique Frost Orb para reduzir velocidade, então exploda com Flame Orb e skills de burst. Use Frozen Block quando for focada pelo inimigo.",
+    build: [
+      { title: "PvE / Raids", desc: "Skill ATK e Skill DMG Reduction; Chain Lightning e Dragon Tornado em destaque. Espíritos de CRIT (Suparna, Reaper) aumentam o burst." },
+      { title: "PvP", desc: "Priorize CRIT DMG e Skill CD Reduction; Whaley estende seus CCs. Frozen Block é sua principal ferramenta de sobrevivência." },
+      { title: "Farm AFK", desc: "Frost Orb + Flame Orb para limpar mobs à distância com segurança; Khalion como espírito de EXP acelera o levelamento." },
+    ],
+  },
+  {
+    key: "arbalist",
+    name: "Arbalist",
+    role: "DPS Físico à Distância",
+    gender: "Feminino",
+    image: "/manus-storage/class-arbalist_05cdc1ee.jpg",
+    description: "A Arbalist é o DPS físico à distância: alta mobilidade, engaja e desengaja rápido, e seus ataques atravessam alvos. Seu dano crítico melhora ao focar um único alvo por vez.",
+    strengths: ["Alta mobilidade", "Engaja/desengaja rápido", "Ataques perfurantes", "Segura para AFK farm"],
+    weaknesses: ["Menos AOE que Sorcerer", "Depende de posicionamento", "DPS máximo exige foco em alvo único"],
+    skills: [
+      { name: "Arrow Rain", desc: "Ultimate: chuva de flechas em área que debilita inimigos." },
+      { name: "Cloaking", desc: "Invisibilidade; ataques a partir dela causam mais dano." },
+      { name: "Illusion Arrow / Burst Shell", desc: "Teleporte e ataque rápido — mobilidade de combate." },
+      { name: "Flash Arrow", desc: "Ataque de stun que abre contra-ataques para aliados." },
+    ],
+    combos: [
+      "Farm de alvo único: posicione inimigos em linha → Flash Arrow → dano perfurante CRIT",
+      "Burst com Cloaking: ative invisibilidade → ataque crítico → Burst Shell para reposicionar",
+    ],
+    strategy: "Alinhe inimigos para ataques perfurantes, mantenha distância máxima e use Cloaking antes de burst. É a melhor classe para farmar EXP como subclasse.",
+    build: [
+      { title: "PvE / Raids", desc: "CRIT ATK e ATK Físico; Arrow Rain como ultimate de burst. Espíritos de EXP + Lucky Drop (Khalion, Biyoho) maximizam o farm." },
+      { title: "PvP", desc: "Foque mobilidade e CRIT DMG; Cloaking + Flash Arrow permitem abrir e fechar engajamentos. Atire de fora do alcance melee." },
+      { title: "Farm AFK", desc: "A melhor subclasse de EXP: alinhe os mobs em fileira para ataques perfurantes e deixe o auto-questing trabalhar." },
+    ],
+  },
+  {
+    key: "taoist",
+    name: "Taoist",
+    role: "Suporte / Curandeiro",
+    gender: "Feminino",
+    image: "/manus-storage/class-taoist_87d085ab.jpg",
+    description: "A Taoist é a curandeira/suporte: a melhor cura do jogo, buffs defensivos e CC decente no melee. Tem curva de aprendizado maior por exigir equilíbrio entre cura e dano.",
+    strengths: ["Melhor cura do jogo", "Buffs defensivos em área", "CC e melee decentes", "Revive aliados"],
+    weaknesses: ["DPS melee menor que Warrior", "Menos durável que Lancer", "Curva de aprendizado maior"],
+    skills: [
+      { name: "Ray of Light", desc: "Ultimate: raio de luz que ataca tudo à frente." },
+      { name: "Heal", desc: "A melhor cura do jogo — afeta a Taoist e os aliados." },
+      { name: "Guardian Circle", desc: "Boost de defesa física em área para a Taoist e aliados." },
+      { name: "Expulsion Circle", desc: "Resistência a dano mágico — útil contra Sorcerers." },
+      { name: "Sunbeam Sword / Moonlight Wave", desc: "Starters de combo de dano direto." },
+      { name: "Moonlight Orb / Tai Chi", desc: "CC que abre espaço para curas de emergência." },
+      { name: "Greater Heal", desc: "Revive aliados — essencial em raids." },
+    ],
+    combos: [
+      "Dano: Sunbeam Sword → Moonlight Wave → Moonlight Orb (CC)",
+      "Suporte: Heal + Guardian Circle mantidos; Greater Heal para revives",
+    ],
+    strategy: "Domine a rotação de cura primeiro (Heal + Guardian Circle + Greater Heal), depois integre Sunbeam Sword e Moonlight Wave para dano. Em raids, priorize a sobrevivência do grupo.",
+    build: [
+      { title: "PvE / Raids", desc: "Cura e buffs defensivos em prioridade; Greater Heal é indispensável. Nyanja ou Darknyan aumentam a sobrevivência do grupo." },
+      { title: "PvP", desc: "Moonlight Orb (CC) + Expulsion Circle (anti-Sorcerer); mantenha Guardian Circle ativo. Você é prioridade de alvo — use posição recuada." },
+      { title: "Farm AFK", desc: "Solari ou Khalion para EXP e drop; rotação de cura mantida e Sunbeam Sword/Moonlight Wave para o dano passivo." },
+    ],
+  },
+  {
+    key: "lancer",
+    name: "Lancer",
+    role: "DPS Híbrido",
+    gender: "Masculino",
+    image: "/manus-storage/class-lancer_d7a4f100.jpg",
+    description: "O Lancer tem o maior DPS do jogo: híbrido melee/magia com alcance médio e altíssima mobilidade. Sua durabilidade é menor que a do Warrior, então não é tanque de raid.",
+    strengths: ["Maior DPS do jogo", "Altíssima mobilidade", "Alcance médio versátil", "CC e debuffs fortes"],
+    weaknesses: ["Menos durável que Warrior", "Curva de aprendizado alta", "Rotação exige precisão"],
+    skills: [
+      { name: "Dragon Spear", desc: "Ultimate: invencibilidade durante o cast + knockdown no alvo." },
+      { name: "Ravaging Blow", desc: "Melhor starter de combo: stun + redução de velocidade." },
+      { name: "Crescent Blade", desc: "Finisher com alta chance de knockdown, reiniciando combos." },
+      { name: "Double Strike", desc: "Dano extra em inimigos chilled/stunned + buff de ATK." },
+      { name: "Ascending Dragon", desc: "Combo consistente com Ravaging Blow para kills rápidas." },
+    ],
+    combos: [
+      "Rotação principal: Ravaging Blow → Ascending Dragon → Crescent Blade / Double Strike",
+      "Burst defensivo: Dragon Spear (invencível no cast) para abrir combo pesado",
+    ],
+    strategy: "Nivele todas as skills igualmente para DPS consistente. Use Ravaging Blow + Ascending Dragon como rotação principal, finalizando com Crescent Blade ou Double Strike contra alvos controlados.",
+    build: [
+      { title: "PvE / Raids", desc: "ATK físico/mágico equilibrado (híbrido) e Skill CD Reduction; Dragon Spear como burst de invencibilidade. Nivele todas as skills por igual." },
+      { title: "PvP", desc: "CRIT e debuff Success; Ravaging Blow abre quase todo o combo. Dragon Spear garante janelas de invencibilidade em trocas." },
+      { title: "Farm AFK", desc: "Máximo DPS: Ravaging Blow → Ascending Dragon → Crescent Blade em loop; Khalion/Koiga de EXP aceleram a progressão." },
+    ],
+  },
+];
+
+export interface Currency {
+  name: string;
+  obtain: string;
+  use: string;
+}
+
+export const CURRENCIES: Currency[] = [
+  { name: "Copper (Cobre)", obtain: "Caça, Gold Chambers do Magic Square", use: "Reparos e compras básicas" },
+  { name: "Energy (Energia)", obtain: "Coleta de ervas/minérios, caixas craftadas", use: "Crafting e trocas" },
+  { name: "Darksteel (Aço Negro)", obtain: "Mineração, eventos, achievements", use: "Upgrades, crafting, conversão em DRACO" },
+  { name: "Dragonsteel", obtain: "Drops raros, mineração avançada", use: "Crafting lendário e eventos" },
+  { name: "Gold (Ouro)", obtain: "Vendas no Mercado (nível 40+)", use: "Comércio entre jogadores" },
+  { name: "Clan Coins", obtain: "Atividades de clã", use: "Loja do clã (fundos, itens)" },
+];
+
+export interface EconomyTip {
+  title: string;
+  desc: string;
+}
+
+export const ECONOMY_TIPS: EconomyTip[] = [
+  { title: "AFK mining em horários de pico baixo", desc: "Farme de madrugada ou fora do horário de pico; escolha spots remotos e fique perto de monstros para o aggro deles 'proteger' sua mineração." },
+  { title: "Red Energy = ouro sem mineração", desc: "Farme energia vermelha, crafte caixas de 100K/1M de energia e venda no Mercado — uma forma consistente de ouro sem entrar em zona PvP de mina." },
+  { title: "Achievements e eventos", desc: "Complete achievements rotineiramente (dão Darksteel) e participe de eventos rotativos, que distribuem recursos premium." },
+  { title: "Compare ervas vs minérios", desc: "Antes de decidir o que farmar, compare o preço atual do Mercado: minérios raros geralmente valem mais, mas ervas endgame (Eternal Snow Panax, Azureum) são valiosas." },
+  { title: "Economia de clã", desc: "Clãs acumulam Fundo, Blacksteel, Energia e Ouro de Clã para Expedition Bosses e conquistas. Clãs fortes distribuem Epic Dragon Statues nos boss raids semanais." },
+  { title: "Cuidado com golpes", desc: "Nunca confie em 'trocas diretas' fora do Mercado oficial; verifique os itens antes de confirmar transações. O jogo pune RMT, bots e account sharing." },
+  { title: "DRACO: conversão e contexto", desc: "100.000 Darksteel = 1 DRACO via smelting. No auge (2021–2022) o DRACO valia centenas de dólares; o valor caiu drasticamente desde então. Hoje o foco voltou ao uso in-game do Darksteel." },
+];
+
+export const SECTION_IMAGES = {
+  hero: "/manus-storage/mir4-hero_fde93d36.jpg",
+  spirits: "/manus-storage/section-spirits_4e1ae361.jpg",
+  codex: "/manus-storage/section-codex_35552f7d.jpg",
+  farm: "/manus-storage/section-farm_bc0d668a.jpg",
+  economy: "/manus-storage/section-economy_94d8f7ab.jpg",
+};

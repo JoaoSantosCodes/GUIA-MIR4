@@ -1,17 +1,10 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +18,38 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Favorites saved by authenticated users.
+ * `itemId` is a stable string key, e.g. "spirit:styx" or "farm:snake-valley".
+ */
+export const favorites = mysqlTable(
+  "favorites",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    itemId: varchar("itemId", { length: 120 }).notNull(),
+    itemType: mysqlEnum("itemType", ["spirit", "codex", "farm", "class", "economy"]).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_itemId").on(t.userId, t.itemId)],
+);
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;
+
+/**
+ * Codex collection progress per user: which codex item IDs were marked collected.
+ */
+export const codexProgress = mysqlTable(
+  "codex_progress",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    itemId: varchar("itemId", { length: 120 }).notNull(),
+    collectedAt: timestamp("collectedAt").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_itemId").on(t.userId, t.itemId)],
+);
+
+export type CodexProgress = typeof codexProgress.$inferSelect;
+export type InsertCodexProgress = typeof codexProgress.$inferInsert;
