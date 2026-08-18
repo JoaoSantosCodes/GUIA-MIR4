@@ -18,6 +18,9 @@ const SCENARIO_META: Record<string, { icon: React.ReactNode; color: string }> = 
 const CLASS_IMAGES: Record<string, string> = {
   warrior: "/manus-storage/class-warrior_b55b2474.jpg",
   sorcerer: "/manus-storage/class-sorcerer_9257ccb9.jpg",
+  arbalist: "/manus-storage/class-arbalist_05cdc1ee.jpg",
+  taoist: "/manus-storage/class-taoist_87d085ab.jpg",
+  lancer: "/manus-storage/class-lancer_d7a4f100.jpg",
 };
 
 export default function Subclasses() {

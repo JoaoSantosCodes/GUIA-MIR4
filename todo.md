@@ -222,4 +222,12 @@
 - [x] Registro em sessão: appendAchievementHistory com source "session" e data exata ao desbloquear + backfill retro no mount (achievementRetroDates.ts: reconstrói datas por N-ésima coleta/última coleta da raridade/categoria, dedupe key+data)
 - [x] Atualizar a skill reutilizável (game-guide-builder) com placar unificado, histórico de conquistas com datas retro e banner de novidades acumuladas — validada (quick_validate.py: Skill is valid)
 - [x] Testes vitest (110 aprovados, incl. 11 novos: achievementRetroDates + celebrationHistory) + screenshots verificados
-- [ ] Checkpoint e entrega
+- [x] Checkpoint salvo (79a76aae) e entregue — versão já publicada em produção (auto-publish ativo)
+
+## Nova funcionalidade: melhorias no histórico de conquistas + validação de classes
+
+- [x] Botão de compartilhamento no histórico de conquistas (HistoryCardDialog: exportHistoryCard com até 6 medalhas — data, tipo Codex/Dica de Ouro e contador de Dicas de Ouro; Compartilhar via menu nativo → Copiar → Baixar PNG; avatar e tema personalizáveis)
+- [x] Filtros de ordenação no histórico de conquistas: pills Codex/Dicas de Ouro/Todas + ordenação Mais recente/Raridade primeiro (filteredHistory), com estado vazio contextual quando o filtro não retorna medalhas
+- [x] Efeito sonoro suave (playAchievementSound) + confete (AchievementConfetti) quando o banner de conquistas acumuladas aparecer, respeitando readCelebrationEnabled() e prefers-reduced-motion
+- [x] Validar conteúdo de classes: as 5 classes (Warrior, Sorcerer, Taoist, Lancer, Arbalist) presentes com skills, combos, builds e subclasses em /classes e /subclasses (verificado via screenshots); corrigido o seletor de Subclasses — Taoist, Lancer e Arbalist agora exibem retrato próprio (CLASS_IMAGES completo; URLs validadas no storage)
+- [x] Testes vitest (112 aprovados, incl. 2 novos para exportHistoryCard) + screenshots verificados (perfil com filtros/botão, classes com 5 retratos) — checkpoint e entrega

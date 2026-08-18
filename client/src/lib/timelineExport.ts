@@ -615,3 +615,75 @@ export async function exportAchievementCard({
   if (!drawTo) await downloadCanvas(canvas, "conquista");
   onDone?.();
 }
+
+export interface HistoryEntryCardData {
+  key: string;
+  title: string;
+  icon: string;
+  unlockedAt: number;
+  type: "codex" | "gold";
+}
+
+/**
+ * Exporta um card resumindo o histórico de conquistas do usuário: medalhas do
+ * Codex e Dicas de Ouro, cada uma com a data de desbloqueio.
+ */
+export async function exportHistoryCard({
+  entries,
+  userName,
+  goldBadges = 0,
+  style = DEFAULT_CARD_STYLE,
+  onDone,
+  drawTo,
+}: {
+  entries: HistoryEntryCardData[];
+  userName: string;
+  goldBadges?: number;
+  style?: CardStyle;
+  onDone?: () => void;
+  drawTo?: HTMLCanvasElement;
+}): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const maxItems = Math.min(entries.length, 6);
+  const listH = Math.max(maxItems, 1) * ITEM_H + (Math.max(maxItems, 1) - 1) * GAP;
+  canvas.width = WIDTH;
+  canvas.height = HEADER_H + listH + FOOTER_H + 40;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, {
+    userName: truncate(userName, 34),
+    subtitle: "— Histórico de Conquistas",
+    badgeText: `🏆 ${entries.length} medalha${entries.length !== 1 ? "s" : ""}${goldBadges > 0 ? ` · ★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro` : ""}`,
+  });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  let y = HEADER_H;
+  for (let i = 0; i < maxItems; i++) {
+    const e = entries[i];
+    ctx.beginPath();
+    ctx.arc(MARGIN + 8, y + ITEM_H / 2, 10, 0, Math.PI * 2);
+    ctx.fillStyle = e.type === "gold" ? "#f59e0b" : "#94a3b8";
+    ctx.fill();
+    ctx.fillStyle = "#8b94a0";
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    const dateStr = new Date(e.unlockedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+    const typeLabel = e.type === "gold" ? "Dica de Ouro" : "Codex";
+    ctx.fillText(`${dateStr} · ${typeLabel}`, MARGIN + 32, y + 6);
+    ctx.fillStyle = palette.title;
+    ctx.font = "bold 22px Georgia, serif";
+    ctx.fillText(truncate(`${e.icon} ${e.title}`, 72), MARGIN + 32, y + 34);
+    y += ITEM_H + GAP;
+  }
+  if (entries.length > maxItems) {
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`e mais ${entries.length - maxItems} medalhas…`, MARGIN + 32, y + 18);
+  }
+
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "historico-conquistas");
+  onDone?.();
+}

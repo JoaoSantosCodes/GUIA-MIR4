@@ -16,6 +16,7 @@ import { backfillRetroHistory, reconstructRetroAchievements } from "@/lib/achiev
 import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo, ScrollText } from "lucide-react";
 import AchievementCardDialog from "@/components/AchievementCardDialog";
 import AchievementConfetti from "@/components/AchievementConfetti";
+import HistoryCardDialog from "@/components/HistoryCardDialog";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -225,6 +226,14 @@ function achievementTooltip(key: string, iconKey: string): string {
   const [achievementHistory, setAchievementHistory] = useState(() => readAchievementHistory());
   const [accumulatedNotices, setAccumulatedNotices] = useState<string[] | null>(null);
   const accumulatedDismissedRef = useRef(false);
+  const [showAccumulatedCelebration, setShowAccumulatedCelebration] = useState(false);
+  const accumulatedCelebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Ordem dos itens do histórico: "date" (mais recente primeiro), "rarity" (raridade primeiro) e tipo de medalha: "all" | "codex" | "gold". */
+  type HistorySort = "date" | "rarity";
+  type HistoryType = "all" | "codex" | "gold";
+  const [historySort, setHistorySort] = useState<HistorySort>("date");
+  const [historyType, setHistoryType] = useState<HistoryType>("all");
+  const [historyCardOpen, setHistoryCardOpen] = useState(false);
   const [celebrationEnabled, setCelebrationEnabled] = useState(() => readCelebrationEnabled());
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -256,8 +265,36 @@ function achievementTooltip(key: string, iconKey: string): string {
       // retro vazia mas progresso existe => tudo é novidade acumulada; senão, só as novas
       const notices = retro.length === 0 ? [] : (sinceLastVisit.length > 0 ? sinceLastVisit : brandNew).map(r => r.title);
       setAccumulatedNotices(notices.slice(0, 5));
+      // celebração da volta: som suave + confete quando houver novidades acumuladas
+      if (readCelebrationEnabled()) {
+        playAchievementSound();
+        setShowAccumulatedCelebration(true);
+        if (accumulatedCelebrationTimerRef.current) clearTimeout(accumulatedCelebrationTimerRef.current);
+        accumulatedCelebrationTimerRef.current = setTimeout(() => setShowAccumulatedCelebration(false), 2500);
+      }
     }
   }, [progress]);
+  useEffect(() => () => {
+    if (accumulatedCelebrationTimerRef.current) clearTimeout(accumulatedCelebrationTimerRef.current);
+  }, []);
+
+  /** Identifica a medalha do histórico como do Codex ou de Dicas de Ouro. */
+  const historyEntryType = (key: string): "codex" | "gold" =>
+    key.startsWith("gold-") ? "gold" : "codex";
+
+  const filteredHistory = useMemo(() => {
+    let list = achievementHistory.slice();
+    if (historyType !== "all") list = list.filter(e => historyEntryType(e.key) === historyType);
+    list.sort((a, b) => {
+      if (historySort === "rarity") {
+        const rA = /^faixa-t[2-5]$/.test(a.key) ? 0 : 1;
+        const rB = /^faixa-t[2-5]$/.test(b.key) ? 0 : 1;
+        return rA - rB || b.unlockedAt - a.unlockedAt;
+      }
+      return b.unlockedAt - a.unlockedAt;
+    });
+    return list;
+  }, [achievementHistory, historySort, historyType]);
 
   useEffect(() => {
     if (!initializedRef.current) {
@@ -663,13 +700,18 @@ function achievementTooltip(key: string, iconKey: string): string {
           role="status"
           aria-live="polite"
           className={cn(
-            "mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/70 bg-gradient-to-r from-amber-950/95 to-red-950/90 px-4 py-3 shadow-xl shadow-amber-500/25 backdrop-blur",
+            "relative mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/70 bg-gradient-to-r from-amber-950/95 to-red-950/90 px-4 py-3 shadow-xl shadow-amber-500/25 backdrop-blur",
             reducedMotion ? "" : "animate-in slide-in-from-top-4 fade-in duration-300",
           )}
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-amber-400/70 bg-amber-900/60 text-amber-300" style={{ boxShadow: "0 0 18px rgba(245,208,110,0.35)" }}>
             <ScrollText className="h-5 w-5" />
           </span>
+          {showAccumulatedCelebration && !reducedMotion && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 top-12 overflow-hidden rounded-lg">
+              <AchievementConfetti />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400">Conquistas acumuladas desde sua última visita</p>
             <p className="text-sm font-semibold text-amber-100">
@@ -689,13 +731,62 @@ function achievementTooltip(key: string, iconKey: string): string {
 
       {/* Histórico de conquistas */}
       <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
-        <h2 className="font-bold text-amber-300">Histórico de conquistas</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Todas as medalhas desbloqueadas por você, com as datas em que foram conquistadas.
-        </p>
-        {achievementHistory.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-amber-300">Histórico de conquistas</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Todas as medalhas desbloqueadas por você, com as datas em que foram conquistadas.
+            </p>
+          </div>
+          {filteredHistory.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-amber-600/60 text-amber-200 hover:bg-amber-900/40"
+              onClick={() => setHistoryCardOpen(true)}
+            >
+              <ImageDown className="mr-1.5 h-3.5 w-3.5" /> Compartilhar
+            </Button>
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1.5">
+            {(["all", "codex", "gold"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setHistoryType(t)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  historyType === t
+                    ? "border-amber-500/70 bg-amber-900/50 text-amber-200"
+                    : "border-slate-700/60 bg-slate-900/50 text-slate-400 hover:text-amber-300",
+                )}
+              >
+                {t === "all" ? `Todas (${achievementHistory.length})` : t === "codex" ? "Codex" : "Dicas de Ouro"}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ArrowUpDown className="h-3 w-3 text-slate-500" />
+            {(["date", "rarity"] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setHistorySort(s)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  historySort === s
+                    ? "border-amber-500/70 bg-amber-900/50 text-amber-200"
+                    : "border-slate-700/60 bg-slate-900/50 text-slate-400 hover:text-amber-300",
+                )}
+              >
+                {s === "date" ? "Mais recente" : "Raridade primeiro"}
+              </button>
+            ))}
+          </div>
+        </div>
+        {filteredHistory.length > 0 ? (
           <ul className="mt-4 divide-y divide-amber-900/30">
-            {achievementHistory.map(e => {
+            {filteredHistory.map(e => {
               const Icon = ACHIEVEMENT_ICONS[(e.iconKey as keyof typeof ACHIEVEMENT_ICONS) ?? "star"];
               const isRarity = /^faixa-t[2-5]$/.test(e.key);
               return (
@@ -719,9 +810,28 @@ function achievementTooltip(key: string, iconKey: string): string {
           </ul>
         ) : (
           <p className="mt-4 flex items-center gap-2 py-4 text-center text-xs text-slate-500">
-            <Medal className="h-3.5 w-3.5" /> Nenhuma conquista desbloqueada ainda — explore a página do Codex e marque seus primeiros itens!
+            <Medal className="h-3.5 w-3.5" />
+            {achievementHistory.length === 0
+              ? "Nenhuma conquista desbloqueada ainda — explore a página do Codex e marque seus primeiros itens!"
+              : "Nenhuma medalha neste filtro — ajuste o tipo ou a ordenação para ver mais medalhas."}
           </p>
         )}
+        <HistoryCardDialog
+          open={historyCardOpen}
+          onOpenChange={setHistoryCardOpen}
+          userName={user.name ?? "Aventureiro"}
+          goldBadges={goldBadges}
+          entries={filteredHistory.map(e => {
+            const entry: Record<string, string> = { book: "📖", gem: "💎", crown: "👑", sword: "⚔️", star: "⭐", sparkle: "✨" };
+            return {
+              key: e.key,
+              title: e.title,
+              icon: entry[e.iconKey ?? "star"] ?? "✨",
+              unlockedAt: e.unlockedAt,
+              type: historyEntryType(e.key),
+            };
+          })}
+        />
       </section>
 
       {/* Histórico de votos */}
