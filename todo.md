@@ -149,3 +149,12 @@
 - [x] Aba dedicada na FAQ: toggle "Apenas Dicas de Ouro" (filtro client-side sobre os dados do faq.topTips, com upvotes >= 10)
 - [x] Timeline interativa no perfil consolidando favoritos, histórico de votos e progresso do Codex em ordem cronológica (createdAt/collectedAt/votedAt, filtros por tipo Tudo/Favoritos/Votos/Codex)
 - [x] Testes vitest (62 aprovados) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: skill reutilizável, placar, notificação de medalha, exportação e redes sociais
+- [x] Criar skill reutilizável com skill-creator documentando o processo deste projeto (game-guide-builder atualizada e validada)
+- [x] Placar da comunidade: página/ranking público dos usuários com mais medalhas "Dica de Ouro" (agregação server-side via comment_votes com upvotes >= 10 — db.goldLeaderboard + community.goldLeaderboard + Leaderboard.tsx em /placar)
+- [x] Notificação visual na timeline quando dica votada pelo usuário atingir 10+ upvotes (banner de conquista + badge "Dica de Ouro" nos itens de voto na timeline)
+- [x] Botão de exportar atividades da timeline como card de imagem compartilhável (lib/timelineExport.ts: canvas → PNG 1200px com nome, medalhas e atividades)
+- [x] Ícones de redes sociais (X/Twitter, Discord, YouTube, Instagram) no footer do site
+- [x] Rotas, navegação, busca indexada e link na Home para o placar (rota /placar, GUIDE_SECTIONS, hit de busca, card na Home)
+- [x] Testes vitest (64 aprovados, incl. community.goldLeaderboard) + screenshots verificados + checkpoint e entrega

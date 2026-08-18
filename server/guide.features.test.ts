@@ -21,6 +21,7 @@ vi.mock("./db", () => ({
   setSoundAlerts: vi.fn(async () => ({ success: true, enabled: false })),
   getSoundAlerts: vi.fn(async () => false),
   listVotesByUserAndComments: vi.fn(async () => []),
+  goldLeaderboard: vi.fn(async () => []),
   getDb: vi.fn(async () => ({
     select: () => ({ from: () => ({ leftJoin: () => ({ where: async () => [] }) }) }),
   })),
@@ -61,6 +62,7 @@ beforeEach(() => {
   vi.mocked(db.setSoundAlerts).mockResolvedValue({ success: true, enabled: false });
   vi.mocked(db.getSoundAlerts).mockResolvedValue(false);
   vi.mocked(db.listVotesByUserAndComments).mockResolvedValue([]);
+  vi.mocked(db.goldLeaderboard).mockResolvedValue([]);
 });
 
 describe("favorites.toggle", () => {
@@ -677,5 +679,27 @@ describe("Medalhas Dica de Ouro e timeline", () => {
     const visible = items.filter(t => t.kind === filter);
     expect(visible).toHaveLength(1);
     expect(visible[0].kind).toBe("vote");
+  });
+});
+
+describe("community.goldLeaderboard", () => {
+  it("retorna ranking ordenado por medalhas de ouro", async () => {
+    vi.mocked(db.goldLeaderboard).mockResolvedValue([
+      { userId: 1, userName: "Lendário", goldBadges: 5 },
+      { userId: 2, userName: "Ferreiro", goldBadges: 3 },
+    ]);
+    const caller = appRouter.createCaller(createContext(null));
+    const board = await caller.community.goldLeaderboard();
+    expect(board).toHaveLength(2);
+    expect(board[0].goldBadges).toBe(5);
+    expect(board[0].userName).toBe("Lendário");
+    expect(board[1].goldBadges).toBe(3);
+    expect(db.goldLeaderboard).toHaveBeenCalledOnce();
+  });
+
+  it("lista vazia quando ninguém tem medalha", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    const board = await caller.community.goldLeaderboard();
+    expect(board).toEqual([]);
   });
 });

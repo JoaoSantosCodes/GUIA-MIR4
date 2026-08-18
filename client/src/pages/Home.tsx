@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield, Package, HelpCircle } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield, Package, HelpCircle, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -10,6 +10,15 @@ const SECTIONS = [
     icon: HelpCircle,
     title: "FAQ Comunitária",
     desc: "As melhores dicas da comunidade, classificadas automaticamente pelos votos — upvote e downvote em cada seção.",
+    image: SECTION_IMAGES.farm,
+    accent: "text-amber-400",
+  },
+  {
+    key: "placar",
+    path: "/placar",
+    icon: Trophy,
+    title: "Placar da Comunidade",
+    desc: "Ranking público dos aventureiros com mais medalhas de Dica de Ouro — veja quem são os maiores contribuidores.",
     image: SECTION_IMAGES.farm,
     accent: "text-amber-400",
   },

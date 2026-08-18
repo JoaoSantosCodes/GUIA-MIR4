@@ -35,3 +35,6 @@ export const decodeOAuthState = (state: string): OAuthState => {
   }
   return { redirectUri: decoded };
 };
+
+// Limiar de upvotes para o selo "Dica de Ouro" (compartilhado entre server e client).
+export const GOLD_TIP_UPVOTES = 10;

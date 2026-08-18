@@ -1,7 +1,8 @@
-import { eq, and, inArray, desc, isNotNull } from "drizzle-orm";
+import { eq, and, gte, inArray, desc, isNotNull } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes } from "../drizzle/schema";
+import { GOLD_TIP_UPVOTES } from "../shared/const";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -348,4 +349,27 @@ export async function getSoundAlerts(userId: number): Promise<boolean> {
   if (!db) return false;
   const rows = await db.select({ soundAlerts: users.soundAlerts }).from(users).where(eq(users.id, userId)).limit(1);
   return rows[0]?.soundAlerts === 1;
+}
+
+/**
+ * Placar da comunidade: usuários com mais medalhas "Dica de Ouro".
+ * Conta votos a favor do usuário em dicas que atualmente possuem 10+ upvotes.
+ */
+export async function goldLeaderboard() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      userId: commentVotes.userId,
+      userName: users.name,
+      goldBadges: sql<number>`count(*)`,
+    })
+    .from(commentVotes)
+    .innerJoin(farmComments, eq(commentVotes.commentId, farmComments.id))
+    .innerJoin(users, eq(commentVotes.userId, users.id))
+    .where(and(eq(commentVotes.vote, 1), gte(farmComments.upvotes, GOLD_TIP_UPVOTES)))
+    .groupBy(commentVotes.userId, users.name)
+    .orderBy(desc(sql<number>`count(*)`))
+    .limit(50);
+  return rows;
 }

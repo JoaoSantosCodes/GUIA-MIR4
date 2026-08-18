@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown, Medal, Heart, StarOff, History, BookmarkPlus } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown, Medal, Heart, StarOff, History, BookmarkPlus, ImageDown, Crown, Zap } from "lucide-react";
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
+import { exportTimelineCard } from "@/lib/timelineExport";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -110,6 +111,12 @@ export default function Profile() {
   const visibleTimeline = useMemo(
     () => timelineFilter === "all" ? timeline : timeline.filter(t => t.kind === timelineFilter),
     [timeline, timelineFilter],
+  );
+
+  /** Notificação de nova conquista: votos a favor em dicas que atingiram 10+ upvotes. */
+  const newBadges = useMemo(
+    () => (voteHistory ?? []).filter(v => v.vote === 1 && (v.upvotes ?? 0) >= GOLD_TIP_UPVOTES),
+    [voteHistory],
   );
 
   const toggleFav = trpc.favorites.toggle.useMutation({
@@ -348,8 +355,40 @@ export default function Profile() {
 
       {/* Timeline interativa */}
       <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
-        <h2 className="font-bold text-amber-300">Minha atividade</h2>
-        <p className="mt-1 text-xs text-slate-500">Favoritos, votos em dicas e progresso no Codex em ordem cronológica.</p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="font-bold text-amber-300">Minha atividade</h2>
+            <p className="mt-1 text-xs text-slate-500">Favoritos, votos em dicas e progresso no Codex em ordem cronológica.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (visibleTimeline.length === 0) {
+                toast.info("Nenhuma atividade para exportar ainda.");
+                return;
+              }
+              exportTimelineCard({
+                userName: user.name ?? "Aventureiro",
+                goldBadges,
+                items: visibleTimeline.map(t => ({ ts: t.ts, kind: t.kind, title: t.title, section: t.section })),
+                onDone: () => toast.success("Card exportado! Imagem salva na pasta de downloads."),
+              }).catch(() => toast.error("Não foi possível gerar o card."));
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-amber-600/60 bg-amber-950/50 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-900/50 active:scale-[0.97]"
+          >
+            <ImageDown className="h-3.5 w-3.5" />
+            Exportar card
+          </button>
+        </div>
+        {newBadges.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-500/50 bg-gradient-to-r from-amber-900/30 to-transparent px-3 py-2">
+            <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
+            <p className="text-xs text-amber-200">
+              <strong>{newBadges.length} dica{newBadges.length !== 1 ? "s" : ""} em que você votou</strong> {newBadges.length !== 1 ? "são" : " é"} premiad{newBadges.length !== 1 ? "as" : "a"} —
+              você ganhou medalha{newBadges.length !== 1 ? "s" : ""} de ouro! Continue apoiando as melhores dicas.
+            </p>
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {([
             { key: "all", label: "Tudo", Icon: History },
@@ -378,10 +417,17 @@ export default function Profile() {
                   <span className={cn("absolute -left-[27px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full border", t.kind === "fav" ? "border-amber-600/60 bg-amber-950/60 text-amber-400" : t.kind === "vote" ? "border-emerald-700/60 bg-emerald-950/40 text-emerald-400" : "border-slate-600/60 bg-slate-900/60 text-slate-400")}>
                     {t.kind === "fav" ? <Heart className="h-2.5 w-2.5" /> : t.kind === "vote" ? <ThumbsUp className="h-2.5 w-2.5" /> : <StarOff className="h-2.5 w-2.5" />}
                   </span>
-                  <div className={cn("rounded-md border px-3 py-2 text-sm", "border-slate-800/60 bg-black/25")}>
+                  <div className={cn("rounded-md border px-3 py-2 text-sm", t.kind === "vote" && t.commentId !== undefined && newBadges.some(b => b.commentId === t.commentId) ? "border-amber-500/60 bg-amber-950/30" : "border-slate-800/60 bg-black/25")}>
                     {linkable ? (
                       <Link href={t.path} className="block hover:text-amber-200 transition-colors">
-                        <p className="text-slate-300 line-clamp-2">{t.title}</p>
+                        <p className="text-slate-300 line-clamp-2">
+                          {t.title}
+                          {t.kind === "vote" && t.commentId !== undefined && newBadges.some(b => b.commentId === t.commentId) && (
+                            <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-amber-500/60 bg-amber-900/40 px-1.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                              <Crown className="h-2.5 w-2.5" /> Dica de Ouro
+                            </span>
+                          )}
+                        </p>
                         <p className="mt-1 text-[11px] text-slate-500">
                           {t.kind === "fav" ? "Favorito em" : t.kind === "vote" ? (t.vote === 1 ? "Votou a favor em" : t.vote === -1 ? "Votou contra em" : "Removeu voto em") : "Coletou no Codex:"} {t.section} · {new Date(t.ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                         </p>

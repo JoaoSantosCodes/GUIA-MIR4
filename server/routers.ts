@@ -166,6 +166,10 @@ export const appRouter = router({
     getSoundAlerts: protectedProcedure.query(({ ctx }) => db.getSoundAlerts(ctx.user.id)),
   }),
 
+  /** Placar da comunidade: usuários com mais medalhas "Dica de Ouro". */
+  community: router({
+    goldLeaderboard: publicProcedure.query(() => db.goldLeaderboard()),
+  }),
   /** Public shareable profile (favorites + codex progress) — no auth required. */
   share: router({
     getProfile: publicProcedure
