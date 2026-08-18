@@ -1,0 +1,1 @@
+ALTER TABLE `favorites` MODIFY COLUMN `itemType` enum('spirit','codex','farm','class','economy','boss','sabuk','mystery','seal','gear','materials') NOT NULL;

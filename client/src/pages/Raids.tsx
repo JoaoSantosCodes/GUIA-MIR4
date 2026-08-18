@@ -6,9 +6,7 @@ import FavButton from "@/components/guide/FavButton";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import {
-  Shield, Swords, Target, Skull, ChevronDown, ChevronUp, Crown, Lightbulb,
-} from "lucide-react";
+import { Shield, Swords, Target, Skull, ChevronDown, ChevronUp, Crown, Lightbulb } from "lucide-react";
 
 const DIFFICULTY_STYLES: Record<RaidDifficulty, { color: string; border: string; bg: string }> = {
   "Iniciante": { color: "text-emerald-400", border: "border-emerald-600/50", bg: "bg-emerald-950/40" },

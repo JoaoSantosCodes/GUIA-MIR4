@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -111,6 +111,15 @@ const SECTIONS = [
     desc: "Slots de equipamento, stats por tipo, custos de enhancement por estágio e o uso de Darksteel, Jade e Dragon Steel em cada grau.",
     image: "",
     accent: "text-emerald-400",
+  },
+  {
+    key: "materiais",
+    path: "/materiais",
+    icon: Package,
+    title: "Materiais & Crafting",
+    desc: "Fontes de farm de Darksteel, Copper, Jade, Dragonsteel, Divine Dragon's Soul e reagentes épicos para cada estágio do jogo.",
+    image: "",
+    accent: "text-violet-400",
   },
 ];
 

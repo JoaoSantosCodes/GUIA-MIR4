@@ -108,3 +108,13 @@
 - [x] Comentários com votação nas páginas Economia, Classes e Raids (pageKeys classes/economy/raids validados)
 - [x] Preferência de tema persistente: ThemeContext com localStorage("theme") + script inline anti-flash no index.html
 - [x] Testes vitest (31 aprovados) + screenshots desktop/mobile + checkpoint e entrega
+
+## Nova funcionalidade: compartilhamento, materiais/crafting e seletor de servidor
+- [x] Pesquisar materiais e crafting (Darksteel Seal, Jade, Dragon Steel, Blacksteel, reagentes raros, fontes de farm)
+- [x] Dados de MATERIALS em shared/guideData.ts (materiais por grau, fontes de farm, rotas de progressão) (materiais por grau e fontes de farm)
+- [x] Link público de favoritos: procedure tRPC share.getProfile (pública, via userId) + botão de copiar link no perfil
+- [x] Página compartilhada (/share/:id) com favoritos e progresso do usuário, sem login
+- [x] Página Materiais & Crafting (/materiais) com farm por material, filtros por grau e comentários
+- [x] Seletor de servidor (SA, SEA, NA, EU, Ásia) no calendário com contagem regressiva personalizada e localStorage do fuso
+- [x] Rotas, navegação, busca indexada, cards na Home e títulos no Profile para as novas páginas
+- [x] Testes vitest (39 aprovados) + screenshots desktop verificados + checkpoint e entrega

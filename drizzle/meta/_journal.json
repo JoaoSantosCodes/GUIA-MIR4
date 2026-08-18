@@ -57,6 +57,13 @@
       "when": 1787083333189,
       "tag": "0007_bizarre_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787084051120,
+      "tag": "0008_woozy_calypso",
+      "breakpoints": true
     }
   ]
 }

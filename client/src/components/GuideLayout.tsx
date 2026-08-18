@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers } from "lucide-react";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers, Package } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, ENHANCE_COSTS } from "@shared/guideData";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -38,6 +38,7 @@ export const GUIDE_SECTIONS = [
   { key: "calculadora", label: "Calculadora", path: "/calculadora" },
   { key: "subclasses", label: "Subclasses", path: "/subclasses" },
   { key: "equipamentos", label: "Equipamentos", path: "/equipamentos" },
+  { key: "materiais", label: "Materiais", path: "/materiais" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -240,6 +241,16 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       path: "/equipamentos",
     }),
   );
+  MATERIALS.forEach(m =>
+    hits.push({
+      id: `mat-${m.key}`,
+      type: "materials",
+      title: `${m.name} — Fontes: ${m.sources.join("; ")} · Usado em: ${m.usedFor.join("; ")}`,
+      section: "materials",
+      sectionLabel: "Materiais & Crafting",
+      path: "/materiais",
+    }),
+  );
   ENHANCE_COSTS.forEach(c =>
     hits.push({
       id: `enhance-${c.stage}`,
@@ -419,6 +430,7 @@ function HitIcon({ type }: { type: string }) {
     case "calc": return <Calculator className={cls} />;
     case "skills": return <Layers className={cls} />;
     case "gear": return <Gem className={cls} />;
+    case "materials": return <Package className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

@@ -5,7 +5,7 @@
 
 export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
 
-export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery" | "seal" | "gear";
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery" | "seal" | "gear" | "materials";
 
 export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
   "spirit",
@@ -1912,3 +1912,80 @@ export const GEMMING_TIPS = [
 
 /** Chave da página de equipamentos para comentários. */
 export const EQUIPMENT_PAGE_KEY = "gear" as const;
+
+/** Materiais e crafting: fontes de farm por material. */
+export interface MaterialInfo {
+  key: string;
+  name: string;
+  tier: "Common" | "Rare" | "Epic" | "Legendary" | "Mythic";
+  tierColor: string;
+  bind: boolean;
+  sources: string[];
+  usedFor: string[];
+  tip: string;
+}
+export const MATERIALS: MaterialInfo[] = [
+  { key: "darksteel", name: "Darksteel (Aço Escuro)", tier: "Common", tierColor: "text-slate-300", bind: false,
+    sources: ["Mineração ativa em spots de Darksteel (Darksteel Field)", "AFK Mining nos mapas de mineração (rendimento −20% no AFK)", "Mercado: compre com Gold ou venda itens no Exchange", "Venda de Energy Box (Red Energy crafting) no Mercado"],
+    usedFor: ["Enhancement de equipamentos (o custo cresce por estágio)", "Craft do Dragon Artifact de cada grau", "Craft do token DRACO (100.000 Darksteel + ~10% de taxa)", "Craft de Dragonsteel Seal nos estágios iniciais"],
+    tip: "Prefira farmar de madrugada ou em horários de pico baixo; clãs e zonas seguras reduzem o risco de roubo de spot." },
+  { key: "copper", name: "Copper (Cobre)", tier: "Common", tierColor: "text-slate-300", bind: false,
+    sources: ["Farm passivo de mobs em qualquer área", "Missions diárias e recompensas de AFK", "Mercado e Exchange"],
+    usedFor: ["Custos de enhancement junto com Darksteel", "Crafts básicos e trocas de NPC"],
+    tip: "Nunca é gargalo no early game — deixe acumular naturalmente durante o farm de outros recursos." },
+  { key: "glittering", name: "Glittering Powder (Pó Brilhante)", tier: "Rare", tierColor: "text-blue-400", bind: false,
+    sources: ["AFK mining em áreas de Glittering (minérios especiais)", "AFK Field de mobs em zonas de recurso raro", "Eventos sazonais e caixas de evento"],
+    usedFor: ["Craft de Eternal Coldsteel/Eternals intermediários", "Upgrade de grau de equipamento pré-Dragon Artifact"],
+    tip: "Minere Glittering quando ainda não tiver selo para Dragonsteel — é a ponte do farm intermediário." },
+  { key: "jade", name: "Jade Seal / Eternal Coldsteel", tier: "Rare", tierColor: "text-blue-400", bind: true,
+    sources: ["Craft no ferreiro: ~10 Eternal Coldsteel/Jade por Dragon Artifact raro", "Darksteel Seal Stage 2 (multiplicador de mineração 1,25×) habilita as áreas intermediárias"],
+    usedFor: ["Promoção do selo Darksteel → Jade Seal", "Multiplicador de mineração 1,55× no Jade Seal", "Craft de Dragon Artifacts de grau superior"],
+    tip: "O gargalo é o Darksteel necessário para o craft — use a Calculadora do site para estimar o tempo." },
+  { key: "dragonsteel", name: "Dragonsteel", tier: "Epic", tierColor: "text-violet-400", bind: true,
+    sources: ["NÃO é negociável no Mercado/DRACO — só vias internas", "Clan Expedition (recompensas diárias do clã)", "Fissured Magic Square (Magic Square fissurado)", "Secret Peak (assentamentos diários)", "Troca HYDRA (boss): 1 HYDRA = 10 Dragonsteel", "Lojas de eventos rotativos"],
+    usedFor: ["Pressure Points (6 pontos + refreshes de Aspiration)", "Craft de Chaotic Enhancement Stone (100 por pedra)", "Equipment Awakening (despertar lendário→mítico)", "Eternals crafted (25 por unidade)", "Cada Dragon Artifact custa 25–2.500 conforme o grau"],
+    tip: "Trate como rotina diária fixa: Expedition + Magic Square fissurado + Secret Peak todos os dias. Acumulação contínua vence farm intensivo." },
+  { key: "dragon-materials", name: "Dragon Materials (Scale, Claw, Leather, Eye, Horn, Sphere)", tier: "Epic", tierColor: "text-violet-400", bind: true,
+    sources: ["AFK de monstros épicos em zonas de boss", "Hell Raid floors altos", "Clan Expeditions e caixas de Legendary Dragon Material", "Mana Dismantling de itens épicos+"],
+    usedFor: ["Pressure Points (cada ponto exige um material específico)", "Invoke: 3 Legendary Dragon Materials → Divine Dragon's Soul", "Divine Dragon's Keys substituem qualquer material (Mana Dismantling + Shop)"],
+    tip: "Dragon Eye e Dragon Sphere têm drop mais baixo — reserve as Divine Dragon's Keys para os pontos mais difíceis." },
+  { key: "divine-soul", name: "Divine Dragon's Soul", tier: "Legendary", tierColor: "text-amber-400", bind: true,
+    sources: ["Invoke no Martial World Master (Spiritual Center): 3 Legendary Dragon Materials por tentativa", "Pity: 5 Divine Dragon's Promise Points (1 por falha) = 1 Soul garantido"],
+    usedFor: ["Despertar equipamento Lendário → Mítico (única via)"],
+    tip: "Pior caso = 15 materiais lendários por Soul; os Promise Points acumulam para a próxima tentativa." },
+  { key: "fragments", name: "Divine Dragon's Fragments", tier: "Epic", tierColor: "text-violet-400", bind: false,
+    sources: ["Desmontar (dismantle) equipamentos épicos+", "Ancient Boxes de grau Épico ou superior", "Clan Expeditions", "Hell Raid Floor 11"],
+    usedFor: ["Craft Stone of Manifest Ability (300 fragmentos por craft)", "Re-randomização do efeito único de equipamento mítico"],
+    tip: "Fonte dispersa porém estável — desmonte tudo que não usa em vez de vender." },
+  { key: "mana-beads", name: "Epic Mana Beads", tier: "Epic", tierColor: "text-violet-400", bind: false,
+    sources: ["Mana Dismantling (desmontagem mágica de itens)"],
+    usedFor: ["Trocas estáveis: Blue Dragon Statues, Blessed Mystical Piece Boxes", "Shop de recursos épicos"],
+    tip: "Uma das saídas épicos mais consistentes do jogo — mantenha o hábito do Mana Dismantling diário." },
+  { key: "chaotic-stone", name: "Chaotic Enhancement Stone", tier: "Mythic", tierColor: "text-red-400", bind: true,
+    sources: ["Craft: 5 Legendary Mystic Enhancement Stones + 5 Legendary Darkened Enhancement Stones + 1 Radiant Spacetime Powder + 1 Legendary Divine Dragon's Enhancement Stone + 100 Dragonsteel"],
+    usedFor: ["Enhancement de equipamentos míticos"],
+    tip: "Ciclo típico de 2 semanas a 1 mês: garanta Radiant Spacetime Powder via raids de alta dificuldade antes de iniciar." },
+  { key: "radiant-powder", name: "Radiant Spacetime Powder", tier: "Mythic", tierColor: "text-red-400", bind: false,
+    sources: ["Primeira vitória em raids/dungeons de alta dificuldade da temporada", "Recompensas sazonais"],
+    usedFor: ["Ingrediente do Chaotic Enhancement Stone"],
+    tip: "Verifique o estoque ANTES de começar o craft — é o ingrediente mais escasso da receita." },
+];
+/** Chave da página de materiais para comentários e favoritos. */
+export const MATERIALS_PAGE_KEY = "materials" as const;
+
+/** Regiões de servidor para ajuste de fuso no calendário.
+ *  Os horários do jogo são expressos no fuso do SERVIDOR da região; offset indica a
+ *  diferença em horas entre o fuso do servidor e o horário-local de referência da região. */
+export interface ServerRegion {
+  key: string;
+  label: string;
+  timezone: string;
+  sabukDays: string[];
+  sabukTime: string;
+}
+export const SERVER_REGIONS: ServerRegion[] = [
+  { key: "sa", label: "América do Sul (São Paulo)", timezone: "America/Sao_Paulo", sabukDays: ["Ter", "Sex"], sabukTime: "21:30" },
+  { key: "sea", label: "Sudeste Asiático (Singapore)", timezone: "Asia/Singapore", sabukDays: ["Qui"], sabukTime: "21:30" },
+  { key: "na", label: "América do Norte (Nova York)", timezone: "America/New_York", sabukDays: ["Dom", "Qua"], sabukTime: "21:30" },
+  { key: "eu", label: "Europa (Frankfurt)", timezone: "Europe/Berlin", sabukDays: ["Sáb"], sabukTime: "21:30" },
+];

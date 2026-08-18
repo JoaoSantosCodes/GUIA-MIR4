@@ -3,8 +3,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield } from "lucide-react";
+import { toast } from "sonner";
+import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -18,6 +19,7 @@ const SECTION_META: Record<string, { label: string; path: string; Icon: typeof S
   mystery: { label: "Mistérios", path: "/misterios", Icon: Sparkles },
   seal: { label: "Selos", path: "/selos", Icon: Gem },
   gear: { label: "Equipamentos", path: "/equipamentos", Icon: Shield },
+  materials: { label: "Materiais", path: "/materiais", Icon: Package },
 };
 
 export default function Profile() {
@@ -60,6 +62,11 @@ export default function Profile() {
         if (equip) return `Equipamento: ${equip.slot} (${equip.examples.join(", ")})`;
         return key ?? type;
       }
+      case "materials": {
+        const mat = MATERIALS.find(m => m.key === key);
+        if (mat) return `Material: ${mat.name}`;
+        return key ?? type;
+      }
       default: return key ?? type;
     }
   };
@@ -100,9 +107,24 @@ export default function Profile() {
             progresso no Codex.
           </p>
         </div>
-        <Button variant="outline" onClick={() => logout()} className="border-amber-700/50 text-amber-200 hover:bg-amber-900/30">
-          Sair
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const url = `${window.location.origin}/share/${user.id}`;
+              navigator.clipboard
+                .writeText(url)
+                .then(() => toast.success("Link copiado! Envie para seus amigos: " + url))
+                .catch(() => toast.error("Não foi possível copiar o link"));
+            }}
+            className="border-amber-700/50 text-amber-200 hover:bg-amber-900/30"
+          >
+            Compartilhar perfil
+          </Button>
+          <Button variant="outline" onClick={() => logout()} className="border-amber-700/50 text-amber-200 hover:bg-amber-900/30">
+            Sair
+          </Button>
+        </div>
       </div>
 
       {/* Progresso codex */}

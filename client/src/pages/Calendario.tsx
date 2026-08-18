@@ -2,7 +2,7 @@ import PageBanner from "@/components/guide/PageBanner";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Calendar, Clock, Filter, Lightbulb, Swords, Dices, Skull, RefreshCw, Repeat, Trophy } from "lucide-react";
-import { GAME_EVENTS, EVENT_CATEGORIES, type GameEvent } from "@shared/guideData";
+import { GAME_EVENTS, EVENT_CATEGORIES, SERVER_REGIONS, type GameEvent } from "@shared/guideData";
 import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Bell, BellRing } from "lucide-react";
@@ -68,28 +68,105 @@ function minutesUntil(timer: (typeof ALERT_TIMERS)[number], resetHour: number, n
   return Math.round(diffMin);
 }
 
-/** Offset do reset SA ~16:35 (usado como referência padrão do calendário). */
-const DEFAULT_RESET_HOUR = 16.58;
+/** Regiões de servidor: horários de eventos expressos no fuso do servidor da região. */
+const SERVER_RESET_HOUR = 16.58; // reset SA ~16:35 como âncora padrão
 
-function useAlerts() {
+function useSelectedRegion(): [string, (r: string) => void] {
+  const [region, setRegion] = useState(() => localStorage.getItem("serverRegion") ?? "sa");
+  const setRegionPersisted = (r: string) => {
+    localStorage.setItem("serverRegion", r);
+    setRegion(r);
+  };
+  return [region, setRegionPersisted];
+}
+
+/** Extrai componentes de data (ano, mês, dia) de um instante no fuso dado, sem parsing de string. */
+function tzDateParts(date: Date, tz: string): { y: number; m: number; d: number } {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "numeric", day: "numeric" }).formatToParts(date);
+  const g = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0);
+  return { y: g("year"), m: g("month"), d: g("day") };
+}
+
+/** Meia-noite UTC correspondente à meia-noite local do fuso tz na mesma data local do instante dado. */
+function tzMidnightReference(date: Date, tz: string): number {
+  const { y, m, d } = tzDateParts(date, tz);
+  return Date.UTC(y, m - 1, d);
+}
+
+/** Próxima ocorrência de um evento com dias da semana, dado um fuso (timezone) de servidor. */
+function nextOccurrenceInTz(tz: string, days: string[], time: string): Date | null {
+  const [hh, mm] = time.split(":").map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  const dayMap: Record<string, number> = { dom: 0, "domingo": 0, seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sáb: 6, sab: 6 };
+  const targetDows = days.map(d => dayMap[d.toLowerCase().slice(0, 3)]).filter(Number.isFinite);
+  if (targetDows.length === 0) return null;
+  const now = new Date();
+  // Tenta cada alvo (dia+hora) em até 8 dias no fuso do servidor
+  for (let d = 0; d < 8; d++) {
+    const candidate = new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+    const { y, m, d: dd } = tzDateParts(candidate, tz);
+    const tzMidnight = Date.UTC(y, m - 1, dd); // meia-noite UTC == meia-noite local no fuso tz
+    const tzDate = new Date(tzMidnight);
+    const dow = tzDate.getUTCDay(); // dia da semana no fuso do servidor
+    if (!targetDows.includes(dow)) continue;
+    // Converte "YYYY-MM-DD HH:mm" no fuso tz para um instante UTC absoluto
+    const tzLocal = new Date(tzMidnight + (hh * 3600 + mm * 60) * 1000);
+    // tzMidnight já é a meia-noite local no tz; somar horas/minutos em tempo civil preserva o fuso
+    const occ = tzLocal;
+    if (occ.getTime() > now.getTime()) return occ;
+  }
+  return null;
+}
+
+/** Próxima ocorrência de respawn periódico (everyHours) no fuso do servidor. */
+function nextPeriodicInTz(tz: string, everyHours: number): Date | null {
+  const now = new Date();
+  const { y, m, d } = tzDateParts(now, tz);
+  // Meia-noite local do tz como timestamp UTC absoluto
+  const midnight = Date.UTC(y, m - 1, d);
+  // Horas decorridas no tempo civil do tz desde a meia-noite
+  const localHours = (now.getTime() - midnight) / 3600000;
+  const cycleMs = everyHours * 60 * 60 * 1000;
+  const nextMs = midnight + Math.ceil(localHours / everyHours) * cycleMs;
+  if (nextMs <= now.getTime()) return new Date(nextMs + cycleMs);
+  return new Date(nextMs);
+}
+
+function useAlerts(regionKey: string) {
+  const region = SERVER_REGIONS.find(r => r.key === regionKey) ?? SERVER_REGIONS[0];
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
+    const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
   const alerts = useMemo(() => {
     return ALERT_TIMERS.map(t => {
-      const mins = minutesUntil(t, DEFAULT_RESET_HOUR, now);
-      const activeNow = mins <= 0 || ("everyHours" in t && t.everyHours ? false : mins > 24 * 60);
-      return { ...t, minsUntil: Math.max(0, mins), activeNow };
+      let occ: Date | null = null;
+      if (t.key === "sabuk") {
+        occ = nextOccurrenceInTz(region.timezone, region.sabukDays, region.sabukTime);
+      } else if ("everyHours" in t && t.everyHours) {
+        occ = nextPeriodicInTz(region.timezone, t.everyHours ?? 1);
+      }
+      const mins = occ ? Math.round((occ.getTime() - now.getTime()) / 60000) : 999999;
+      const activeNow = mins <= 0 || mins <= (t.durationHours ?? 0) * 60;
+      return { ...t, minsUntil: Math.max(0, mins), activeNow, occ };
     }).sort((a, b) => a.minsUntil - b.minsUntil);
-  }, [now]);
+  }, [now, region]);
   return alerts;
+}
+
+function formatCountdown(mins: number): string {
+  if (mins <= 0) return "Agora!";
+  if (mins >= 24 * 60) return `em ${Math.round(mins / (24 * 60))}d ${Math.round((mins % (24 * 60)) / 60)}h`;
+  if (mins >= 60) return `em ${Math.round(mins / 60)}h${mins % 60 > 0 ? ` ${mins % 60}min` : ""}`;
+  return `em ${mins}min`;
 }
 
 export default function Calendario() {
   const [active, setActive] = useState<string>("todos");
-  const alerts = useAlerts();
+  const [regionKey, setRegionKey] = useSelectedRegion();
+  const alerts = useAlerts(regionKey);
+  const region = SERVER_REGIONS.find(r => r.key === regionKey) ?? SERVER_REGIONS[0];
 
   const filtered = useMemo(
     () => (active === "todos" ? GAME_EVENTS : GAME_EVENTS.filter(e => e.category === active)),
@@ -117,18 +194,44 @@ export default function Calendario() {
               Referência de resets por região: <strong>ASIA</strong> ~03:35 · <strong>INMENA</strong>{" "}
               ~01:35 · <strong>EU</strong> ~21:35 · <strong>NA</strong> ~15:35 ·{" "}
               <strong>SA</strong> ~16:35 (horários aproximados, podem variar por servidor).
+              Escolha seu servidor abaixo para ver os timers no fuso dele.
             </span>
           </div>
+        </Card>
+
+        {/* Seletor de servidor */}
+        <Card className="p-5 border-amber-700/30 bg-[oklch(0.19_0.015_280)]">
+          <p className="text-sm font-medium text-amber-300 mb-3">Qual é o seu servidor?</p>
+          <div className="flex flex-wrap gap-2">
+            {SERVER_REGIONS.map(r => (
+              <Badge
+                key={r.key}
+                variant="outline"
+                className={cn(
+                  "cursor-pointer px-3 py-1.5 border-slate-600 text-slate-300 hover:bg-slate-800 transition-colors",
+                  regionKey === r.key && "border-amber-600 text-amber-300 bg-amber-950/30",
+                )}
+                onClick={() => setRegionKey(r.key)}
+              >
+                {r.label} · Sabuk {r.sabukDays.join("/".slice(0)) ? r.sabukDays.join(" e ") : ""} {r.sabukTime}
+              </Badge>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Sua escolha fica salva neste navegador. Os timers abaixo mostram a próxima ocorrência no fuso do servidor
+            ({region.timezone}) convertida para o seu horário local.
+          </p>
         </Card>
 
         {/* Notificações visuais de horários */}
         <section aria-label="Próximos eventos">
           <h2 className="text-xl font-bold text-amber-400 mb-3 flex items-center gap-2">
             <BellRing className="h-5 w-5" />
-            Próximos horários — alertas (horário do servidor SA)
+            Próximos horários — {region.label}
           </h2>
           <p className="text-xs text-slate-500 mb-3">
-            Atualiza a cada minuto. Sabuk War é calculado para o fim de semana às 21:30 do servidor.
+            Contagem regressiva atualizada automaticamente. Sabuk: {region.sabukDays.join(" e ")} às {region.sabukTime} no
+            fuso do servidor ({region.timezone}).
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             {alerts.map(a => {
@@ -158,12 +261,13 @@ export default function Calendario() {
                   </div>
                   <p className="mt-1.5 text-xs text-slate-400 leading-relaxed">{a.description}</p>
                   <p className={cn("mt-2 text-sm font-bold", verySoon ? "text-red-400" : soon ? "text-amber-300" : "text-slate-300")}>
-                    {verySoon
-                      ? "Agora / em breve!"
-                      : a.minsUntil >= 60
-                        ? `em ${Math.round(a.minsUntil / 60)}h${a.minsUntil % 60 > 0 ? ` ${a.minsUntil % 60}min` : ""}`
-                        : `em ${a.minsUntil}min`}
+                    {verySoon ? "Agora / em breve!" : formatCountdown(a.minsUntil)}
                   </p>
+                  {a.occ && (
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      Próxima: {a.occ.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} (seu horário)
+                    </p>
+                  )}
                 </Card>
               );
             })}

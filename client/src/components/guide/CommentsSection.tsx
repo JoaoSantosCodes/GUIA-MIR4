@@ -12,14 +12,14 @@ interface Props {
   farmKey: string;
   title?: string;
   /** Página onde o comentário vive (farm | sabuk | mystery | seal | skills | gear | classes | economy | raids) */
-  pageKey?: "farm" | "sabuk" | "mystery" | "seal" | "skills" | "gear" | "classes" | "economy" | "raids";
+  pageKey?: "farm" | "sabuk" | "mystery" | "seal" | "skills" | "gear" | "materials" | "classes" | "economy" | "raids";
   placeholder?: string;
 }
 
 export default function CommentsSection({
   farmKey,
   title = "Dicas da comunidade",
-  pageKey = "farm" as "farm" | "sabuk" | "mystery" | "seal" | "skills" | "gear" | "classes" | "economy" | "raids",
+  pageKey = "farm" as "farm" | "sabuk" | "mystery" | "seal" | "skills" | "gear" | "materials" | "classes" | "economy" | "raids",
   placeholder = "Compartilhe uma dica sobre este local... (máx. 300 caracteres)",
 }: Props) {
   const { isAuthenticated, user } = useAuth();

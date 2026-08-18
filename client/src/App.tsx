@@ -21,7 +21,9 @@ import Calendario from "./pages/Calendario";
 import Calculadora from "./pages/Calculadora";
 import Subclasses from "./pages/Subclasses";
 import Equipamentos from "./pages/Equipamentos";
+import Materiais from "./pages/Materiais";
 import Profile from "./pages/Profile";
+import SharedProfile from "./pages/SharedProfile";
 import ScrollToTop from "./components/ScrollToTop";
 
 function Router() {
@@ -43,7 +45,9 @@ function Router() {
       <Route path={"/calculadora"} component={Calculadora} />
       <Route path={"/subclasses"} component={Subclasses} />
       <Route path={"/equipamentos"} component={Equipamentos} />
+      <Route path={"/materiais"} component={Materiais} />
       <Route path={"/perfil"} component={Profile} />
+      <Route path={"/share/:id"} component={SharedProfile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

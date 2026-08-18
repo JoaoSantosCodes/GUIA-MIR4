@@ -15,6 +15,9 @@ vi.mock("./db", () => ({
   addPageComment: vi.fn(async () => undefined),
   removeFarmComment: vi.fn(async () => undefined),
   voteComment: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0 })),
+  getDb: vi.fn(async () => ({
+    select: () => ({ from: () => ({ where: async () => [] }) }),
+  })),
 }));
 
 import * as db from "./db";
@@ -360,5 +363,63 @@ describe("comentários skills", () => {
     await expect(
       caller.comments.add({ pageKey: "skills", farmKey: "classe-inexistente", content: "Dica inválida para testar" }),
     ).rejects.toThrow();
+  });
+});
+
+describe("favorites.toggle with materials items", () => {
+  it("accepts a valid materials item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.favorites.toggle({ itemId: "materials:dragonsteel", itemType: "materials" });
+    expect(result.added).toBe(true);
+    expect(db.addFavorite).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an unknown materials item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.favorites.toggle({ itemId: "materials:nao-existe", itemType: "materials" }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("comments materials", () => {
+  it("aceita página materials com farmKey geral e rejeita chave inválida", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const ok = await caller.comments.add({ pageKey: "materials", farmKey: "geral", content: "Rota de teste para dragonsteel" });
+    expect(ok.success).toBe(true);
+    await expect(
+      caller.comments.add({ pageKey: "materials", farmKey: "chave-invalida", content: "Comentário inválido para testar" }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("share.getProfile", () => {
+  it("returns public profile for an existing user", async () => {
+    vi.mocked(db.listFavorites).mockResolvedValue([]);
+    vi.mocked(db.listCodexProgress).mockResolvedValue([]);
+    // Simula getDb retornando o usuário
+    vi.mocked(db.getDb).mockResolvedValue({
+      select: () => ({ from: () => ({ where: async () => [authenticatedUser] }) }),
+    } as unknown as ReturnType<typeof db.getDb> extends Promise<infer T> ? T : never);
+    const caller = appRouter.createCaller(createContext(null));
+    const profile = await caller.share.getProfile({ userId: 42 });
+    expect(profile.id).toBe(42);
+    expect(profile.name).toBe("Test User");
+    expect(Array.isArray(profile.favorites)).toBe(true);
+    expect(Array.isArray(profile.progress)).toBe(true);
+  });
+
+  it("throws for a non-existent user", async () => {
+    vi.mocked(db.getDb).mockResolvedValue({
+      select: () => ({ from: () => ({ where: async () => [] }) }),
+    } as unknown as ReturnType<typeof db.getDb> extends Promise<infer T> ? T : never);
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.share.getProfile({ userId: 999999 })).rejects.toThrow("Perfil não encontrado");
+  });
+
+  it("rejects non-positive user ids", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.share.getProfile({ userId: 0 })).rejects.toThrow();
+    await expect(caller.share.getProfile({ userId: -1 })).rejects.toThrow();
   });
 });
