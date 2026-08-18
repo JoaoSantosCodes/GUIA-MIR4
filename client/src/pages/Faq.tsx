@@ -19,12 +19,18 @@ export default function Faq() {
   const voteMut = trpc.comments.vote.useMutation();
   const utils = trpc.useUtils();
   const [voted, setVoted] = useState<Set<number>>(new Set());
+  const [goldOnly, setGoldOnly] = useState(false);
 
   const enriched = useMemo(
     () => pages?.map(p => ({ ...p, tips: enrichTipPaths(p.tips as never) })) ?? [],
     [pages],
   );
   const totalTips = useMemo(() => enriched.reduce((acc, p) => acc + p.tips.length, 0) ?? 0, [enriched]);
+  const goldEnriched = useMemo(
+    () => enriched.map(p => ({ ...p, tips: p.tips.filter(t => t.upvotes >= GOLD_TIP_UPVOTES) })).filter(p => p.tips.length > 0),
+    [enriched],
+  );
+  const visiblePages = goldOnly ? goldEnriched : enriched;
 
   const handleVote = async (id: number, kind: "up" | "down", delta: 1 | -1) => {
     if (!isAuthenticated) {
@@ -56,7 +62,24 @@ export default function Faq() {
         </p>
       </div>
 
-      <div className="mt-8 rounded-lg border border-amber-700/40 bg-[oklch(0.17_0.02_80_/_0.35)] p-4 text-sm text-slate-300">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setGoldOnly(false)}
+          className={cn("rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors", !goldOnly ? "border-amber-500/70 bg-amber-900/50 text-amber-200" : "border-slate-700/60 text-slate-400 hover:text-amber-200")}
+        >
+          Todas as dicas
+        </button>
+        <button
+          type="button"
+          onClick={() => setGoldOnly(true)}
+          className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors", goldOnly ? "border-amber-400/80 bg-gradient-to-r from-amber-600 to-amber-500 text-amber-950" : "border-slate-700/60 text-slate-400 hover:text-amber-200")}
+        >
+          <Crown className="h-3 w-3" /> Apenas Dicas de Ouro ({goldEnriched.reduce((acc, p) => acc + p.tips.length, 0)})
+        </button>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-amber-700/40 bg-[oklch(0.17_0.02_80_/_0.35)] p-4 text-sm text-slate-300">
         <TrendingUp className="mb-2 h-5 w-5 text-amber-400" />
         Como funciona: cada página do guia tem sua área de comentários com votação. Dicas com mais{" "}
         <ThumbsUp className="inline h-3.5 w-3.5 text-amber-400" /> sobem no ranking e aparecem aqui, com um link direto para a seção original.
@@ -74,7 +97,17 @@ export default function Faq() {
         </div>
       )}
 
-      {!isLoading && (pages?.length ?? 0) === 0 && (
+      {!isLoading && visiblePages.length === 0 && goldOnly && (
+        <Card className="mt-8 border-amber-700/40 bg-[oklch(0.16_0.015_280)] p-10 text-center">
+          <Crown className="mx-auto h-10 w-10 text-amber-600" />
+          <p className="mt-3 font-semibold text-slate-300">Nenhuma Dica de Ouro ainda</p>
+          <p className="mt-1 text-sm text-slate-400">
+            Nenhuma dica alcançou {GOLD_TIP_UPVOTES} votos positivos ainda. Continue votando nas melhores dicas de cada página — quando atingirem o limiar, aparecerão aqui com o selo de ouro.
+          </p>
+        </Card>
+      )}
+
+      {!isLoading && (pages?.length ?? 0) === 0 && !goldOnly && (
         <Card className="mt-8 border-amber-700/40 bg-[oklch(0.16_0.015_280)] p-10 text-center">
           <MessageCircle className="mx-auto h-10 w-10 text-amber-600" />
           <p className="mt-3 font-semibold text-slate-300">Ainda não há dicas destacadas</p>
@@ -93,16 +126,21 @@ export default function Faq() {
       )}
 
       <div className="mt-8 space-y-8">
-        {pages?.map(page => (
+        {visiblePages.map(page => (
           <section key={page.pageKey}>
             <div className="mb-3 flex items-center gap-2">
               <h2 className="gold-text text-xl font-bold font-sans">{page.sectionLabel}</h2>
               <span className="rounded-full bg-amber-900/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                 {page.tips.length} dica{page.tips.length !== 1 ? "s" : ""}
               </span>
+              {goldOnly && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-gradient-to-r from-amber-600 to-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+                  <Crown className="h-3 w-3" /> Ouro
+                </span>
+              )}
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {enriched.find(p => p.pageKey === page.pageKey)?.tips.map(tip => {
+              {page.tips.map(tip => {
                 const isGoldTip = tip.upvotes >= GOLD_TIP_UPVOTES;
                 return (
                 <Card key={tip.id} className={cn("group relative p-4 transition-colors", isGoldTip ? "border-amber-500/70 bg-gradient-to-br from-amber-950/40 to-[oklch(0.16_0.015_280)]" : "border-amber-800/40 bg-[oklch(0.16_0.015_280)] hover:border-amber-600/60")}>

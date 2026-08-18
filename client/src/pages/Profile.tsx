@@ -5,8 +5,10 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
+import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown, Medal, Heart, StarOff, History, BookmarkPlus } from "lucide-react";
+import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -36,6 +38,19 @@ const PAGE_KEY_LABEL: Record<string, string> = {
   raids: "Raids e Bosses",
 };
 
+const SECTION_PATH: Record<string, string> = {
+  farm: "/farm",
+  sabuk: "/sabuk",
+  mystery: "/misterios",
+  seal: "/selos",
+  skills: "/subclasses",
+  gear: "/equipamentos",
+  materials: "/materiais",
+  classes: "/classes",
+  economy: "/economia",
+  raids: "/raids",
+};
+
 type VoteSort = "recent" | "oldest";
 
 export default function Profile() {
@@ -63,6 +78,39 @@ export default function Profile() {
     });
     return list;
   }, [voteHistory, voteFilter, voteSort]);
+
+  /** Contagem de Dicas de Ouro: votos a favor em dicas que já têm 10+ upvotes. */
+  const goldBadges = useMemo(
+    () => (voteHistory ?? []).filter(v => v.vote === 1 && (v.upvotes ?? 0) >= GOLD_TIP_UPVOTES).length,
+    [voteHistory],
+  );
+
+  /** Timeline interativa consolidando favoritos, votos e progresso do Codex. */
+  type TimelineKind = "fav" | "vote" | "codex";
+  interface TimelineItem { ts: number; kind: TimelineKind; commentId?: number }
+  const [timelineFilter, setTimelineFilter] = useState<TimelineKind | "all">("all");
+  const timeline = useMemo(() => {
+    const items: { ts: number; kind: TimelineKind; itemId: string; title: string; section: string; path: string; commentId?: number; vote?: number }[] = [];
+    (favorites ?? []).forEach(f => {
+      const [type, key] = f.itemId.split(":");
+      const meta = SECTION_META[type] ?? SECTION_META.spirit;
+      items.push({ ts: new Date(f.createdAt).getTime(), kind: "fav", itemId: f.itemId, title: resolveTitle(f), section: meta.label, path: meta.path });
+    });
+    (voteHistory ?? []).forEach(v => {
+      const page = SECTION_PATH[v.pageKey ?? ""];
+      items.push({ ts: new Date(v.votedAt).getTime(), kind: "vote", itemId: `comment:${v.commentId}`, title: v.content, section: PAGE_KEY_LABEL[v.pageKey ?? ""] ?? v.pageKey ?? "", path: page ?? "/faq", commentId: v.commentId, vote: v.vote });
+    });
+    (progress ?? []).forEach(p => {
+      const item = CODEX_ITEMS.find(c => c.key === p.itemId);
+      items.push({ ts: new Date(p.collectedAt).getTime(), kind: "codex", itemId: p.itemId, title: item?.name ?? p.itemId, section: "Codex", path: "/codex" });
+    });
+    items.sort((a, b) => b.ts - a.ts);
+    return items;
+  }, [favorites, voteHistory, progress]);
+  const visibleTimeline = useMemo(
+    () => timelineFilter === "all" ? timeline : timeline.filter(t => t.kind === timelineFilter),
+    [timeline, timelineFilter],
+  );
 
   const toggleFav = trpc.favorites.toggle.useMutation({
     onSuccess: () => utils.favorites.list.invalidate(),
@@ -145,6 +193,13 @@ export default function Profile() {
             Olá, <strong className="text-amber-200">{user.name ?? "aventureiro"}</strong> — organize seus favoritos e seu
             progresso no Codex.
           </p>
+          {goldBadges > 0 && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-500/60 bg-gradient-to-r from-amber-950/60 to-amber-900/40 px-3 py-1.5 shadow-sm shadow-amber-500/20">
+              <Medal className="h-4 w-4 text-amber-400" />
+              <span className="text-xs font-bold uppercase tracking-wide text-amber-200">{goldBadges} Dica{goldBadges !== 1 ? "s" : ""} de Ouro</span>
+              <span className="text-[10px] text-slate-500">— votos a favor em dicas premiadas</span>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
@@ -288,6 +343,60 @@ export default function Profile() {
           <p className="mt-3 text-xs text-slate-400">
             Você ainda não votou em nenhuma dica. Os votos que registrar aparecerão aqui e poderão ser alterados.
           </p>
+        )}
+      </section>
+
+      {/* Timeline interativa */}
+      <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
+        <h2 className="font-bold text-amber-300">Minha atividade</h2>
+        <p className="mt-1 text-xs text-slate-500">Favoritos, votos em dicas e progresso no Codex em ordem cronológica.</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {([
+            { key: "all", label: "Tudo", Icon: History },
+            { key: "fav", label: "Favoritos", Icon: BookmarkPlus },
+            { key: "vote", label: "Votos", Icon: ThumbsUp },
+            { key: "codex", label: "Codex", Icon: StarOff },
+          ] as { key: TimelineKind | "all"; label: string; Icon: typeof History }[]).map(({ key, label, Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTimelineFilter(key)}
+              className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors", timelineFilter === key ? "border-amber-500/70 bg-amber-900/50 text-amber-200" : "border-slate-700/60 text-slate-400 hover:text-amber-200")}
+            >
+              <Icon className="h-3 w-3" /> {label}
+            </button>
+          ))}
+        </div>
+        {visibleTimeline.length === 0 ? (
+          <p className="mt-4 py-4 text-center text-xs text-slate-500">Nenhuma atividade ainda — salve favoritos, vote em dicas ou marque itens do Codex.</p>
+        ) : (
+          <ol className="mt-4 relative border-l border-amber-800/40 pl-5 space-y-3">
+            {visibleTimeline.map(t => {
+              const linkable = t.path.startsWith("/");
+              return (
+                <li key={`${t.kind}-${t.itemId}-${t.commentId ?? ""}`} className="relative">
+                  <span className={cn("absolute -left-[27px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full border", t.kind === "fav" ? "border-amber-600/60 bg-amber-950/60 text-amber-400" : t.kind === "vote" ? "border-emerald-700/60 bg-emerald-950/40 text-emerald-400" : "border-slate-600/60 bg-slate-900/60 text-slate-400")}>
+                    {t.kind === "fav" ? <Heart className="h-2.5 w-2.5" /> : t.kind === "vote" ? <ThumbsUp className="h-2.5 w-2.5" /> : <StarOff className="h-2.5 w-2.5" />}
+                  </span>
+                  <div className={cn("rounded-md border px-3 py-2 text-sm", "border-slate-800/60 bg-black/25")}>
+                    {linkable ? (
+                      <Link href={t.path} className="block hover:text-amber-200 transition-colors">
+                        <p className="text-slate-300 line-clamp-2">{t.title}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          {t.kind === "fav" ? "Favorito em" : t.kind === "vote" ? (t.vote === 1 ? "Votou a favor em" : t.vote === -1 ? "Votou contra em" : "Removeu voto em") : "Coletou no Codex:"} {t.section} · {new Date(t.ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                        </p>
+                      </Link>
+                    ) : (
+                      <>
+                        <p className="text-slate-300 line-clamp-2">{t.title}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{t.section} · {new Date(t.ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</p>
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         )}
       </section>
 

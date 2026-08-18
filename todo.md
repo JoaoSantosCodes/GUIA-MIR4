@@ -143,3 +143,9 @@
 - [x] Filtros no histórico de votos do perfil: ordenação por data (mais recente/mais antiga) e por categoria da dica
 - [x] Animação de pulso suave no banner de evento ao vivo (LiveEventBanner) com prefers-reduced-motion respeitado
 - [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: medalhas, aba Dicas de Ouro e timeline
+- [ ] Contador de medalhas "Dica de Ouro" no perfil: derivar dos votos do usuário em dicas com 10+ upvotes (query server ou client) e exibir badge/medalha no topo do perfil
+- [ ] Aba dedicada na FAQ: toggle "Apenas Dicas de Ouro" (filtro client-side sobre os dados do faq.topTips, com upvotes >= 10)
+- [ ] Timeline interativa no perfil consolidando favoritos, histórico de votos e progresso do Codex em ordem cronológica (query/server para timestamp dos favoritos e codex)
+- [ ] Testes vitest + screenshots + checkpoint e entrega
