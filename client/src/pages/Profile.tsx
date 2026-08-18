@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown, Medal, Heart, StarOff, History, BookmarkPlus, ImageDown, Crown, Zap } from "lucide-react";
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
-import { exportTimelineCard } from "@/lib/timelineExport";
+import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
+import { evaluateCodexAchievements } from "@/lib/codexAchievements";
+import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -133,6 +135,13 @@ export default function Profile() {
   const collectedIds = new Set(progress?.map(p => p.itemId) ?? []);
   const codexTotal = CODEX_ITEMS.length;
   const codexDone = progress?.length ?? 0;
+
+  const ACHIEVEMENT_ICONS = { book: IconBook, gem: IconGem, crown: IconCrown, sparkle: IconSparkles, sword: IconSwords, star: IconStar } as const;
+  const codexAchievements = useMemo(
+    () => evaluateCodexAchievements(progress?.map(p => p.itemId) ?? []),
+    [progress],
+  );
+  const earnedCount = codexAchievements.filter(a => a.earned).length;
 
   const resolveTitle = (fav: { itemId: string; itemType: string }) => {
     const [type, key] = fav.itemId.split(":");
@@ -260,6 +269,50 @@ export default function Profile() {
         )}
       </section>
 
+      {/* Conquistas do Codex */}
+      <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
+        <h2 className="font-bold text-amber-300">Conquistas do Codex</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Complete marcos no Codex para desbloquear medalhas visuais.
+          {earnedCount > 0 && (
+            <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-amber-500/60 bg-amber-900/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+              <Medal className="h-2.5 w-2.5" /> {earnedCount} conquistad{earnedCount !== 1 ? "as" : "a"}
+            </span>
+          )}
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {codexAchievements.map(a => {
+            const Icon = ACHIEVEMENT_ICONS[a.iconKey];
+            return (
+              <div
+                key={a.key}
+                className={cn(
+                  "flex items-start gap-3 rounded-md border px-3 py-3",
+                  a.earned
+                    ? "border-amber-500/70 bg-gradient-to-br from-amber-950/60 to-amber-900/20 shadow-sm shadow-amber-500/20"
+                    : "border-slate-800/60 bg-black/25 opacity-70",
+                )}
+              >
+                <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", a.earned ? "border-amber-500/70 bg-amber-900/40 text-amber-400" : "border-slate-700/60 bg-slate-900/40 text-slate-500")}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={cn("text-sm font-semibold", a.earned ? "text-amber-200" : "text-slate-300")}>{a.title}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">{a.description}</p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className={cn("h-full rounded-full transition-all", a.earned ? "bg-gradient-to-r from-amber-600 to-amber-400" : "bg-amber-800/60")}
+                      style={{ width: `${Math.round((a.progress / a.goal) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[10px] text-slate-500">{a.progress}/{a.goal}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Histórico de votos */}
       <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
         <h2 className="font-bold text-amber-300">Histórico de votos nas dicas</h2>
@@ -360,25 +413,11 @@ export default function Profile() {
             <h2 className="font-bold text-amber-300">Minha atividade</h2>
             <p className="mt-1 text-xs text-slate-500">Favoritos, votos em dicas e progresso no Codex em ordem cronológica.</p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (visibleTimeline.length === 0) {
-                toast.info("Nenhuma atividade para exportar ainda.");
-                return;
-              }
-              exportTimelineCard({
-                userName: user.name ?? "Aventureiro",
-                goldBadges,
-                items: visibleTimeline.map(t => ({ ts: t.ts, kind: t.kind, title: t.title, section: t.section })),
-                onDone: () => toast.success("Card exportado! Imagem salva na pasta de downloads."),
-              }).catch(() => toast.error("Não foi possível gerar o card."));
-            }}
-            className="inline-flex items-center gap-1.5 rounded-md border border-amber-600/60 bg-amber-950/50 px-3 py-1.5 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-900/50 active:scale-[0.97]"
-          >
-            <ImageDown className="h-3.5 w-3.5" />
-            Exportar card
-          </button>
+          <ExportActivityCardDialog
+            userName={user.name ?? "Aventureiro"}
+            goldBadges={goldBadges}
+            items={visibleTimeline.map(t => ({ ts: t.ts, kind: t.kind, title: t.title, section: t.section }))}
+          />
         </div>
         {newBadges.length > 0 && (
           <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-500/50 bg-gradient-to-r from-amber-900/30 to-transparent px-3 py-2">

@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
-import { Crown, Medal, Trophy, TrendingUp, Sparkles } from "lucide-react";
+import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import PageBanner from "@/components/guide/PageBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { ExportRankingCardDialog } from "@/components/ExportCardDialog";
 
 const PODIUM_STYLES: Record<number, string> = {
   1: "from-amber-300/25 to-amber-600/10 border-amber-400/60",
@@ -21,9 +23,17 @@ const PODIUM_ICON: Record<number, React.ReactNode> = {
 
 export default function Leaderboard() {
   const { data: entries, isLoading } = trpc.community.goldLeaderboard.useQuery(undefined, { refetchInterval: 60000 });
+  const auth = useAuth();
 
   const podium = useMemo(() => entries?.slice(0, 3) ?? [], [entries]);
   const rest = useMemo(() => entries?.slice(3) ?? [], [entries]);
+
+  const myEntry = useMemo(
+    () => (auth.user?.id ? entries?.find(e => Number(e.userId) === Number(auth.user!.id)) : undefined),
+    [entries, auth.user?.id],
+  );
+  const myPosition = useMemo(() => (myEntry && entries ? entries.indexOf(myEntry) + 1 : 0), [myEntry, entries]);
+  const myBadges = useMemo(() => myEntry?.goldBadges, [myEntry]);
 
   return (
     <div className="min-h-screen pb-16">
@@ -40,6 +50,22 @@ export default function Leaderboard() {
             de uma dica que possui <strong className="text-amber-400">10 ou mais votos positivos</strong>. A medalha
             permanece no seu placar mesmo que a dica perca votos depois — ela conta como sua conquista eterna.
           </p>
+        </section>
+
+        <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          {auth.isAuthenticated ? (
+            <ExportRankingCardDialog
+              userName={auth.user?.name ?? "Aventureiro"}
+              goldBadges={Number(myBadges) || 0}
+              position={myPosition ?? 0}
+              total={entries?.length ?? 0}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">Faça login para ver sua posição e exportar seu card.</p>
+          )}
+          {auth.user && myPosition === 0 && (
+            <p className="text-xs text-muted-foreground">Vote em dicas de ouro para aparecer no placar.</p>
+          )}
         </section>
 
         {isLoading ? (
@@ -110,6 +136,19 @@ export default function Leaderboard() {
                       <Crown className="h-3.5 w-3.5" />
                       {Number(e.goldBadges)}
                     </span>
+                    {auth.user?.id && myEntry?.userId === e.userId && myPosition > 0 && (
+                      <ExportRankingCardDialog
+                        userName={e.userName ?? "Aventureiro"}
+                        goldBadges={Number(e.goldBadges)}
+                        position={myPosition}
+                        total={entries?.length ?? 0}
+                        trigger={
+                          <span className="ml-1 inline-flex cursor-pointer items-center gap-1 rounded-md border border-amber-600/60 bg-amber-950/50 px-2 py-1 text-[11px] font-medium text-amber-200 transition-colors hover:bg-amber-900/50">
+                            <ImageDown className="h-3 w-3" /> Exportar
+                          </span>
+                        }
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

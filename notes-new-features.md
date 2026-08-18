@@ -88,3 +88,25 @@ Checkpoint anterior: ed7cf9d5. Site live: https://mir4guia-ab8pnzuc.manus.space
 Screenshot /placar: OK — título, explicação Dica de Ouro, estado vazio. Footer com ícones X/Discord/YouTube/Instagram OK na home e FAQ. Home: card "Placar da Comunidade" aparece no grid. FAQ: abas "Todas as dicas" e "Apenas Dicas de Ouro (0)" OK. Testes: 64 aprovados, tsc OK.
 PENDENTE: marcar todo.md (skill atualizada ✓, placar ✓, notificação medalha timeline ✓, export card ✓, redes sociais ✓), checkpoint + entrega.
 Nota: a notificação de medalha na timeline foi implementada como banner "1 dica em que você votou é premiada" + badge "Dica de Ouro" no card do item de voto. Profile.tsx: exportTimelineCard importado de @/lib/timelineExport.ts; botão Exportar card na seção timeline.
+
+## Fase: conquistas Codex, card personalizado, export placar, skill (2026-08-18 ~21:45)
+Tudo já está no todo.md (seção "Nova funcionalidade: conquistas Codex, card personalizado e export do placar").
+
+### Implementado até agora
+- client/src/lib/codexAchievements.ts CRIADO: evaluateCodexAchievements(collectedIds) → AchievementStatus[] com 7 conquistas: codex-10, codex-25, codex-50 (total); equipamentos-10 (categoria "Equipamentos"); materiais-10 (categoria "Materiais"); raro-5 (rarity em Raro/Épico/Lendário/Mítico); lendario-1 (Lendário/Mítico). Each has key, title, description, iconKey (book/gem/crown/sparkle/sword/star), progress, goal, earned. CODEX_ITEMS de shared/guideData.ts tem { key, name, category, rarity, tier, tip }.
+
+### Falta fazer
+1. Profile.tsx: ACHIEVEMENT_ICONS map + codexAchievements useMemo + earnedCount JÁ ADICIONADOS (linhas ~139-144). FALTA: adicionar a seção JSX "Conquistas do Codex" após a seção "Progresso no Codex" (grid de cards com ícone, título, descrição, barra de progresso; conquistadas com borda dourada e brilho; pendentes opacas). Também mostrar earnedCount no topo do perfil perto de goldBadges.
+2. timelineExport.ts: refatorar para aceitar opções de personalização: avatar (emoji/ícone) + tema de fundo (dark gold / blood red / mystic purple) + exportarRankingCard com (position, total, goldBadges, userName). Criar component ExportCardDialog.tsx: modal (shadcn Dialog) com seleção de avatar (emojis: ⚔️🛡️🐉✨🔮👑🗡️), 3 temas, preview, botão Exportar. Usar no Profile (exportTimelineCard) e no Leaderboard.
+3. Leaderboard.tsx: adicionar botão "Exportar meu card" quando o usuário estiver logado e presente no ranking (trpc.community.goldLeaderboard p/ posição do usuário? precisa comparar com trpc.auth.me user.id → posição). Se não estiver no ranking, mostrar posição estimada ou "Participe do placar".
+4. testar: pnpm test (64 aprovados), adicionar testes para evaluateCodexAchievements no server/guide.features.test.ts.
+5. Atualizar skill /home/ubuntu/skills/game-guide-builder/SKILL.md (processo de conquistas + cards personalizados + export ranking) e validar com python3 /home/ubuntu/skills/skill-creator/scripts/quick_validate.py game-guide-builder.
+6. Screenshots: /perfil (logado), /placar; checkpoint + entrega.
+
+### Dados úteis
+- Roteiro do card: WIDTH 1200, HEADER_H 300, FOOTER_H 90, ITEM_H 64, GAP 12, MARGIN 48; função exportTimelineCard({userName, goldBadges, items, onDone}).
+- Profile.tsx: goldBadges derivado de voteHistory com GOLD_TIP_UPVOTES (linha ~84).
+- Leaderboard.tsx existe em client/src/pages/, rota /placar, usa trpc.community.goldLeaderboard.
+- tsc atual: 0 erros (log antigo de GuideLayout.tsx linha 274:2 é antigo, já resolvido).
+- Auto-publish habilitado: checkpoint = publicação. Último checkpoint: cebf0da2.
+- 64 testes aprovados antes desta fase.

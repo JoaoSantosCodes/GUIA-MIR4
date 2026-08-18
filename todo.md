@@ -158,3 +158,11 @@
 - [x] Ícones de redes sociais (X/Twitter, Discord, YouTube, Instagram) no footer do site
 - [x] Rotas, navegação, busca indexada e link na Home para o placar (rota /placar, GUIDE_SECTIONS, hit de busca, card na Home)
 - [x] Testes vitest (64 aprovados, incl. community.goldLeaderboard) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: conquistas Codex, card personalizado e export do placar
+- [x] Conquistas no perfil: medalhas visuais por marcos do Codex (10/25/50/100 itens + categorias completas) em client/lib/codexAchievements.ts + seção no Profile
+- [x] Personalização do card exportado: escolher avatar/ícone e tema de fundo antes de exportar (ExportCardDialog com preview ao vivo, 3 temas: dark/blood/mystic)
+- [x] Botão de exportar card com posição no ranking na página /placar (exportRankingCard em timelineExport.ts + ExportRankingCardDialog no Leaderboard, destaque para top 3)
+- [x] Atualizar skill game-guide-builder com o processo de conquistas/cards personalizados e validar (quick_validate.py passou)
+- [x] Rotas, navegação e busca: novas funcionalidades são seções de páginas existentes (Profile e /placar), sem novas rotas necessárias
+- [x] Testes vitest para evaluateCodexAchievements (8) e timelineExport (3) — 75 testes aprovados + screenshots desktop/mobile verificados
