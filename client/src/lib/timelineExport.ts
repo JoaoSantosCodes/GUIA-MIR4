@@ -523,3 +523,86 @@ async function downloadCanvas(canvas: HTMLCanvasElement, userName: string) {
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1).trimEnd() + "…" : s;
 }
+
+export interface AchievementCardData {
+  title: string;
+  description: string;
+  icon: string;
+  achievedAt?: number;
+}
+
+/**
+ * Exporta um card individual de uma conquista desbloqueada, com o nome do
+ * usuário e a data da conquista (ou a data atual).
+ */
+export async function exportAchievementCard({
+  data,
+  userName,
+  style = DEFAULT_CARD_STYLE,
+  onDone,
+  drawTo,
+}: {
+  data: AchievementCardData;
+  userName: string;
+  style?: CardStyle;
+  onDone?: () => void;
+  drawTo?: HTMLCanvasElement;
+}): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  canvas.width = WIDTH;
+  canvas.height = HEADER_H + 360 + FOOTER_H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, { userName: truncate(userName, 34), subtitle: "— Conquista Desbloqueada" });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const midY = HEADER_H + 28;
+
+  // Ícone da conquista em destaque
+  ctx.font = "88px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+  ctx.fillText(data.icon, MARGIN, midY);
+
+  // Título da conquista
+  ctx.fillStyle = palette.title;
+  ctx.font = "bold 48px Georgia, serif";
+  ctx.fillText(truncate(data.title, 36), MARGIN + 120, midY + 8);
+
+  // Descrição
+  ctx.fillStyle = palette.sub;
+  ctx.font = "24px 'Segoe UI', Arial, sans-serif";
+  const descWrapped = wrapText(ctx, data.description, WIDTH - (MARGIN + 120) * 2);
+  descWrapped.slice(0, 3).forEach((line, i) => {
+    ctx.fillText(line, MARGIN + 120, midY + 62 + i * 34);
+  });
+
+  // Data da conquista
+  const achieved = data.achievedAt ? new Date(data.achievedAt) : new Date();
+  const dateStr = achieved.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  ctx.fillStyle = palette.faded;
+  ctx.font = "22px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`Desbloqueada em ${dateStr}`, MARGIN + 120, midY + 172);
+
+  // Selo dourado de conquista
+  ctx.fillStyle = "#b8860b";
+  ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("★ Medalha do Codex ★", MARGIN + 120, midY + 222);
+
+  // Marca d'água discreta
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.font = "14px 'Segoe UI', Arial, sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(`Gerado por ${truncate(userName, 30)}`, WIDTH - MARGIN, canvas.height - FOOTER_H + 36);
+  ctx.fillText(`Em ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`, WIDTH - MARGIN, canvas.height - FOOTER_H + 58);
+  ctx.textAlign = "left";
+
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "conquista");
+  onDone?.();
+}

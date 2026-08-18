@@ -171,3 +171,93 @@ describe("selo 100% Concluído no card em lote", () => {
     expect(partialCalls.includes("100% CONCLUÍDO")).toBe(false);
   });
 });
+
+describe("card individual de conquista (exportAchievementCard)", () => {
+  const makeCtx = () => ({
+    createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    fillText: vi.fn(),
+    fill: vi.fn(),
+    stroke: vi.fn(),
+    beginPath: vi.fn(),
+    arc: vi.fn(),
+    roundRect: vi.fn(),
+    rotate: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+    set fillStyle(_v: string) {
+      /* noop */
+    },
+    set font(_v: string) {
+      /* noop */
+    },
+    set textAlign(_v: string) {
+      /* noop */
+    },
+    set textBaseline(_v: string) {
+      /* noop */
+    },
+    set lineWidth(_v: number) {
+      /* noop */
+    },
+    set strokeStyle(_v: string) {
+      /* noop */
+    },
+    measureText: vi.fn(() => ({ width: 0 })),
+    canvas: { width: 1200, height: 900 },
+  });
+
+  it("desenha o título da conquista, o nome do usuário e a data", async () => {
+    const { exportAchievementCard } = await import("./timelineExport");
+    const ctx = makeCtx();
+    const drawTo = {
+      width: 1200,
+      height: 900,
+      getContext: vi.fn(() => ctx),
+      toDataURL: vi.fn(() => "data:image/png;base64,MOCK"),
+    } as unknown as HTMLCanvasElement;
+
+    await exportAchievementCard({
+      data: {
+        title: "Ascensão Rara",
+        description: "Registre todos os itens Raros do Codex",
+        icon: "Gem",
+      },
+      userName: "Joao Santos",
+      drawTo,
+    });
+
+    const calls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.map(c => String(c[0]));
+    expect(calls.includes("Ascensão Rara")).toBe(true);
+    expect(calls.some(c => c.includes("Registre todos os itens Raros do Codex"))).toBe(true);
+    expect(calls.some(c => c.includes("Gerado por Joao Santos"))).toBe(true);
+    expect(calls.some(c => c.startsWith("Em ") && /20\d\d/.test(c))).toBe(true);
+  });
+
+  it("usa a data da conquista quando achievedAt é informado", async () => {
+    const { exportAchievementCard } = await import("./timelineExport");
+    const ctx = makeCtx();
+    const drawTo = {
+      width: 1200,
+      height: 900,
+      getContext: vi.fn(() => ctx),
+      toDataURL: vi.fn(() => "data:image/png;base64,MOCK"),
+    } as unknown as HTMLCanvasElement;
+
+    await exportAchievementCard({
+      data: {
+        title: "Ferreiro Aprendiz",
+        description: "Complete todos os itens de Equipamentos",
+        icon: "Swords",
+        achievedAt: new Date(2026, 7, 1).getTime(),
+      },
+      userName: "Ana",
+      drawTo,
+    });
+
+    const calls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.map(c => String(c[0]));
+    expect(calls.some(c => c.includes("01 de agosto de 2026"))).toBe(true);
+  });
+});

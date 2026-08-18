@@ -12,6 +12,8 @@ import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
 import { evaluateCodexAchievements } from "@/lib/codexAchievements";
 import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo } from "lucide-react";
+import AchievementCardDialog from "@/components/AchievementCardDialog";
+import AchievementConfetti from "@/components/AchievementConfetti";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -64,6 +66,9 @@ export default function Profile() {
 
   const { data: favorites, isLoading: favLoading } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const { data: progress, isLoading: progLoading } = trpc.codexProgress.list.useQuery(undefined, { enabled: isAuthenticated });
+
+  type AchievementFilter = "all" | "earned" | "progress" | "rarity";
+  const [achFilter, setAchFilter] = useState<AchievementFilter>("all");
   const { data: voteHistory, isLoading: voteLoading } = trpc.user.voteHistory.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 30_000 });
 
   const voteCategories = useMemo(
@@ -185,6 +190,22 @@ function achievementTooltip(key: string, iconKey: string): string {
     () => evaluateCodexAchievements(progress?.map(p => p.itemId) ?? []),
     [progress],
   );
+
+  const filteredAchievements = useMemo(() => {
+    let list = codexAchievements.slice();
+    if (achFilter === "earned") list = list.filter(a => a.earned);
+    else if (achFilter === "progress") list = list.filter(a => !a.earned);
+    else if (achFilter === "rarity") {
+      // conquistadas primeiro: raridade (roxo) antes das demais
+      list = list.slice().sort((a, b) => {
+        const rA = /^faixa-t[2-5]$/.test(a.key) && a.earned ? 0 : a.earned ? 1 : 2;
+        const rB = /^faixa-t[2-5]$/.test(b.key) && b.earned ? 0 : b.earned ? 1 : 2;
+        return rA - rB || a.title.localeCompare(b.title, "pt-BR");
+      });
+    }
+    return list;
+  }, [codexAchievements, achFilter]);
+
   const earnedCount = codexAchievements.filter(a => a.earned).length;
   const rarityBadges = codexAchievements.filter(a => /^faixa-t[2-5]$/.test(a.key) && a.earned).length;
 
@@ -192,8 +213,12 @@ function achievementTooltip(key: string, iconKey: string): string {
   const prevEarnedRef = useRef<Set<string>>(new Set());
   const [justUnlocked, setJustUnlocked] = useState<string | null>(null);
   const [unlockedDesc, setUnlockedDesc] = useState<string>("");
+  const [unlockedKey, setUnlockedKey] = useState<string | null>(null);
   const unlockedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [achCardOpen, setAchCardOpen] = useState(false);
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
@@ -212,12 +237,52 @@ function achievementTooltip(key: string, iconKey: string): string {
       const latest = newly[newly.length - 1];
       setJustUnlocked(latest.title);
       setUnlockedDesc(latest.description);
+      setUnlockedKey(latest.key);
+      setShowCelebration(true);
+      // jingle suave de celebração (Web Audio), respeitando a preferência de som
+      playAchievementSound();
       if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
       unlockedTimerRef.current = setTimeout(() => setJustUnlocked(null), 6000);
+      if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+      celebrationTimerRef.current = setTimeout(() => setShowCelebration(false), 2500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [earnedCount, codexAchievements]);
-  useEffect(() => () => (unlockedTimerRef.current ? clearTimeout(unlockedTimerRef.current) : undefined), []);
+  useEffect(() => () => {
+    if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
+    if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+  }, []);
+
+  /** Jingle suave de celebração em dois tons via Web Audio (fallback silencioso). */
+  function playAchievementSound() {
+    try {
+      const AudioCtx = (window as typeof window & { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const playTone = (freq: number, at: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, ctx.currentTime + at);
+        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + at + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + at + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + at);
+        osc.stop(ctx.currentTime + at + dur);
+      };
+      playTone(659, 0, 0.25); // E5
+      playTone(784, 0.18, 0.25); // G5
+      playTone(988, 0.36, 0.45); // B5
+    } catch {
+      // ambiente sem Web Audio — continua sem som
+    }
+  }
+
+  const celebrationAchievement = useMemo(
+    () => codexAchievements.find(a => a.key === unlockedKey) ?? null,
+    [codexAchievements, unlockedKey],
+  );
 
   const resolveTitle = (fav: { itemId: string; itemType: string }) => {
     const [type, key] = fav.itemId.split(":");
@@ -307,6 +372,7 @@ function achievementTooltip(key: string, iconKey: string): string {
           </div>
         </div>
       )}
+      {showCelebration && <AchievementConfetti />}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="gold-text text-3xl font-bold">Meu Perfil</h1>
@@ -350,6 +416,19 @@ function achievementTooltip(key: string, iconKey: string): string {
       </div>
 
       {/* Progresso codex */}
+      {achCardOpen && celebrationAchievement && (
+        <AchievementCardDialog
+          open={achCardOpen}
+          onOpenChange={setAchCardOpen}
+          data={{
+            title: celebrationAchievement.title,
+            description: celebrationAchievement.description,
+            icon: celebrationAchievement.icon,
+          }}
+          userName={user.name ?? "Aventureiro"}
+          goldBadges={goldBadges}
+        />
+      )}
       <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
         <h2 className="font-bold text-amber-300">Progresso no Codex</h2>
         {progLoading ? (
@@ -392,15 +471,32 @@ function achievementTooltip(key: string, iconKey: string): string {
             </span>
           )}
         </p>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {([
+            ["all", `Todas (${codexAchievements.length})`],
+            ["earned", `Conquistadas (${earnedCount})`],
+            ["progress", `Em progresso (${codexAchievements.length - earnedCount})`],
+            ["rarity", "Raridade primeiro"],
+          ] as [AchievementFilter, string][]).map(([f, label]) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setAchFilter(f)}
+              className={achFilter === f ? "rounded-full border border-amber-500/70 bg-amber-900/50 px-2.5 py-1 text-[11px] font-medium text-amber-200" : "rounded-full border border-slate-700/60 px-2.5 py-1 text-[11px] text-slate-400 hover:text-amber-200 transition-colors"}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {codexAchievements.map(a => {
+          {filteredAchievements.map(a => {
             const Icon = ACHIEVEMENT_ICONS[a.iconKey];
             const isRarity = /^faixa-t[2-5]$/.test(a.key);
             return (
               <div
                 key={a.key}
                 className={cn(
-                  "group relative cursor-help flex items-start gap-3 rounded-md border px-3 py-3",
+                  "group relative flex items-start gap-3 rounded-md border px-3 py-3",
                   a.earned
                     ? isRarity
                       ? "border-purple-400/60 bg-gradient-to-br from-purple-950/60 to-purple-900/20 shadow-sm shadow-purple-500/20 ring-1 ring-purple-500/40 hover:ring-purple-400/70"
@@ -432,6 +528,19 @@ function achievementTooltip(key: string, iconKey: string): string {
                   </div>
                   <p className="mt-1 text-[10px] text-slate-500">{a.progress}/{a.goal}</p>
                 </div>
+                {a.earned && (
+                  <button
+                    type="button"
+                    aria-label={`Exportar card da conquista ${a.title}`}
+                    onClick={() => {
+                      setUnlockedKey(a.key);
+                      setAchCardOpen(true);
+                    }}
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded border border-amber-600/50 bg-amber-950/50 px-2 py-1 text-[10px] font-medium text-amber-200 transition-colors hover:bg-amber-900/60"
+                  >
+                    <ImageDown className="h-3 w-3" /> Exportar card
+                  </button>
+                )}
               </div>
             );
           })}

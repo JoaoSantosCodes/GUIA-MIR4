@@ -199,3 +199,10 @@
 - [x] Selo visual "100% CONCLUÍDO" verde rotacionado 30° no exportCategoryCard quando collectedCount >= categoryTotal (teste vitest adicionado)
 - [x] Barras de progresso do Codex mudam para verde (emerald) em 100% de conclusão da categoria (catPct >= 100)
 - [x] Testes vitest (85 aprovados) + screenshots verificados + checkpoint
+
+## Nova funcionalidade: ordenação de conquistas, card de conquista, celebração sonora/confete, skill atualizada
+- [x] Ordenação na seção de conquistas do perfil: pills Todas / Conquistadas / Em progresso / Raridade primeiro (achFilter + filteredAchievements memo)
+- [x] Exportar card PNG individual por conquista desbloqueada (AchievementCardDialog + exportAchievementCard: nome do usuário + data; botão Exportar card em cada conquista conquistada)
+- [x] Notificação sonora suave + confete na tela ao desbloquear nova conquista (Web Audio jingle 3 tons + AchievementConfetti canvas ~2,5s, prefers-reduced-motion respeitado, auto-dismiss 2,5s)
+- [x] Atualizar a skill reutilizável (game-guide-builder) com ordenação, exportAchievementCard e celebração som+confete — validada (quick_validate.py: Skill is valid)
+- [x] Testes vitest (87 aprovados, incl. 2 testes de exportAchievementCard: título/descrição/nome/data e achievedAt) + screenshots verificados + checkpoint
