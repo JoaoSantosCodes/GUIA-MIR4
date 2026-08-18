@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FavButton from "@/components/guide/FavButton";
-import { Pickaxe, Coins, Gem, Timer, TrendingUp, AlertTriangle } from "lucide-react";
+import { Pickaxe, Coins, Gem, Timer, TrendingUp, AlertTriangle, Swords } from "lucide-react";
+import EnhanceCalculator from "@/components/EnhanceCalculator";
 
 const SEAL_OPTIONS: { value: 0 | 1 | 2 | 3; label: string; color: string }[] = [
   { value: 0, label: "Sem selo", color: "text-slate-300" },
@@ -20,11 +22,19 @@ function fmt(n: number) {
   return n.toLocaleString("pt-BR");
 }
 
+const CALC_TAB = "calc-tab";
+
 export default function Calculadora() {
+  const [tab, setTab] = useState<string>(() => localStorage.getItem(CALC_TAB) ?? "mining");
   const [sealLevel, setSealLevel] = useState<0 | 1 | 2 | 3>(1);
   const [areaKey, setAreaKey] = useState("byeoksan");
   const [hours, setHours] = useState("8");
   const [afk, setAfk] = useState(true);
+
+  const onTabChange = (v: string) => {
+    setTab(v);
+    localStorage.setItem(CALC_TAB, v);
+  };
 
   const result = useMemo(() => {
     const h = Math.max(0, Math.min(168, Number(hours) || 0));
@@ -38,20 +48,31 @@ export default function Calculadora() {
       <div className="container max-w-4xl py-10">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-serif text-4xl font-bold text-amber-400">Calculadora de Darksteel &amp; DRACO</h1>
+            <h1 className="font-serif text-4xl font-bold text-amber-400">Calculadora</h1>
             <p className="mt-2 text-sm text-slate-400">
-              Estime seus ganhos por hora de mineração com base no selo, na área e no tempo de farm.
+              Estime seus ganhos de mineração e o custo de fortalecimento dos seus equipamentos.
             </p>
           </div>
           <FavButton itemId="seal:calculadora" itemType="seal" isFavorite={false} />
         </div>
 
-        <div className="mt-4 rounded-lg border border-amber-900/40 bg-black/30 p-4">
-          <p className="flex items-center gap-2 text-xs text-amber-300/80">
-            <AlertTriangle className="h-4 w-4" />
-            Valores indicativos de comunidade (2024–2026) — variam por servidor, horário e competição de veias.
-          </p>
-        </div>
+        <Tabs value={tab} onValueChange={onTabChange} className="mt-6">
+          <TabsList className="w-full bg-black/40">
+            <TabsTrigger value="mining" className="flex-1 data-[state=active]:bg-amber-950/50 data-[state=active]:text-amber-300">
+              <Pickaxe className="mr-2 h-4 w-4" /> Darksteel &amp; DRACO
+            </TabsTrigger>
+            <TabsTrigger value="enhance" className="flex-1 data-[state=active]:bg-amber-950/50 data-[state=active]:text-amber-300">
+              <Swords className="mr-2 h-4 w-4" /> Fortalecimento
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="mining">
+            <div className="mt-4 rounded-lg border border-amber-900/40 bg-black/30 p-4">
+              <p className="flex items-center gap-2 text-xs text-amber-300/80">
+                <AlertTriangle className="h-4 w-4" />
+                Valores indicativos de comunidade (2024–2026) — variam por servidor, horário e competição de veias.
+              </p>
+            </div>
 
         <Card className="mt-6 border-amber-900/40 bg-black/40">
           <CardContent className="space-y-6 p-6">
@@ -192,6 +213,12 @@ export default function Calculadora() {
         >
           Veja os horários de mineração de elite no Calendário de Eventos →
         </Button>
+          </TabsContent>
+
+          <TabsContent value="enhance">
+            <EnhanceCalculator />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

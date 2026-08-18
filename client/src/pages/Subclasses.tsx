@@ -1,7 +1,9 @@
 import { useState } from "react";
 import PageBanner from "@/components/guide/PageBanner";
 import CommentsSection from "@/components/guide/CommentsSection";
-import { CLASS_SKILLS, SUBCLASS_TIPS, type SkillBuild } from "@shared/guideData";
+import { CLASS_SKILLS, SUBCLASS_TIPS, CLASS_VIDEOS, type SkillBuild } from "@shared/guideData";
+import ClassVideoPlayer from "@/components/ClassVideoPlayer";
+import PvPCompareDialog from "@/components/PvPCompareDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,7 +84,7 @@ export default function Subclasses() {
               <Swords className="h-10 w-10 text-amber-500/50" />
             </div>
           )}
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-amber-400">{cls.name}</h2>
             <p className="mt-1 text-xs text-slate-500">{cls.subclassTip}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -93,7 +95,17 @@ export default function Subclasses() {
               ))}
             </div>
           </div>
+          <PvPCompareDialog />
         </div>
+
+        {/* Gameplay em vídeo */}
+        {CLASS_VIDEOS[cls.key] && (
+          <ClassVideoPlayer
+            videoId={CLASS_VIDEOS[cls.key].id}
+            title={CLASS_VIDEOS[cls.key].title}
+            className="mt-6"
+          />
+        )}
 
         {/* Skills de destaque */}
         <section>

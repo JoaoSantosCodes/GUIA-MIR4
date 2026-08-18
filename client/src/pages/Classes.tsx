@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { CLASSES } from "@shared/guideData";
+import { CLASSES, CLASS_VIDEOS } from "@shared/guideData";
+import ClassVideoPlayer from "@/components/ClassVideoPlayer";
 import PageBanner from "@/components/guide/PageBanner";
 import CommentsSection from "@/components/guide/CommentsSection";
 import FavButton from "@/components/guide/FavButton";
@@ -113,6 +114,14 @@ export default function Classes() {
                         ))}
                       </ul>
                     </div>
+
+                    {CLASS_VIDEOS[c.key] && (
+                      <ClassVideoPlayer
+                        videoId={CLASS_VIDEOS[c.key].id}
+                        title={CLASS_VIDEOS[c.key].title}
+                        className="mt-4"
+                      />
+                    )}
 
                     <p className={cn("mt-4 rounded-md border px-3 py-2 text-xs", "border-red-900/40 bg-red-950/15 text-slate-300")}>
                       <Swords className="mr-1 inline h-3.5 w-3.5 text-red-400" />

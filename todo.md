@@ -231,3 +231,10 @@
 - [x] Efeito sonoro suave (playAchievementSound) + confete (AchievementConfetti) quando o banner de conquistas acumuladas aparecer, respeitando readCelebrationEnabled() e prefers-reduced-motion
 - [x] Validar conteúdo de classes: as 5 classes (Warrior, Sorcerer, Taoist, Lancer, Arbalist) presentes com skills, combos, builds e subclasses em /classes e /subclasses (verificado via screenshots); corrigido o seletor de Subclasses — Taoist, Lancer e Arbalist agora exibem retrato próprio (CLASS_IMAGES completo; URLs validadas no storage)
 - [x] Testes vitest (112 aprovados, incl. 2 novos para exportHistoryCard) + screenshots verificados (perfil com filtros/botão, classes com 5 retratos) — checkpoint e entrega
+
+## Nova funcionalidade: calculadora de fortalecimento, vídeos e comparador PvP
+
+- [x] Calculadora de fortalecimento: aba "Fortalecimento" na página /calculadora (EnhanceCalculator + enhanceCalc.ts): 10 slots com multiplicador Darksteel, níveis +0–10 por slider, custo acumulado por estágio + total em Darksteel/Copper, custo opcional em Jade (proteção × tentativas), tabela progressiva, persistência em localStorage (enhance-prefs); 10 testes aprovados
+- [x] Vídeos embutidos do YouTube nas páginas de Classes e Subclasses (ClassVideoPlayer: youtube-nocookie, lazy, carregado ao clicar em Assistir; CLASS_VIDEOS no guideData com IDs reais verificados da comunidade — 1 vídeo por classe: warrior=Q82PZqjxPz4, sorcerer=Zj9QMzxzt1Y, taoist=GTmrnnEUDtQ, lancer=yx3S_QYnEBo, arbalist=hMmHk7OBTr0; nota "pausado por padrão" no player)
+- [x] Comparador lado a lado de builds PvP (PvPCompareDialog no cabeçalho do seletor de classe em Subclasses: seletor de 2 classes, scores 0–100 de dano/defesa/utilidade em 3 cenários — PvP 1×1, grupo, Bosses; barras comparativas, deltas com vencedor, placar por cenário e vencedor geral; pvpCompare.ts puro com 8 testes aprovados)
+- [x] Testes vitest (130 aprovados, incl. 10 de enhanceCalc e 8 de pvpCompare) + screenshots verificados (/classes e /subclasses com player de vídeo, /calculadora com abas) + TSC limpo — checkpoint e entrega

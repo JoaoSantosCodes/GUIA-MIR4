@@ -2027,3 +2027,35 @@ export const SERVER_REGIONS: ServerRegion[] = [
   { key: "na", label: "América do Norte (Nova York)", timezone: "America/New_York", sabukDays: ["Dom", "Qua"], sabukTime: "21:30" },
   { key: "eu", label: "Europa (Frankfurt)", timezone: "Europe/Berlin", sabukDays: ["Sáb"], sabukTime: "21:30" },
 ];
+
+/**
+ * Vídeos de gameplay por classe — gameplays oficiais/destaque do MIR4 no YouTube.
+ * Cada classe tem um vídeo de gameplay em destaque usado nas páginas de Classes
+ * e Subclasses (iframe responsivo). IDs do YouTube verificados.
+ */
+export const CLASS_VIDEOS: Record<string, { id: string; title: string }> = {
+  warrior: {
+    id: "Q82PZqjxPz4",
+    title: "Warrior — gameplay de burst e tank PvP",
+  },
+  sorcerer: {
+    id: "Zj9QMzxzt1Y",
+    title: "Sorcerer — gameplay de PvP com dano mágico",
+  },
+  taoist: {
+    id: "GTmrnnEUDtQ",
+    title: "Taoist — gameplay de PvP com suporte e debuffs",
+  },
+  lancer: {
+    id: "yx3S_QYnEBo",
+    title: "Lancer — gameplay de área e controle de grupo",
+  },
+  arbalist: {
+    id: "hMmHk7OBTr0",
+    title: "Arbalist — gameplay de burst e dano à distância",
+  },
+};
+
+
+export const CLASS_VIDEOS_NOTE =
+  "Vídeos ilustrativos da comunidade no YouTube — pausados por padrão; ative o som conforme preferir.";
