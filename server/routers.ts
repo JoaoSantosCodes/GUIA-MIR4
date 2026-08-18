@@ -4,9 +4,9 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
-import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES } from "@shared/guideData";
+import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS } from "@shared/guideData";
 
-const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy"]);
+const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss"]);
 
 const favoriteInput = z.object({
   itemId: z.string().min(1).max(120),
@@ -27,6 +27,7 @@ function validateGuideItem(itemId: string, itemType: z.infer<typeof favoritesIte
     case "farm": return FARM_SPOTS.some(f => f.key === key);
     case "class": return CLASSES.some(c => c.key === key);
     case "economy": return true;
+    case "boss": return RAIDS.some(r => r.key === key);
   }
 }
 
@@ -73,6 +74,30 @@ export const appRouter = router({
         return { success: true } as const;
       }),
   }),
+
+  comments: router({
+    list: publicProcedure
+      .input(z.object({ farmKey: z.string().min(1).max(120) }))
+      .query(({ input }) => db.listFarmComments(input.farmKey)),
+    add: protectedProcedure
+      .input(z.object({
+        farmKey: z.string().min(1).max(120),
+        content: z.string().trim().min(3).max(300),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!FARM_SPOTS.some(f => f.key === input.farmKey)) {
+          throw new Error("Local de farm inválido");
+        }
+        await db.addFarmComment(ctx.user.id, input.farmKey, input.content);
+        return { success: true } as const;
+      }),
+    remove: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.removeFarmComment(ctx.user.id, input.id);
+        return { success: true } as const;
+      }),
+    }),
 });
 
 export type AppRouter = typeof appRouter;

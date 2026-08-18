@@ -36,4 +36,17 @@
 - [x] Recomendações de build por classe (PvE/PvP/farm) na página Classes
 - [x] Validar mobile em todas as páginas principais
 - [x] Validar mobile na página /classes
-- [ ] Checkpoint final e entrega
+- [x] Checkpoint final (v14b8d7c5) salvo
+
+## Nova funcionalidade: Raids e Bosses, filtros de Espíritos e comentários
+- [x] Pesquisar raids/bosses do MIR4 (nomes, nível recomendado, mecânicas, drops)
+- [x] Criar dados de bosses (RAIDS) em shared/guideData.ts
+- [ ] Tabela bosses no schema, migração e aplicação SQL
+- [x] Helpers db + procedures tRPC para comentários (tabela farm_comments)
+- [x] Página Raids com estratégia de combate, filtros por dificuldade e tabelas de drops por boss
+- [x] Rota /raids registrada no App.tsx, navegação e busca indexada
+- [x] Filtros por raridade E atributo na página Espíritos (checkboxes de atributos)
+- [x] Ordenação de espíritos (rarity, nome) na página Espíritos
+- [x] Testes vitest para favoritos raid/boss e comentários (16 testes aprovados)
+- [x] Screenshot desktop e mobile das novas páginas (/raids, /espiritos, /farm)
+- [ ] Checkpoint e entrega

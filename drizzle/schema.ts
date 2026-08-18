@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -28,7 +28,7 @@ export const favorites = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
     itemId: varchar("itemId", { length: 120 }).notNull(),
-    itemType: mysqlEnum("itemType", ["spirit", "codex", "farm", "class", "economy"]).notNull(),
+    itemType: mysqlEnum("itemType", ["spirit", "codex", "farm", "class", "economy", "boss"]).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (t) => [uniqueIndex("userId_itemId").on(t.userId, t.itemId)],
@@ -36,6 +36,24 @@ export const favorites = mysqlTable(
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
+
+/**
+ * Community tips/comments on Farm locations, posted by logged-in users.
+ */
+export const farmComments = mysqlTable(
+  "farm_comments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    farmKey: varchar("farmKey", { length: 120 }).notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [index("farmKey_idx").on(t.farmKey)],
+);
+
+export type FarmComment = typeof farmComments.$inferSelect;
+export type InsertFarmComment = typeof farmComments.$inferInsert;
 
 /**
  * Codex collection progress per user: which codex item IDs were marked collected.

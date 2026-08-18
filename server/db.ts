@@ -1,6 +1,6 @@
 import { eq, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -133,5 +133,52 @@ export async function setCodexProgress(userId: number, itemId: string, collected
   } else {
     await db.delete(codexProgress).where(and(eq(codexProgress.userId, userId), eq(codexProgress.itemId, itemId)));
   }
+  return { success: true };
+}
+
+// ---------- Farm comments ----------
+
+export async function listFarmComments(farmKey: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      id: farmComments.id,
+      userId: farmComments.userId,
+      farmKey: farmComments.farmKey,
+      content: farmComments.content,
+      createdAt: farmComments.createdAt,
+      userName: users.name,
+    })
+    .from(farmComments)
+    .where(eq(farmComments.farmKey, farmKey))
+    .orderBy(farmComments.createdAt);
+  // Resolve display names without N+1: fetch all distinct userIds at once.
+  const userIds = Array.from(new Set(rows.map(r => r.userId)));
+  const names = new Map<number, string>();
+  if (userIds.length > 0) {
+    const userRows = await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, userIds));
+    userRows.forEach(u => {
+      if (u.name) names.set(u.id, u.name);
+    });
+  }
+  return rows.map(r => ({ ...r, userName: names.get(r.userId) ?? undefined }));
+}
+
+export async function addFarmComment(userId: number, farmKey: string, content: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(farmComments).values({ userId, farmKey, content });
+  return { success: true };
+}
+
+export async function removeFarmComment(userId: number, commentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db.select().from(farmComments).where(eq(farmComments.id, commentId)).limit(1);
+  const row = rows[0];
+  if (!row) throw new Error("Comentário não encontrado");
+  if (row.userId !== userId) throw new Error("Você só pode excluir seus próprios comentários");
+  await db.delete(farmComments).where(eq(farmComments.id, commentId));
   return { success: true };
 }

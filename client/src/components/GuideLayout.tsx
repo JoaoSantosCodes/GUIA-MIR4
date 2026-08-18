@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star } from "lucide-react";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, MAGIC_SQUARE_CHAMBERS, SPIRITS } from "@shared/guideData";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull } from "lucide-react";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -27,6 +27,7 @@ export const GUIDE_SECTIONS = [
   { key: "farm", label: "Locais de Farm", path: "/farm" },
   { key: "classes", label: "Classes", path: "/classes" },
   { key: "economia", label: "Economia", path: "/economia" },
+  { key: "raids", label: "Raids e Bosses", path: "/raids" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -117,6 +118,16 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       section: "farm",
       sectionLabel: "Magic Square",
       path: "/farm#magic-square",
+    }),
+  );
+  RAIDS.forEach(r =>
+    hits.push({
+      id: `raid-${r.key}`,
+      type: "raid",
+      title: `${r.name} (${r.difficulty}) — ${r.type} · ${r.location} · PS ${r.power} · ${[r.strategy.join(" · "), r.drops.map(d => d.item).join(", ")].join(" · ")}`,
+      section: "raid",
+      sectionLabel: "Raids e Bosses",
+      path: `/raids#${r.key}`,
     }),
   );
   return hits;
@@ -271,6 +282,7 @@ function HitIcon({ type }: { type: string }) {
     case "codex": return <BookOpen className={cls} />;
     case "farm": return <Pickaxe className={cls} />;
     case "class": return <Swords className={cls} />;
+    case "raid": return <Skull className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

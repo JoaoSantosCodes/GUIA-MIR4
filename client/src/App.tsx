@@ -11,6 +11,7 @@ import Codex from "./pages/Codex";
 import Farm from "./pages/Farm";
 import Classes from "./pages/Classes";
 import Economy from "./pages/Economy";
+import Raids from "./pages/Raids";
 import Profile from "./pages/Profile";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -23,6 +24,7 @@ function Router() {
       <Route path={"/farm"} component={Farm} />
       <Route path={"/classes"} component={Classes} />
       <Route path={"/economia"} component={Economy} />
+      <Route path={"/raids"} component={Raids} />
       <Route path={"/perfil"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

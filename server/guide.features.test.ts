@@ -9,6 +9,9 @@ vi.mock("./db", () => ({
   removeFavorite: vi.fn(async () => undefined),
   listCodexProgress: vi.fn(async () => []),
   setCodexProgress: vi.fn(async () => undefined),
+  listFarmComments: vi.fn(async () => []),
+  addFarmComment: vi.fn(async () => undefined),
+  removeFarmComment: vi.fn(async () => undefined),
 }));
 
 import * as db from "./db";
@@ -39,6 +42,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(db.listFavorites).mockResolvedValue([]);
   vi.mocked(db.listCodexProgress).mockResolvedValue([]);
+  vi.mocked(db.listFarmComments).mockResolvedValue([]);
 });
 
 describe("favorites.toggle", () => {
@@ -95,5 +99,66 @@ describe("codexProgress.toggle", () => {
     await expect(
       caller.codexProgress.toggle({ itemId: "uc-magicstone", collected: true }),
     ).rejects.toThrow(); // chave inválida
+  });
+});
+
+describe("favorites.toggle with raid/boss items", () => {
+  it("accepts a valid raid item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.favorites.toggle({ itemId: "raid:king-bull-fiend", itemType: "boss" });
+    expect(result.added).toBe(true);
+    expect(db.addFavorite).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an unknown raid item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.favorites.toggle({ itemId: "raid:nao-existe", itemType: "boss" }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("comments", () => {
+  const validFarmKey = "snake-valley";
+
+  it("list is public and returns comments for a farm spot", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    const result = await caller.comments.list({ farmKey: validFarmKey });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("list returns empty for a key with no comments", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    const result = await caller.comments.list({ farmKey: "nao-existe" });
+    expect(result).toEqual([]);
+  });
+
+  it("add requires authentication", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(
+      caller.comments.add({ farmKey: validFarmKey, content: "Dica para testar" }),
+    ).rejects.toThrow();
+  });
+
+  it("add validates content length and farm key", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.comments.add({ farmKey: validFarmKey, content: "ab" }),
+    ).rejects.toThrow();
+    await expect(
+      caller.comments.add({ farmKey: "nao-existe", content: "Dica válida para testar" }),
+    ).rejects.toThrow();
+  });
+
+  it("add stores the comment for the authenticated user", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.comments.add({ farmKey: validFarmKey, content: "Dica válida para testar" });
+    expect(result.success).toBe(true);
+    expect(db.addFarmComment).toHaveBeenCalledWith(42, validFarmKey, "Dica válida para testar");
+  });
+
+  it("remove requires authentication and rejects unknown ids", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.comments.remove({ id: 1 })).rejects.toThrow();
   });
 });

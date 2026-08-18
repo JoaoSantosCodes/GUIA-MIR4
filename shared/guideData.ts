@@ -5,7 +5,7 @@
 
 export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
 
-export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy";
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss";
 
 export const RARITY_ORDER: Rarity[] = ["UC", "Raro", "Épico", "Lendário", "Mítico"];
 
@@ -387,4 +387,294 @@ export const SECTION_IMAGES = {
   codex: "/manus-storage/section-codex_35552f7d.jpg",
   farm: "/manus-storage/section-farm_bc0d668a.jpg",
   economy: "/manus-storage/section-economy_94d8f7ab.jpg",
+};
+
+/** Raids e Bosses do MIR4. */
+export type RaidDifficulty = "Iniciante" | "Intermediário" | "Avançado" | "Endgame";
+
+export interface RaidDrop {
+  item: string;
+  rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
+  chance: string;
+}
+
+export interface Boss {
+  key: string;
+  name: string;
+  location: string;
+  type: string;
+  power: string;
+  difficulty: RaidDifficulty;
+  strategy: string[];
+  drops: RaidDrop[];
+  tips: string[];
+}
+
+export const RAIDS: Boss[] = [
+  {
+    key: "king-bull-fiend",
+    name: "King Bull Fiend",
+    location: "Boss Raid — Minotauro",
+    type: "Boss Raid (Party)",
+    power: "~50k PS",
+    difficulty: "Iniciante",
+    strategy: [
+      "Verifique o Entry Power Score na tela do Boss Raid antes de entrar — se não atingir o mínimo, a entrada é bloqueada.",
+      "Monte uma party no formato 1-1-3: 1 Tanque (Warrior), 1 Healer (Taoist) e 3 DPS.",
+      "O Warrior agrega os adds com Thunder Slash e usa Shield Bash antes dos ataques de tank buster.",
+      "Concentre o burst de DPS quando o boss sai do enrage; o Tanque posiciona-se de frente e os DPS atacam pelas costas.",
+    ],
+    drops: [
+      { item: "Treasure Chest (EXP + Copper)", rarity: "Comum", chance: "100%" },
+      { item: "Materiais de Enhancement", rarity: "Incomum", chance: "Alta" },
+      { item: "Spirit Treasures", rarity: "Raro", chance: "Média" },
+      { item: "Skill Tome Materials", rarity: "Raro", chance: "Média" },
+    ],
+    tips: [
+      "1 entrada gratuita por dia (reseta 00:00 UTC+8); extras com Gold, máx. 2/dia.",
+      "Use o Raid Party Chat (cross-server) para coordenar burst e mecânicas.",
+    ],
+  },
+  {
+    key: "nefariox-king",
+    name: "Nefariox King",
+    location: "Boss Raid — Necrópolis",
+    type: "Boss Raid (Party)",
+    power: "~60k PS",
+    difficulty: "Intermediário",
+    strategy: [
+      "O boss alterna entre ataques em área no chão e investidas lineares — fique atento aos indicadores vermelhos.",
+      "Taoist mantém Rejuvination e cura nos momentos de dano em área; Warrior segura o agro com Threat.",
+      "Arbalists e Sorcerers mantêm distância máxima; Lancer flutua entre burst e recuo.",
+      "Guarde os ultimates para a fase final (HP < 30%), quando o boss acelera os ataques.",
+    ],
+    drops: [
+      { item: "Treasure Chest (EXP + Copper)", rarity: "Comum", chance: "100%" },
+      { item: "Materiais de Enhancement", rarity: "Incomum", chance: "Alta" },
+      { item: "Spirit Treasures", rarity: "Épico", chance: "Média" },
+      { item: "Rare Spirit Stone", rarity: "Épico", chance: "Baixa" },
+    ],
+    tips: [
+      "First Kill (primeira derrota do servidor) concede recompensas extras de First Clear.",
+      "Recompensas são distribuídas por dano — DPS consistente vale mais que um burst único.",
+    ],
+  },
+  {
+    key: "hall-of-greed",
+    name: "Hall of Greed",
+    location: "Hall of Greed (Salão da Cobiça)",
+    type: "Raid de Party",
+    power: "~52k PS",
+    difficulty: "Intermediário",
+    strategy: [
+      "Conteúdo de party focado em EXP, Copper e materiais — ideal para grind em grupo.",
+      "Priorize mobs com debuffs de área: Boss ATK de espírito (ex.: Grifforse) acelera o clear.",
+      "Divida funções: 1 jogador cuida dos adds laterais enquanto o core focus no boss central.",
+      "Evite desperdiçar ultimates em adds — guarde para o boss final.",
+    ],
+    drops: [
+      { item: "EXP + Copper", rarity: "Comum", chance: "100%" },
+      { item: "Materiais de Enhancement", rarity: "Incomum", chance: "Alta" },
+      { item: "Spirit Treasures", rarity: "Raro", chance: "Média" },
+      { item: "First Clear Rewards (Boar Fiend CPT)", rarity: "Lendário", chance: "Único (1º clear)" },
+    ],
+    tips: [
+      "O 1º clear do servidor (Boar Fiend CPT) dá bônus único — monitore o ranking de raid.",
+      "Recompensas escalam com o nível de participação de cada jogador.",
+    ],
+  },
+  {
+    key: "demons-ruin",
+    name: "Demon's Ruin",
+    location: "Ruínas do Demônio",
+    type: "Raid de Party",
+    power: "~80k PS",
+    difficulty: "Avançado",
+    strategy: [
+      "A raid tem mecânica de boss com fases — o boss invoca adds periódicos que devem ser limpos rapidamente.",
+      "O Healer precisa posicionar-se fora do alcance dos adds e priorizar o Tanque.",
+      "DPS em área (Sorcerer/Lancer) limpam adds; DPS mono (Arbalist) foca o boss.",
+      "Na fase final, o boss entra em enrage: ative todos os buffs de espírito antes do burst.",
+    ],
+    drops: [
+      { item: "Shards de Material", rarity: "Comum", chance: "Alta" },
+      { item: "Spirit Treasures", rarity: "Raro", chance: "Alta" },
+      { item: "Legendary Spirit Stone Summon", rarity: "Lendário", chance: "Baixa" },
+      { item: "Event Badges (Yellow Dragon Wayfarer)", rarity: "Épico", chance: "Variável (eventos)" },
+    ],
+    tips: [
+      "Usada em eventos oficiais como fonte de badges trocáveis por equipamentos +6.",
+      "First Kill rewards são significativas — coordenem com o clã.",
+    ],
+  },
+  {
+    key: "steelbone",
+    name: "Steelbone",
+    location: "Boss Raid — Aço Ósseo",
+    type: "Boss Raid (Party)",
+    power: "~100k PS",
+    difficulty: "Avançado",
+    strategy: [
+      "Boss com alta DEF física — priorize ATK mágico e debuffs de redução de DEF.",
+      "Warrior segura agro; Taoist aplica heal-over-time constante; DPS mantém pressão mágica.",
+      "O boss tem ataques de bash pesados: mantenha CRIT EVA alta (espíritos com bash reduction).",
+      "Burst coordenado nos janelas de vulnerability (indicador dourado no boss).",
+    ],
+    drops: [
+      { item: "Treasure Chest (EXP + Gold)", rarity: "Comum", chance: "100%" },
+      { item: "Materiais de Enhancement Raros", rarity: "Raro", chance: "Alta" },
+      { item: "Epic Spirit Summon Items", rarity: "Épico", chance: "Média" },
+      { item: "Rare Enhancement Stones", rarity: "Épico", chance: "Baixa" },
+    ],
+    tips: [
+      "Conhecida por drops raros de materiais de enhancement — vale a entrada diária.",
+      "Farm consistente: mesmo jogadores de PS médio conseguem contribuição útil.",
+    ],
+  },
+  {
+    key: "vipergeist-prison",
+    name: "Vipergeist Prison",
+    location: "Vipergeist Prison (lançado Nov/2022)",
+    type: "Raid Especial",
+    power: "~120k PS",
+    difficulty: "Endgame",
+    strategy: [
+      "Raid de ambiente fechado com mecânicas de prisão — posicione-se longe das grades ao ativar skills de área.",
+      "O boss divide-se em formas: foque a forma principal e ignore clones temporários.",
+      "Tanque posiciona o boss de costas para a parede; DPS atacam em flanco.",
+      "Comunique via Raid Party Chat os momentos de CC (stun/silence) para maximizar janelas.",
+    ],
+    drops: [
+      { item: "Treasure Chest (EXP + Gold)", rarity: "Comum", chance: "100%" },
+      { item: "Legendary Spirit Treasures", rarity: "Lendário", chance: "Baixa" },
+      { item: "First Kill Bonus Rewards", rarity: "Lendário", chance: "Único (1º kill)" },
+      { item: "Rare Enhancement Materials", rarity: "Épico", chance: "Média" },
+    ],
+    tips: [
+      "First Kill de raids especiais dá recompensas únicas no lançamento — fique atento aos anúncios.",
+      "Conteúdo de clã: organize com seu guild para maximizar participação.",
+    ],
+  },
+  {
+    key: "claydoh-gen",
+    name: "Claydoh GEN",
+    location: "Boss Raid — Claydoh GEN",
+    type: "Boss Raid (Party)",
+    power: "~140k PS",
+    difficulty: "Endgame",
+    strategy: [
+      "Boss de golem com ataques de área massivos — mantenha distância e use pilares como cobertura.",
+      "Warrior com Bash DMG Reduction alto (espíritos Inferno/Suparna) sobrevive aos slam attacks.",
+      "DPS mágico (Sorcerer) é mais eficaz que DPS físico contra a armadura de pedra.",
+      "Na fase final o boss acelera: ative todos os ultimates em sequência coordenada.",
+    ],
+    drops: [
+      { item: "Treasure Chest (EXP + Gold)", rarity: "Comum", chance: "100%" },
+      { item: "Legendary Spirit Stone Summon", rarity: "Lendário", chance: "Baixa" },
+      { item: "Epic Enhancement Stones", rarity: "Épico", chance: "Média" },
+      { item: "First Kill Bonus Rewards", rarity: "Lendário", chance: "Único (1º kill)" },
+    ],
+    tips: [
+      "Lançado junto com Vipergeist Prison (Nov/2022) — conteúdo endgame de raid.",
+      "Organize com o clã: a coordenação é mais importante que o PS individual.",
+    ],
+  },
+  {
+    key: "leaders-chamber",
+    name: "Leader's Chamber Bosses",
+    location: "Magic Square — Câmaras do Líder",
+    type: "Boss de Dungeon (PvP ativo)",
+    power: "Escala com o andar (F1–F4)",
+    difficulty: "Intermediário",
+    strategy: [
+      "As câmaras de boss do Magic Square têm PvP ativo — entre em grupo grande para evitar que outros jogadores roubem o kill.",
+      "Tanque posiciona o boss de costas para o grupo; DPS mantêm distância e usam CC.",
+      "Monitore o timer de respawn: L1 = 30min, L2 = 45min, L3 = horários fixos (03:00, 06:00, 09:00... UTC+8).",
+      "Planeje a entrada do Magic Square com base no timer para monopolizar o boss.",
+    ],
+    drops: [
+      { item: "Materiais para Skill Tome Chest", rarity: "Comum", chance: "100%" },
+      { item: "Enhancement Materials", rarity: "Incomum", chance: "Alta" },
+      { item: "Boss Chest (loot aleatório)", rarity: "Raro", chance: "Média" },
+      { item: "Request Quest Progress (boss 4F)", rarity: "Épico", chance: "Único (quest)" },
+    ],
+    tips: [
+      "O boss do 4º andar é requisito de Request Quest — não ignore esta câmara.",
+      "PvP ativo: leve poções e tenha Vigor disponível antes de entrar.",
+    ],
+  },
+  {
+    key: "demon-chamber",
+    name: "Demon's Chamber Boss",
+    location: "Magic Square — Câmara do Demônio",
+    type: "Boss de Dungeon (PvP ativo)",
+    power: "Escala com o andar",
+    difficulty: "Avançado",
+    strategy: [
+      "Chance de 2,2% de chegar à câmara — use warp repetidamente até aparecer.",
+      "O boss dropa shards e materiais valiosos; PvP ativo significa disputa com outros jogadores.",
+      "Entre com party grande e coordinate burst rápido para matar antes de interferência.",
+      "Guarde ultimates para o boss; não gaste nos mobs de entrada.",
+    ],
+    drops: [
+      { item: "Shards de Material", rarity: "Comum", chance: "Alta" },
+      { item: "Enhancement Materials", rarity: "Incomum", chance: "Alta" },
+      { item: "Spirit Treasures", rarity: "Raro", chance: "Média" },
+      { item: "Rare Darksteel (no chão da câmara)", rarity: "Épico", chance: "Baixa" },
+    ],
+    tips: [
+      "A câmara tem chance de apenas 2,2% por warp — paciência e persistência.",
+      "Se encontrar a câmara ocupada, espere o timer ou entre em outro canal.",
+    ],
+  },
+  {
+    key: "world-bosses",
+    name: "World Bosses (Snake Valley)",
+    location: "Snake Valley / Byeoksan (áreas PvP)",
+    type: "World Boss (PvP livre)",
+    power: "Alto (endgame)",
+    difficulty: "Endgame",
+    strategy: [
+      "World bosses spawnam em áreas PvP de alto nível — prepare poções, Vigor e party.",
+      "O primeiro a dar o último hit (last hit) geralmente garante o melhor loot.",
+      "Coordene com o clã para controlar a área durante o spawn.",
+      "Bosses dropam Treasure Chests valiosos — monopolizar a zona é a estratégia principal.",
+    ],
+    drops: [
+      { item: "Treasure Chest", rarity: "Raro", chance: "Alta" },
+      { item: "Rare Darksteel Nodes", rarity: "Épico", chance: "Média" },
+      { item: "Epic Enhancement Materials", rarity: "Épico", chance: "Baixa" },
+      { item: "Spirit Summon Tickets", rarity: "Lendário", chance: "Muito baixa" },
+    ],
+    tips: [
+      "Snake Valley é a zona mais disputada do jogo — espere guild wars durante spawns.",
+      "Limpe os nodes coloridos primeiro para maximizar a chance de Darksteel raro.",
+    ],
+  },
+];
+
+export const RAID_MECHANICS = {
+  title: "Como funcionam as Raids",
+  entries: [
+    {
+      label: "Tipos de Raid",
+      desc: "MIR4 tem Boss Raids (partida dedicada contra um boss), Raids de Party (Hall of Greed, Demon's Ruin) e conteúdo competitivo mais recente (Hall of Cooperation, Competitive Raid). Todas exigem Entry Power Score mínimo exibido na tela de Raid Party.",
+    },
+    {
+      label: "Entradas e Reset",
+      desc: "Cada Boss Raid oferece 1 entrada gratuita por dia, resetando à meia-noite (UTC+8). Entradas extras podem ser compradas com Gold, com limite de 2 adicionais por dia.",
+    },
+    {
+      label: "First Kill Rewards",
+      desc: "A primeira derrota de um boss no servidor (First Kill / First Clear) concede recompensas extras significativas. Monitore o ranking de raid e coordene com o clã para garantir o first kill.",
+    },
+    {
+      label: "Composição de Party",
+      desc: "O setup clássico 1-1-3 (1 Tanque, 1 Healer, 3 DPS) funciona para a maioria das raids. Warrior agrega com Thunder Slash, Taoist mantém cura constante, e DPS focam em burst coordenado nos janelas de vulnerability.",
+    },
+    {
+      label: "Comunicação",
+      desc: "O Raid Party Chat permite comunicação cross-server dentro da raid. Use para coordenar burst, CC e posicionamento — a diferença entre sucesso e wipe geralmente está na comunicação.",
+    },
+  ],
 };

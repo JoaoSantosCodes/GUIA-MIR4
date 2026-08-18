@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { BOSS_RESPAWN, FARM_SPOTS, MAGIC_SQUARE_CHAMBERS, SECTION_IMAGES } from "@shared/guideData";
 import PageBanner from "@/components/guide/PageBanner";
 import FavButton from "@/components/guide/FavButton";
+import CommentsSection from "@/components/guide/CommentsSection";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,7 @@ export default function Farm() {
                       ))}
                     </div>
                     <p className="mt-3 text-sm text-slate-400">{f.note}</p>
+                    <CommentsSection farmKey={f.key} title="Dicas da comunidade" />
                   </article>
                 );
               })}
