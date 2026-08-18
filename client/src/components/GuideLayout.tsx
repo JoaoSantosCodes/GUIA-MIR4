@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle } from "lucide-react";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -33,6 +33,8 @@ export const GUIDE_SECTIONS = [
   { key: "nivel", label: "Leveling", path: "/nivel" },
   { key: "sabuk", label: "Sabuk", path: "/sabuk" },
   { key: "misterios", label: "Mistérios", path: "/misterios" },
+  { key: "selos", label: "Selos", path: "/selos" },
+  { key: "calendario", label: "Calendário", path: "/calendario" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -173,6 +175,26 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       section: "mystery",
       sectionLabel: "Mistérios",
       path: `/misterios#${m.key}`,
+    }),
+  );
+  SEAL_GUIDE.forEach(s =>
+    hits.push({
+      id: `seal-${s.stage}`,
+      type: "seal",
+      title: `${s.stage} — ${[s.description, s.bonus, ...s.route.map(r => `${r.name}: ${r.detail}`), s.howToUpgrade].join(" · ")}`,
+      section: "seal",
+      sectionLabel: "Selos & Geminação",
+      path: "/selos",
+    }),
+  );
+  GAME_EVENTS.forEach(e =>
+    hits.push({
+      id: `event-${e.key}`,
+      type: "event",
+      title: `${e.name} — ${[e.schedule, e.duration, e.description, e.tip].join(" · ")}`,
+      section: "event",
+      sectionLabel: "Calendário de Eventos",
+      path: "/calendario",
     }),
   );
   return hits;
@@ -339,6 +361,8 @@ function HitIcon({ type }: { type: string }) {
     case "nivel": return <TrendingUp className={cls} />;
     case "sabuk": return <Castle className={cls} />;
     case "mystery": return <BookOpen className={cls} />;
+    case "seal": return <Gem className={cls} />;
+    case "event": return <Calendar className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

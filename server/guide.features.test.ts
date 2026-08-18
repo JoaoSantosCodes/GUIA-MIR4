@@ -11,6 +11,8 @@ vi.mock("./db", () => ({
   setCodexProgress: vi.fn(async () => undefined),
   listFarmComments: vi.fn(async () => []),
   addFarmComment: vi.fn(async () => undefined),
+  listPageComments: vi.fn(async () => []),
+  addPageComment: vi.fn(async () => undefined),
   removeFarmComment: vi.fn(async () => undefined),
   voteComment: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0 })),
 }));
@@ -44,6 +46,7 @@ beforeEach(() => {
   vi.mocked(db.listFavorites).mockResolvedValue([]);
   vi.mocked(db.listCodexProgress).mockResolvedValue([]);
   vi.mocked(db.listFarmComments).mockResolvedValue([]);
+  vi.mocked(db.listPageComments).mockResolvedValue([]);
 });
 
 describe("favorites.toggle", () => {
@@ -154,38 +157,38 @@ describe("comments", () => {
 
   it("list is public and returns comments for a farm spot", async () => {
     const caller = appRouter.createCaller(createContext(null));
-    const result = await caller.comments.list({ farmKey: validFarmKey });
+    const result = await caller.comments.list({ pageKey: "farm", farmKey: validFarmKey });
     expect(Array.isArray(result)).toBe(true);
   });
 
   it("list returns empty for a key with no comments", async () => {
     const caller = appRouter.createCaller(createContext(null));
-    const result = await caller.comments.list({ farmKey: "nao-existe" });
+    const result = await caller.comments.list({ pageKey: "sabuk", farmKey: "nao-existe" });
     expect(result).toEqual([]);
   });
 
   it("add requires authentication", async () => {
     const caller = appRouter.createCaller(createContext(null));
     await expect(
-      caller.comments.add({ farmKey: validFarmKey, content: "Dica para testar" }),
+      caller.comments.add({ pageKey: "farm", farmKey: validFarmKey, content: "Dica para testar" }),
     ).rejects.toThrow();
   });
 
   it("add validates content length and farm key", async () => {
     const caller = appRouter.createCaller(createContext(authenticatedUser));
     await expect(
-      caller.comments.add({ farmKey: validFarmKey, content: "ab" }),
+      caller.comments.add({ pageKey: "farm", farmKey: validFarmKey, content: "ab" }),
     ).rejects.toThrow();
     await expect(
-      caller.comments.add({ farmKey: "nao-existe", content: "Dica válida para testar" }),
+      caller.comments.add({ pageKey: "farm", farmKey: "nao-existe", content: "Dica válida para testar" }),
     ).rejects.toThrow();
   });
 
   it("add stores the comment for the authenticated user", async () => {
     const caller = appRouter.createCaller(createContext(authenticatedUser));
-    const result = await caller.comments.add({ farmKey: validFarmKey, content: "Dica válida para testar" });
+    const result = await caller.comments.add({ pageKey: "farm", farmKey: validFarmKey, content: "Dica válida para testar" });
     expect(result.success).toBe(true);
-    expect(db.addFarmComment).toHaveBeenCalledWith(42, validFarmKey, "Dica válida para testar");
+    expect(db.addPageComment).toHaveBeenCalledWith(42, "farm", validFarmKey, "Dica válida para testar");
   });
 
   it("remove requires authentication and rejects unknown ids", async () => {

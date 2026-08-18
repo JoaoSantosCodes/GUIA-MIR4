@@ -1,5 +1,6 @@
 import PageBanner from "@/components/guide/PageBanner";
 import FavButton from "@/components/guide/FavButton";
+import CommentsSection from "@/components/guide/CommentsSection";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
@@ -181,6 +182,16 @@ export default function Sabuk() {
               <FavButton itemId="sabuk:torre-conquista" itemType="sabuk" isFavorite={false} />
             </div>
           </Card>
+        </section>
+
+        {/* Comentários com votação */}
+        <section id="dicas">
+          <CommentsSection
+            pageKey="sabuk"
+            farmKey="geral"
+            title="Dicas da comunidade: Guerra de Sabuk & Guildas"
+            placeholder="Compartilhe uma estratégia de cerco ou dica de guilda... (máx. 300 caracteres)"
+          />
         </section>
       </div>
     </div>

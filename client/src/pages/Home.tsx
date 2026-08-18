@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -66,6 +66,24 @@ const SECTIONS = [
     desc: "Cadeias de mistérios ocultos com atributos permanentes e a Torre da Conquista com seus 10 edifícios upáveis.",
     image: "",
     accent: "text-violet-400",
+  },
+  {
+    key: "selos",
+    path: "/selos",
+    icon: Gem,
+    title: "Selos & Geminação",
+    desc: "Progressão das Magic Stones lacradas — Darksteel, Jade e Dragon Seal — com rotas de farm de Darksteel por estágio.",
+    image: "",
+    accent: "text-rose-400",
+  },
+  {
+    key: "calendario",
+    path: "/calendario",
+    icon: Calendar,
+    title: "Calendário de Eventos",
+    desc: "Horários da Guerra de Sabuk, Sabuk Clash, Magic Square, bosses mundiais e ciclos diários e semanais do servidor.",
+    image: "",
+    accent: "text-sky-400",
   },
 ];
 

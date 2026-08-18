@@ -138,6 +138,41 @@ export async function setCodexProgress(userId: number, itemId: string, collected
 
 // ---------- Farm comments ----------
 
+export async function listPageComments(pageKey: string, itemKey: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      id: farmComments.id,
+      userId: farmComments.userId,
+      farmKey: farmComments.farmKey,
+      content: farmComments.content,
+      upvotes: farmComments.upvotes,
+      downvotes: farmComments.downvotes,
+      createdAt: farmComments.createdAt,
+      userName: users.name,
+    })
+    .from(farmComments)
+    .where(and(eq(farmComments.pageKey, pageKey), eq(farmComments.farmKey, itemKey)))
+    .orderBy(farmComments.createdAt);
+  const userIds = Array.from(new Set(rows.map(r => r.userId)));
+  const names = new Map<number, string>();
+  if (userIds.length > 0) {
+    const userRows = await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, userIds));
+    userRows.forEach(u => {
+      if (u.name) names.set(u.id, u.name);
+    });
+  }
+  return rows.map(r => ({ ...r, userName: names.get(r.userId) ?? undefined }));
+}
+
+export async function addPageComment(userId: number, pageKey: string, itemKey: string, content: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(farmComments).values({ userId, farmKey: itemKey, content, pageKey });
+  return { success: true };
+}
+
 export async function listFarmComments(farmKey: string) {
   const db = await getDb();
   if (!db) return [];

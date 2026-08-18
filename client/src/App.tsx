@@ -16,6 +16,8 @@ import TierList from "./pages/TierList";
 import Leveling from "./pages/Leveling";
 import Sabuk from "./pages/Sabuk";
 import Misterios from "./pages/Misterios";
+import Selos from "./pages/Selos";
+import Calendario from "./pages/Calendario";
 import Profile from "./pages/Profile";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -33,6 +35,8 @@ function Router() {
       <Route path={"/nivel"} component={Leveling} />
       <Route path={"/sabuk"} component={Sabuk} />
       <Route path={"/misterios"} component={Misterios} />
+      <Route path={"/selos"} component={Selos} />
+      <Route path={"/calendario"} component={Calendario} />
       <Route path={"/perfil"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

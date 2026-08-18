@@ -4,9 +4,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
-import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
+import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE } from "@shared/guideData";
+import { PAGE_COMMENT_KEYS } from "./_core/pageComments";
 
-const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery"]);
+const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery", "seal"]);
 
 const favoriteInput = z.object({
   itemId: z.string().min(1).max(120),
@@ -30,6 +31,7 @@ function validateGuideItem(itemId: string, itemType: z.infer<typeof favoritesIte
     case "boss": return RAIDS.some(r => r.key === key);
     case "sabuk": return SABUK_CONTENT.some(s => s.key === key) || key === "torre-conquista";
     case "mystery": return MYSTERIES.some(m => m.key === key) || key === "torre-conquista";
+    case "seal": return ["darksteel-seal", "jade-seal", "dragon-seal"].includes(key);
   }
 }
 
@@ -79,18 +81,24 @@ export const appRouter = router({
 
   comments: router({
     list: publicProcedure
-      .input(z.object({ farmKey: z.string().min(1).max(120) }))
-      .query(({ input }) => db.listFarmComments(input.farmKey)),
+      .input(z.object({ pageKey: z.enum(["farm", "sabuk", "mystery", "seal"]), farmKey: z.string().min(1).max(120) }))
+      .query(({ input }) => db.listPageComments(input.pageKey, input.farmKey)),
     add: protectedProcedure
       .input(z.object({
+        pageKey: z.enum(["farm", "sabuk", "mystery", "seal"]),
         farmKey: z.string().min(1).max(120),
         content: z.string().trim().min(3).max(300),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (!FARM_SPOTS.some(f => f.key === input.farmKey)) {
-          throw new Error("Local de farm inválido");
+        let valid = false;
+        if (input.pageKey === "farm") valid = FARM_SPOTS.some(f => f.key === input.farmKey);
+        else if (input.pageKey === "sabuk") valid = input.farmKey === "geral" || SABUK_CONTENT.some(s => s.key === input.farmKey) || input.farmKey === "torre-conquista";
+        else if (input.pageKey === "mystery") valid = input.farmKey === "geral" || MYSTERIES.some(m => m.key === input.farmKey) || input.farmKey === "torre-conquista";
+        else if (input.pageKey === "seal") valid = input.farmKey === "geral" || SEAL_GUIDE.some(s => s.stage === input.farmKey);
+        if (!valid) {
+          throw new Error("Chave de comentário inválida");
         }
-        await db.addFarmComment(ctx.user.id, input.farmKey, input.content);
+        await db.addPageComment(ctx.user.id, input.pageKey, input.farmKey, input.content);
         return { success: true } as const;
       }),
     vote: protectedProcedure

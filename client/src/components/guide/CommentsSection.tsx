@@ -11,15 +11,24 @@ import { MessageSquare, Trash2, UserCircle2, Loader2, ThumbsUp, ThumbsDown } fro
 interface Props {
   farmKey: string;
   title?: string;
+  /** Página onde o comentário vive (farm | sabuk | mystery | seal) */
+  pageKey?: "farm" | "sabuk" | "mystery" | "seal";
+  placeholder?: string;
 }
 
-export default function CommentsSection({ farmKey, title = "Dicas da comunidade" }: Props) {
+export default function CommentsSection({
+  farmKey,
+  title = "Dicas da comunidade",
+  pageKey = "farm" as "farm" | "sabuk" | "mystery" | "seal",
+  placeholder = "Compartilhe uma dica sobre este local... (máx. 300 caracteres)",
+}: Props) {
   const { isAuthenticated, user } = useAuth();
   const [content, setContent] = useState("");
   const utils = trpc.useUtils();
+  const queryInput = { pageKey, farmKey } as const;
 
   const { data: comments, isLoading } = trpc.comments.list.useQuery(
-    { farmKey },
+    queryInput,
     { refetchInterval: 30_000 },
   );
   const { data: myFavs } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
@@ -35,9 +44,9 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
 
   const vote = trpc.comments.vote.useMutation({
     onMutate: async ({ id, kind, delta }) => {
-      await utils.comments.list.cancel({ farmKey });
-      const prev = utils.comments.list.getData({ farmKey });
-      utils.comments.list.setData({ farmKey }, old =>
+      await utils.comments.list.cancel(queryInput);
+      const prev = utils.comments.list.getData(queryInput);
+      utils.comments.list.setData(queryInput, old =>
         old?.map(c =>
           c.id === id
             ? { ...c, upvotes: kind === "up" ? Math.max(0, (c.upvotes ?? 0) + delta) : (c.upvotes ?? 0), downvotes: kind === "down" ? Math.max(0, (c.downvotes ?? 0) + delta) : (c.downvotes ?? 0) }
@@ -47,18 +56,18 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
       return { prev };
     },
     onError: (_err, _input, ctx) => {
-      utils.comments.list.setData({ farmKey }, ctx?.prev);
+      utils.comments.list.setData(queryInput, ctx?.prev);
       toast.error("Falha ao registrar o voto");
     },
     onSettled: () => invalidate(),
   });
 
-  const invalidate = () => utils.comments.list.invalidate({ farmKey });
+  const invalidate = () => utils.comments.list.invalidate(queryInput);
 
   const add = trpc.comments.add.useMutation({
     onMutate: async () => {
-      await utils.comments.list.cancel({ farmKey });
-      const prev = utils.comments.list.getData({ farmKey });
+      await utils.comments.list.cancel(queryInput);
+      const prev = utils.comments.list.getData(queryInput);
       const optimistic = {
         id: -Date.now(),
         userId: user?.id ?? 0,
@@ -67,11 +76,11 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
         createdAt: new Date(),
         userName: user?.name ?? user?.email ?? "Jogador",
       };
-      utils.comments.list.setData({ farmKey }, old => [...(old ?? []), optimistic] as typeof old);
+      utils.comments.list.setData(queryInput, old => [...(old ?? []), optimistic] as typeof old);
       return { prev };
     },
     onError: (_err, _input, ctx) => {
-      utils.comments.list.setData({ farmKey }, ctx?.prev);
+      utils.comments.list.setData(queryInput, ctx?.prev);
       toast.error("Falha ao publicar a dica");
     },
     onSettled: () => invalidate(),
@@ -79,12 +88,12 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
 
   const remove = trpc.comments.remove.useMutation({
     onMutate: async () => {
-      await utils.comments.list.cancel({ farmKey });
-      const prev = utils.comments.list.getData({ farmKey });
+      await utils.comments.list.cancel(queryInput);
+      const prev = utils.comments.list.getData(queryInput);
       return { prev };
     },
     onError: (_err, _input, ctx) => {
-      utils.comments.list.setData({ farmKey }, ctx?.prev);
+      utils.comments.list.setData(queryInput, ctx?.prev);
       toast.error("Falha ao excluir a dica");
     },
     onSettled: () => invalidate(),
@@ -172,7 +181,7 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
             <Textarea
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder="Compartilhe uma dica sobre este local... (máx. 300 caracteres)"
+              placeholder={placeholder}
               maxLength={300}
               className="min-h-16 bg-[oklch(0.2_0.02_280)] border-amber-800/50 text-amber-100 placeholder:text-slate-600 text-sm"
             />
@@ -183,7 +192,7 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
                   toast.error("Escreva pelo menos 3 caracteres");
                   return;
                 }
-                add.mutate({ farmKey, content: trimmed.slice(0, 300) });
+                add.mutate({ pageKey, farmKey, content: trimmed.slice(0, 300) });
                 setContent("");
               }}
               disabled={add.isPending}

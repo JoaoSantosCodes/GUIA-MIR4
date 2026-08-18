@@ -1,5 +1,6 @@
 import PageBanner from "@/components/guide/PageBanner";
 import FavButton from "@/components/guide/FavButton";
+import CommentsSection from "@/components/guide/CommentsSection";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
@@ -145,6 +146,16 @@ export default function Misterios() {
               <FavButton itemId="mystery:torre-conquista" itemType="mystery" isFavorite={false} />
             </div>
           </Card>
+        </section>
+
+        {/* Comentários com votação */}
+        <section id="dicas">
+          <CommentsSection
+            pageKey="mystery"
+            farmKey="geral"
+            title="Dicas da comunidade: Mistérios & Conquista"
+            placeholder="Compartilhe uma dica de mistérios ou da Torre da Conquista... (máx. 300 caracteres)"
+          />
         </section>
       </div>
     </div>

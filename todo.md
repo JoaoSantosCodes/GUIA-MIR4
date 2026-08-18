@@ -76,3 +76,15 @@
 - [x] Favoritos de Torre da Conquista aceitos no backend (chave torre-conquista validada)
 - [x] Títulos amigáveis sabuk/mystery no Profile
 - [x] Screenshots desktop + checkpoint e entrega
+
+## Nova funcionalidade: Selos & Geminação, Calendário de Eventos e comentários em Sabuk/Mistérios
+- [x] Pesquisar Selos (Darksteel Seal, Jade Seal, Dragon Seal) e rotas de farm por estágio
+- [x] Pesquisar horários de Guerra de Sabuk e Magic Square por servidor
+- [x] Dados de Selos & Geminação em shared/guideData.ts (rota favorita "seal")
+- [x] Coluna pageKey na tabela de comentários (migração 0005) + enum "seal" nos favoritos (migração 0006)
+- [x] Procedures tRPC comments genéricas por pageKey (list/add/remove/vote com validação por página)
+- [x] Página Selos & Geminação (/selos) com estágios e rotas de farm
+- [x] Página Calendário de Eventos (/calendario) interativa: filtros por categoria, guerras de Sabuk, Magic Square, horários e tabela de respawns fixos
+- [x] Seção de comentários com votação nas páginas Sabuk e Mistérios
+- [x] Rota, navegação, busca indexada e favoritos para as novas páginas + links na Home + títulos no Profile
+- [x] Testes vitest (26 aprovados) + screenshots desktop/mobile + checkpoint e entrega

@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -16,6 +16,7 @@ const SECTION_META: Record<string, { label: string; path: string; Icon: typeof S
   boss: { label: "Raids e Bosses", path: "/raids", Icon: Skull },
   sabuk: { label: "Sabuk & Guildas", path: "/sabuk", Icon: Castle },
   mystery: { label: "Mistérios", path: "/misterios", Icon: Sparkles },
+  seal: { label: "Selos", path: "/selos", Icon: Gem },
 };
 
 export default function Profile() {
@@ -47,6 +48,10 @@ export default function Profile() {
         if (key === "torre-conquista") return "Torre da Conquista";
         return SABUK_CONTENT.find(s => s.key === key)?.title ?? key;
       case "mystery": return MYSTERIES.find(m => m.key === key)?.name ?? key;
+      case "seal": {
+        const sealMap: Record<string, string> = { "darksteel-seal": "Darksteel Seal", "jade-seal": "Jade Seal", "dragon-seal": "Dragon Seal" };
+        return sealMap[key] ?? key;
+      }
       case "raid":
       case "boss": return RAIDS.find(r => r.key === key)?.name ?? key;
       default: return key ?? type;

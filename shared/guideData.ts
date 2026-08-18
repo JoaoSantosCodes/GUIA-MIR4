@@ -5,7 +5,7 @@
 
 export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
 
-export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery";
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery" | "seal";
 
 export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
   "spirit",
@@ -16,6 +16,7 @@ export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
   "boss",
   "sabuk",
   "mystery",
+  "seal",
 ];
 
 export const RARITY_ORDER: Rarity[] = ["UC", "Raro", "Épico", "Lendário", "Mítico"];
@@ -1263,3 +1264,221 @@ export const CONQUEST_INFO = {
   ],
   tip: "Nunca deixe o Conquest para trás: mistérios resolvidos e edifícios atrasados travam missões, requests e a progressão inteira. Cada promoção leva tempo (como o unsealing) — inicie promoções antes de dormir.",
 };
+
+/**
+ * Selos & Geminação — progressão dos Magic Stones lacrados
+ */
+export type SealStage = "Darksteel Seal" | "Jade Seal" | "Dragon Seal";
+
+export const SEAL_ORDER: SealStage[] = ["Darksteel Seal", "Jade Seal", "Dragon Seal"];
+
+export const SEAL_STYLES: Record<SealStage, { label: string; color: string; border: string; bg: string }> = {
+  "Darksteel Seal": { label: "Darksteel Seal", color: "text-slate-300", border: "border-slate-500/50", bg: "bg-slate-800/60" },
+  "Jade Seal": { label: "Jade Seal", color: "text-emerald-400", border: "border-emerald-600/50", bg: "bg-emerald-950/40" },
+  "Dragon Seal": { label: "Dragon Seal", color: "text-red-400", border: "border-red-600/50", bg: "bg-red-950/30" },
+};
+
+export interface SealInfo {
+  stage: SealStage;
+  level: number;
+  description: string;
+  bonus: string;
+  route: { name: string; detail: string }[];
+  howToUpgrade: string;
+}
+
+export const SEAL_GUIDE: SealInfo[] = [
+  {
+    stage: "Darksteel Seal",
+    level: 1,
+    description:
+      "O estágio inicial da Magic Stone lacrada. Nesse nível, o lacre garante os bônus básicos de mineração e é o foco de todo jogador que ainda não domina as áreas intermediárias do continente.",
+    bonus: "Boost básico de Darksteel, EXP de mineração e taxas normais de drop de minério.",
+    route: [
+      { name: "Bicheon Town", detail: "Mineração inicial sem disputa: use as picaretas da cidade e as veias próximas para acumular os primeiros Darksteel enquanto levela de 1 a 30." },
+      { name: "Ginkgo Valley", detail: "Veias de minério seguras para level 30–45; combine com coleta de ervas para monetizar no Mercado." },
+      { name: "Byeoksan (nível baixo)", detail: "Primeira área de minério de nível médio — ainda pouco disputada antes do peak de players." },
+    ],
+    howToUpgrade:
+      "Upe o lacre fazendo unsealing de Magic Stones do mesmo estágio (boxes de Darksteel Seal). Cada geminação bem-sucedida aumenta o bônus de mineração; falhas reduzem o estágio, então acumule vários boxes antes de tentar promover.",
+  },
+  {
+    stage: "Jade Seal",
+    level: 2,
+    description:
+      "O estágio intermediário. Com o Jade Seal, o ganho de Darksteel por veia aumenta de forma relevante e as áreas de mineração passam a valer o risco de disputa com outros jogadores e guildas.",
+    bonus: "Darksteel Gain Boost significativo, chance de minérios raros e mais Darksteel por hora de farm.",
+    route: [
+      { name: "Byeoksan (área principal)", detail: "Zona clássica de minério para level 45–70; leve party ou vá em horário de pico baixo para não perder veias." },
+      { name: "Snake Valley", detail: "Minério médio com monstros mais densos — afk farm com party funciona bem aqui." },
+      { name: "Mount Jinyu (andar baixo)", detail: "Acesso a veias de nível alto com menos competição; bom para farm noturno." },
+      { name: "Magic Square — Mining Chamber", detail: "Câmara de mineração (4,4% de chance por warp): minério seguro sem PK enquanto estiver lá dentro; combine com rotas de Darksteel fora." },
+    ],
+    howToUpgrade:
+      "Unsealing de Jade Seal boxes (drops de bosses, quests repetidas e Mercado) + materiais de geminação. Priorize promover antes do Dragon Seal: a fila de farm de darksteel em nível alto vale mais com esse selo ativo.",
+  },
+  {
+    stage: "Dragon Seal",
+    level: 3,
+    description:
+      "O estágio final da geminação. O Dragon Seal multiplica o ganho de Darksteel e desbloqueia os spots de elite do continente — é o que separa quem acumula riqueza de verdade de quem apenas sobrevive.",
+    bonus: "Maior Darksteel Gain Boost do jogo, chance ampliada de minérios raros/épicos e bônus de atributos para o personagem.",
+    route: [
+      { name: "Mount Jinyu F1–F3", detail: "As veias de elite do jogo: Darksteel de alto valor, mas sempre disputado. Leve party de guilda e marque horários (após reset diário)." },
+      { name: "Secret Peak", detail: "Área de alto nível com minério raro e summons de boss — combine o farm com o abate dos bosses summonados para drop adicional." },
+      { name: "Magic Square — Darksteel Chamber", detail: "Câmara exclusiva de Darksteel (2,2% por warp) com veias épicas e lendárias; PK ativo, vá com party." },
+      { name: "Darksteel spots de elite (eventos)", detail: "Monoliths e zonas de evento: darksteel bônus multiplicado durante guerras e invasões — priorize quando ativos." },
+    ],
+    howToUpgrade:
+      "Unsealing de Dragon Seal boxes — o recurso mais raro do jogo. Obtidos em drops de bosses endgame, conquistas de Sabuk e eventos raros. Acumule vários antes de tentar; uma falha no estágio final custa caro.",
+  },
+];
+
+export const SEAL_OVERVIEW = {
+  title: "Selos & Geminação (Magic Stones)",
+  description:
+    "As Magic Stones lacradas evoluem em três estágios de selo — Darksteel Seal, Jade Seal e Dragon Seal. Cada geminação (unsealing de um box do mesmo selo) aumenta os bônus de mineração, atributos e ganho de Darksteel, que é o recurso mais importante da economia do jogo. A rota de farm ideal depende do seu selo atual: não adianta disputar Mount Jinyu com Darksteel Seal, nem perder tempo em Bicheon com Dragon Seal.",
+  tip: "Geminacões podem falhar e reduzir o estágio do selo. Acumule boxes e materiais antes de promover, e nunca gaste seu último box do estágio — a falha custa a semana inteira de farm.",
+};
+
+/**
+ * Calendário de eventos — horários fixos e rotativos do MIR4
+ * Horários baseados no servidor SA (América do Sul). Em outros servidores (ASIA/NA/EU),
+ * os horários relativos se mantêm, mas o horário local muda com o reset do servidor.
+ */
+export interface GameEvent {
+  key: string;
+  name: string;
+  category: "guerra" | "dungeon" | "boss" | "diario" | "semanal" | "temporada";
+  schedule: string;
+  duration: string;
+  description: string;
+  tip: string;
+}
+
+export const EVENT_CATEGORIES = [
+  { key: "guerra", label: "Guerras de Guilda", color: "text-red-400", border: "border-red-600/50" },
+  { key: "dungeon", label: "Dungeons & Instâncias", color: "text-violet-400", border: "border-violet-600/50" },
+  { key: "boss", label: "Bosses Mundiais", color: "text-amber-400", border: "border-amber-600/50" },
+  { key: "diario", label: "Diários", color: "text-emerald-400", border: "border-emerald-600/50" },
+  { key: "semanal", label: "Semanais", color: "text-sky-400", border: "border-sky-600/50" },
+  { key: "temporada", label: "Temporada (Sabuk Clash)", color: "text-rose-400", border: "border-rose-600/50" },
+] as const;
+
+export const GAME_EVENTS: GameEvent[] = [
+  {
+    key: "sabuk-war",
+    name: "Guerra de Sabuk (Castle Siege)",
+    category: "guerra",
+    schedule: "Semanal — horário definido pelo servidor (tipicamente fim de semana, à noite)",
+    duration: "~1h de cerco",
+    description:
+      "O cerco ao Castelo de Bicheon: guildas disputam o controle do castelo. Pontuação contínua por tempo dentro da área, quebra de monólitos e eliminação de inimigos. O clã vencedor governa a região e nomeia o Imperador no Sabuk Clash.",
+    tip: "Chegue com o clã completo 15 minutos antes; quem controla os portões externos domina o ritmo do cerco.",
+  },
+  {
+    key: "sabuk-clash",
+    name: "Sabuk Clash — Guerra entre Servidores",
+    category: "temporada",
+    schedule: "Temporada de 3 semanas — 3 Gateways semanais (Attack Route → Castle Gate → Sabuk Castle); rodada final às 22h (horário do servidor)",
+    duration: "3 semanas por temporada",
+    description:
+      "Torneio regional: 16 clãs (reis dos castelos de cada servidor da região) avançam por 3 rounds semanais até restar 1 Imperador. Apenas clãs que são Reis do Castelo de Bicheon no próprio servidor podem participar.",
+    tip: "Se nenhum Monólito for gravado nas rodadas 1 ou 2, o trono permanece vago — o clã precisa coordenar gravadores específicos.",
+  },
+  {
+    key: "clan-match",
+    name: "Clan Match — Torneio entre Clãs",
+    category: "temporada",
+    schedule: "A cada 8 semanas, com duração de 3 semanas — até 32 clãs",
+    duration: "3 semanas por edição",
+    description:
+      "Torneio estruturado entre clãs com fases eliminatórias. Clãs precisam se inscrever e montar rosters de combate dentro do período de inscrição.",
+    tip: "Monte o roster com classes complementares (tank + DPS + suporte); o formato valoriza composição, não só power.",
+  },
+  {
+    key: "magic-square",
+    name: "Magic Square",
+    category: "dungeon",
+    schedule: "Entrada livre 24h — bosses com respawn fixo (ver tabela de respawn)",
+    duration: "Entrada ilimitada durante o dia",
+    description:
+      "Dungeon instanciada com câmaras aleatórias: EXP, minério, Darksteel, boss drops e caixas. Cada warp tem 2,2% de chance de cair na Darksteel Chamber. Câmaras de boss (Leader's) têm respawn fixo por servidor.",
+    tip: "Rastreie o timer dos bosses: a Leader's III respawna a cada 3 horas (03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00, 00:00) e vale os materiais de Skill Tome.",
+  },
+  {
+    key: "secret-peak",
+    name: "Secret Peak",
+    category: "boss",
+    schedule: "Diário — bosses summonados com horários fixos no pico (topo e base vermelhos)",
+    duration: "Janela de combate após o summon",
+    description:
+      "Montanha de alto nível com bosses summonados que dropam Virtue Pills e materiais raros. Os bosses vermelhos (topo e base) são os mais disputados do servidor.",
+    tip: "Combine o farm de Secret Peak com o timer dos bosses: fique na área 30 minutos antes do horário do summon.",
+  },
+  {
+    key: "world-boss",
+    name: "World Bosses (Labyrinth & Valley)",
+    category: "boss",
+    schedule: "Diário — Labyrinth Bosses e Valley Bosses com horários rotativos",
+    duration: "Janela limitada por spawn",
+    description:
+      "Bosses mundiais que aparecem em zonas específicas (Labyrinth e Valley) com drops compartilhados para quem participar do abate.",
+    tip: "Mesmo sem dar o último hit, participar do abate garante parcela do drop — nunca ignore um world boss ativo.",
+  },
+  {
+    key: "server-expedition",
+    name: "Server Expedition",
+    category: "diario",
+    schedule: "Diário — reset com o servidor",
+    duration: "Janela do dia",
+    description: "Expedição de servidor com recompensas coletivas. Participação garante itens de progressão.",
+    tip: "Faça a expedition logo após o reset diário para garantir a janela antes do peak de players.",
+  },
+  {
+    key: "server-valley-war",
+    name: "Server Valley War",
+    category: "diario",
+    schedule: "Diário — horário rotativo por servidor",
+    duration: "Janela da guerra",
+    description: "Confronto diário em zonas de vale entre facções do servidor, com recompensas de participação.",
+    tip: "Mesmo derrotado, a participação paga tokens — vale mais do que pular para farmar sozinho.",
+  },
+  {
+    key: "clan-expedition",
+    name: "Clan Expedition",
+    category: "semanal",
+    schedule: "~A cada 2 dias (ciclo curto de missão de clã)",
+    duration: "Janela de missão",
+    description: "Missão coletiva de clã com recompensas compartilhadas entre os membros participantes.",
+    tip: "Combine com o clã: as recompensas escalam com o número de participantes.",
+  },
+  {
+    key: "clan-challenge",
+    name: "Clan Challenge",
+    category: "semanal",
+    schedule: "~A cada 3 dias (ciclo de desafio de clã)",
+    duration: "Janela de desafio",
+    description: "Desafios periódicos de clã com rankings e recompensas por desempenho coletivo.",
+    tip: "Priorize os desafios de ranking — as recompensas do topo valem muito mais que as de participação.",
+  },
+  {
+    key: "server-reset",
+    name: "Reset Diário do Servidor",
+    category: "diario",
+    schedule: "Diário — horário fixo por região (ASIA ~03:35, INMENA ~01:35, EU ~21:35, NA ~15:35, SA ~16:35)",
+    duration: "Instantâneo",
+    description:
+      "O reset diário renova os timers de quests repetidas, drops limitados, expedições e janelas de evento. Referência de tempo para todos os outros eventos do servidor.",
+    tip: "Use o reset como âncora do seu dia: planeje Magic Square, Darksteel e eventos a partir dele.",
+  },
+  {
+    key: "thursday-event",
+    name: "Evento de Quinta-feira",
+    category: "semanal",
+    schedule: "Semanal — quintas-feiras (horário do servidor)",
+    duration: "Janela do evento",
+    description: "Evento rotativo semanal com drops especiais e missões de bônus.",
+    tip: "Guarde os materiais de craft para dias de evento — as taxas de sucesso e drops costumam melhorar.",
+  },
+];
