@@ -58,7 +58,7 @@ describe("compareBuilds", () => {
   });
 
   it("todas as 5 classes possuem scores em 0–100 nos 3 cenários", () => {
-    expect(COMPARE_CLASSES.length).toBe(5);
+    expect(COMPARE_CLASSES.length).toBe(8);
     for (const c of COMPARE_CLASSES) {
       for (const s of SCENARIOS) {
         for (const attr of Object.keys(c.scores[s]) as (keyof typeof c.scores.duel)[]) {

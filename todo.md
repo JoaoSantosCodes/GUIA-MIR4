@@ -244,4 +244,11 @@
 - [x] Tabelas de taxa de sucesso/quebra de fortalecimento por nível na página de Equipamentos (/equipamentos, nova seção "Taxas de sucesso e quebra por nível": ENHANCE_RATES +0→+10 com barras de progresso, taxas de quebra, badge de risco colorido e observações; enhanceRates.ts pura com effectiveRate e nota indicativa; 7 testes aprovados; link para a calculadora)
 - [x] Exportação do comparador PvP como card PNG (exportPvPCompareCard no timelineExport: placar geral, vitória por cenário e deltas; botão "Exportar card" dentro do PvPCompareDialog abrindo PvPCompareCardDialog com Compartilhar/Copiar/Baixar PNG; marca d'água com nome e data)
 - [x] Preços de mercado em Gold integrados à aba Fortalecimento: MATERIAL_GOLD_PRICES no guideData (Darksteel 1.000 Gold/unid, Copper 0,0001, Jade 40.000, Dragonsteel 25.000), novo card "Custo estimado em Gold" na calculadora, campo de cotação do Darksteel ajustável pelo jogador (persistido em localStorage) com nota de flutuação do mercado, goldBreakdown na enhanceCalc; ?tab=enhance abre direto na aba; 2 testes novos aprovados
+- [x] Testes vitest (139 aprovados, incl. 7 de enhanceRates, 2 de exportPvPCompareCard e 2 de gold) + screenshots verificados (/calculadora?tab=enhance com 4 cards incluindo Gold, /equipamentos com tabela ENHANCE_RATES, /subclasses OK) + TSC limpo — skill atualizada e validada, checkpoint 36f8d675 entregue
+
+## Nova funcionalidade: expansão para 8 classes
+
+- [ ] Identificar as 8 classes oficiais do MIR4 (site oficial mostra 8 personagens: Warrior, Sorcerer, Taoist, Lancer, Arbalist + 3 extras — provavelmente Musah, Gunslinger(?), Musketeer, Ronin/Maestro)
+- [ ] Pesquisar conteúdo das classes faltantes: skills, combos, builds e subclasses recomendadas
+- [ ] Adicionar classes faltantes ao dataset CLASSES/CLASS_IMAGES/CLASS_SKILLS/CLASS_VIDEOS e às páginas Classes e Subclasses (seletor, vídeos, comparador PvP, tier list)
 - [ ] Testes vitest + screenshots + checkpoint e entrega

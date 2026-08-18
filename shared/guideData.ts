@@ -400,7 +400,91 @@ export const CLASSES: GameClass[] = [
       { title: "Farm AFK", desc: "Máximo DPS: Ravaging Blow → Ascending Dragon → Crescent Blade em loop; Khalion/Koiga de EXP aceleram a progressão." },
     ],
   },
+  {
+    key: "darkist",
+    name: "Darkist",
+    role: "DPS Mágico (veneno e maldição)",
+    gender: "Feminino",
+    image: "/manus-storage/class-darkist-portrait_0894e6c9.png",
+    description: "A Darkist (6ª classe, março de 2023) corrompe e destrói inimigos com magias à distância, especializando-se em venenos potentes e maldições cáusticas. Ataca múltiplos inimigos com correntes de sangue que recuperam HP e, com o ultimate, transforma-se na encarnação de \"Asura\", senhor do inferno, aumentando muito o ataque mágico e aterrorizando monstros próximos (reduzindo a velocidade deles).",
+    strengths: ["Alto dano mágico em área", "Veneno e maldições (debuffs fortes)", "Sustain com correntes de sangue", "Ultimate Asura: burst + aterroriza inimigos"],
+    weaknesses: ["Frágil no corpo a corpo", "Depende de gestão de stacks de veneno", "Menos controle que a Sorcerer"],
+    skills: [
+      { name: "Asura (Ultimate)", desc: "Transformação temporária em Asura, senhor do inferno: grande aumento de ataque mágico e aterroriza monstros próximos, reduzindo a velocidade de movimento deles." },
+      { name: "Blood Chain / Dark Arts", desc: "Ataca múltiplos inimigos com correntes de sangue, causando dano contínuo e recuperando HP próprio." },
+      { name: "Poison Curse / Cursed Ground", desc: "Aplica venenos e maldições em área, corroendo o HP e enfraquecendo defesas dos inimigos." },
+      { name: "Forbidden Arts", desc: "Magias proibidas de poder além do limite: dano contínuo alto enquanto durarem." },
+    ],
+    combos: [
+      "Rotina de farm: Poison Curse em área → Blood Chain para sustentar o HP enquanto limpa mobs",
+      "Burst: aplique maldições → Forbidden Arts durante o debuff → Asura (ultimate) para finalizar",
+    ],
+    strategy: "Mantenha os venenos e maldições ativos nos inimigos antes de gastar dano alto: o dano contínuo multiplica o resultado. Use Blood Chain para se sustentar sem poções e entre em Asura apenas nas janelas decisivas — o slow aplicado facilita escapar ou finalizar.",
+    build: [
+      { title: "PvE / Raids", desc: "Skill ATK e dano contínuo (veneno/maldição); Spirit de burst mágico (Suparna, Reaper). Como Asura aumenta muito o ATK, maximize Skill ATK antes do ultimate." },
+      { title: "PvP", desc: "Foque debuff Success e CRIT DMG; Blood Chain permite trocar dano com sustentação. Contra melee, mantenha distância e use o slow do Asura para controlar engajamentos." },
+      { title: "Farm AFK", desc: "Veneno + corrente de sangue em loop auto-sustentado; Khalion/Koiga de EXP. É forte para afk em mobs densos por causa do AOE contínuo." },
+    ],
+  },
+  {
+    key: "lionheart",
+    name: "Lionheart",
+    role: "DPS / Carregador (puncher)",
+    gender: "Masculino",
+    image: "/manus-storage/class-lionheart-portrait_0410c572.png",
+    description: "O Lionheart (3ª nova classe, agosto de 2025 — 4º aniversário) é um \"puncher\": empunha braceletes e soqueiras e avança destruindo formações inimigas com investidas brutais. Além do dano físico pesado, carrega habilidades de cura e debuffs, sendo valioso em batalhas de grupo.",
+    strengths: ["Investidas que destroem formações", "Cura aliados em grupo", "Debuffs que enfraquecem o time inimigo", "Alta mobilidade de carga"],
+    weaknesses: ["Alcance curto de engajamento", "DPS menor que Lancer em alvo único", "Depende de timing das cargas"],
+    skills: [
+      { name: "Lion's Impact (Ultimate)", desc: "Investida massiva que derruba formações inimigas e causa dano físico brutal em área." },
+      { name: "Raging Charge", desc: "Avança em linha reta derrubando e amassando inimigos no caminho." },
+      { name: "Roaring Fist", desc: "Combo de soqueiras com alta chance de stun em alvos próximos." },
+      { name: "Battle Cry / War Heal", desc: "Grito de guerra que buffa aliados e/ou recupera HP do grupo." },
+      { name: "Tear Down / Guard Break", desc: "Debuffs que reduzem DEF e ATK dos inimigos." },
+    ],
+    combos: [
+      "Limpeza de mobs: Raging Charge (engajamento) → Roaring Fist → Guard Break para enfraquecer",
+      "Suporte em grupo: Battle Cry → War Heal mantidos enquanto as cargas quebram formações",
+    ],
+    strategy: "Use as cargas para reposicionar mobs e quebrar formações de elite; em Sabuk, o Lionheart é o que abre linhas para o time. Alterne dano e suporte conforme a necessidade do grupo — não fique só na frente o tempo todo.",
+    build: [
+      { title: "PvE / Raids", desc: "ATK físico e Bash ATK; War Heal dá autonomia ao grupo sem depender de Taoist. Spirit de EXP + Lucky Drop para o grind." },
+      { title: "PvP / Sabuk", desc: "Bash ATK e knockdown/stun Success: Raging Charge + Lion's Impact quebram linhas em grupo. Battle Cry dá o buff que seu time precisa em guerras de clã." },
+      { title: "Farm AFK", desc: "Roaring Fist + Raging Charge em loop para mobs densos; Khalion/Koiga de EXP aceleram o nivelamento." },
+    ],
+  },
+  {
+    key: "spiritsummoner",
+    name: "Spirit Summoner",
+    role: "DPS Mágico (invocação)",
+    gender: "Feminino",
+    image: "/manus-storage/class-spiritsummoner-portrait_52130936.png",
+    description: "A Spirit Summoner (4ª nova classe, Capítulo 21, 2026) é uma invocadora que controla os espíritos de toda a criação usando uma vara mágica como meio. Descendente da família que guarda o Navio da Miragem, domina um combate versátil à distância: atrás da aparência inocente esconde um poder sufocante.",
+    strengths: ["Dano mágico versátil à distância", "Invocações que atacam e protegem", "Combate adaptável (single-target e AoE)", "Posicionamento seguro"],
+    weaknesses: ["Frágil se focada", "Dano depende dos espíritos ativos", "Classe recente: meta ainda em evolução"],
+    skills: [
+      { name: "Spirit Cascade (Ultimate)", desc: "Libera os espíritos que dominou: dano mágico massivo em área com efeitos variados por espírito invocado." },
+      { name: "Spirit Control", desc: "Comanda espíritos para atacar alvos à distância enquanto se mantém protegida." },
+      { name: "Wand Arts", desc: "Golpes mágicos com a vara que alternam entre single-target e leques em área." },
+      { name: "Spirit Shield", desc: "Espírito guardião absorve parte do dano recebido por um tempo." },
+      { name: "Elemental Binding", desc: "Espíritos elementais prendem e desaceleram inimigos próximos." },
+    ],
+    combos: [
+      "Farm: Spirit Control mantém os espíritos atacando enquanto Wand Arts finaliza os alvos",
+      "Burst: Elemental Binding (controle) → Spirit Cascade para dano máximo na área",
+    ],
+    strategy: "Mantenha sempre espíritos ativos entre você e os inimigos: eles são seu dano e sua proteção. Combine bind (controle) antes dos AoE e guarde o Spirit Cascade para mobs densos ou janelas de burst em PvP. Posicione-se atrás dos aliados em grupo.",
+    build: [
+      { title: "PvE / Raids", desc: "Skill ATK e duração de invocação (quando disponível); espíritos de dano mágico (Suparna, Reaper) amplificam as invocações. Spirit Cascade é a principal fonte de burst." },
+      { title: "PvP", desc: "CRIT DMG e controle (bind/slow); Spirit Shield é a sobrevivência principal — use a posição recuada e deixe os espíritos fazerem o trabalho." },
+      { title: "Farm AFK", desc: "Spirit Control + Wand Arts rodam quase sozinhos; Khalion/Koiga de EXP para levelamento acelerado." },
+    ],
+  },
 ];
+
+
+
+
 
 export interface Currency {
   name: string;
@@ -1665,7 +1749,7 @@ export const CLASS_SKILLS: ClassSkillsInfo[] = [
         focus: "EXP Boost + HP Regen",
         skills: ["Barbaric Charge", "Void Slash", "Gale Slash", "Lion's Roar", "Body Check", "Crescent Strike"],
         rotation: "Barra longa de mobs (Bar 1) em área PvE segura: Demon Bull Temple 1F ou Crystalline Forest",
-        notes: "Espíritos de EXP (Khalion + Koiga). A alta defesa torna o Warrior o mais seguro dos cinco para deixar AFK.",
+        notes: "Espíritos de EXP (Khalion + Koiga). A alta defesa torna o Warrior o mais seguro de todas as classes para deixar AFK.",
       },
     ],
     advancedTips: [
@@ -1856,6 +1940,143 @@ export const CLASS_SKILLS: ClassSkillsInfo[] = [
     ],
     skillOrder: ["Skill ranged DPS", "Flash Arrow", "Burst Shell", "Illusion Arrow", "Cloaking", "AOE leve", "Arrow Rain"],
     orderNote: "Maximize primeiro o DPS contínuo à distância, depois o CC (Flash Arrow) e por fim a mobilidade e o ultimate — o AFK depende do dano sustentado.",
+  },
+  {
+    key: "darkist",
+    name: "Darkist",
+    subclassTip: "A Darkist usa Sorcerer como subclasse para burst mágico adicional e Taoist para sustentação em grupo; é a especialista em dano contínuo de veneno.",
+    recommendedSubclasses: ["Sorcerer (burst mágico)", "Taoist (sustentação)", "Arbalist (AFK seguro)"],
+    skillsHighlight: [
+      { name: "Asura (Ultimate)", desc: "Transformação em Asura: grande aumento de Skill ATK e aterroriza monstros próximos (redução de velocidade).", tag: "Ultimate" },
+      { name: "Blood Chain", desc: "Correntes de sangue que atacam múltiplos inimigos e recuperam HP.", tag: "Sustain" },
+      { name: "Poison Curse", desc: "Veneno e maldições em área que corroem HP e enfraquecem defesas.", tag: "Debuff" },
+      { name: "Forbidden Arts", desc: "Magias proibidas de dano contínuo alto.", tag: "Dano" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — Corrosão e Sustain",
+        focus: "Skill ATK + dano contínuo",
+        skills: ["Poison Curse", "Blood Chain", "Forbidden Arts", "Asura", "AOE passivo", "Buff mágico"],
+        rotation: "Maldições em área → Blood Chain para sustentar HP → Forbidden Arts durante debuff",
+        notes: "Mantenha os venenos ativos antes de gastar dano alto: o DPS contínuo multiplica o resultado.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Corruptora à Distância",
+        focus: "Debuff Success + CRIT DMG",
+        skills: ["Poison Curse", "Blood Chain", "Slow de Asura", "Forbidden Arts", "Defesa passiva", "Asura (ult)"],
+        rotation: "Aplique maldições → kite com Blood Chain → Asura nas janelas decisivas",
+        notes: "Contra melee, mantenha distância e use o slow do Asura para controlar engajamentos.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Corrosão em Área",
+        focus: "AOE contínuo + EXP",
+        skills: ["Poison Curse", "Blood Chain", "Forbidden Arts", "AOE passivo", "Buff de EXP", "Dano contínuo"],
+        rotation: "Veneno + corrente de sangue em loop auto-sustentado em mobs densos",
+        notes: "Forte no AFK contra grupos densos pelo dano contínuo em área; Khalion/Koiga de EXP aceleram.",
+      },
+    ],
+    advancedTips: [
+      "Entre em Asura só nas janelas decisivas: o boost de ATK é maior com os debuffs já ativos.",
+      "Blood Chain é seu sustain — use-a para se curar entre trocas sem gastar poções.",
+      "O slow do Asura funciona como escape: aterrorize, recue e finalize com Forbidden Arts.",
+    ],
+    skillOrder: ["Poison Curse", "Blood Chain", "Forbidden Arts", "Slow passivo", "AOE mágico", "Buff mágico", "Asura"],
+    orderNote: "Maximize primeiro o dano contínuo (veneno/maldição), depois o sustain (Blood Chain) e deixe o Asura por último — o ultimate depende do dano base alto.",
+  },
+  {
+    key: "lionheart",
+    name: "Lionheart",
+    subclassTip: "O Lionheart usa Warrior como subclasse para tanquear em grupo, Taoist para sustentação e Arbalist para o AFK consistente.",
+    recommendedSubclasses: ["Warrior (tanque de grupo)", "Taoist (sustentação)", "Arbalist (AFK)"],
+    skillsHighlight: [
+      { name: "Lion's Impact (Ultimate)", desc: "Investida massiva que derruba formações inimigas com dano físico brutal.", tag: "Ultimate" },
+      { name: "Raging Charge", desc: "Avança em linha reta derrubando e amassando inimigos.", tag: "Mobilidade" },
+      { name: "Roaring Fist", desc: "Combo de soqueiras com alta chance de stun.", tag: "Dano" },
+      { name: "Battle Cry / War Heal", desc: "Buff de grupo e cura de aliados.", tag: "Suporte" },
+      { name: "Tear Down / Guard Break", desc: "Debuffs que reduzem DEF e ATK inimigos.", tag: "Debuff" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — Quebrador de Formações",
+        focus: "ATK físico + Bash ATK",
+        skills: ["Raging Charge", "Roaring Fist", "Guard Break", "War Heal", "AOE melee", "Lion's Impact"],
+        rotation: "Raging Charge (engajamento) → Roaring Fist → Guard Break → Lion's Impact no grupo",
+        notes: "War Heal dá autonomia ao grupo sem depender de Taoist nas raids.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP / Sabuk — Abre-Linhas",
+        focus: "Bash ATK + knockdown/stun Success",
+        skills: ["Raging Charge", "Lion's Impact", "Battle Cry", "Roaring Fist", "Guard Break", "CC de grupo"],
+        rotation: "Raging Charge quebra a linha → Lion's Impact no amontoado → Battle Cry para o time",
+        notes: "Em Sabuk, o Lionheart é quem abre caminho para o time — use as cargas no timing certo.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Mobs Densos",
+        focus: "ATK + EXP",
+        skills: ["Roaring Fist", "Raging Charge", "AOE melee", "Buff de EXP", "Skill de dano contínuo", "CC passivo"],
+        rotation: "Roaring Fist + Raging Charge em loop em áreas densas",
+        notes: "Bom em AFK com mobs aglomerados; Khalion/Koiga de EXP para levelamento.",
+      },
+    ],
+    advancedTips: [
+      "O timing das cargas é tudo: uma Raging Charge mal posicionada expõe você ao foco do time inimigo.",
+      "Battle Cry no início da troca dá o buff que multiplica o dano do seu grupo inteiro.",
+      "Em raids, alterne dano e suporte: não fique só na frente — War Heal também é valioso atrás.",
+    ],
+    skillOrder: ["Raging Charge", "Roaring Fist", "Guard Break", "Battle Cry", "War Heal", "AOE melee", "Lion's Impact"],
+    orderNote: "Maximize primeiro o kit de engajamento (cargas e soqueiras), depois o suporte (Battle Cry/War Heal) e o ultimate por último — o Lion's Impact depende de mobs agrupados.",
+  },
+  {
+    key: "spiritsummoner",
+    name: "Spirit Summoner",
+    subclassTip: "A Spirit Summoner usa Sorcerer como subclasse para burst mágico adicional e Taoist para sustentação; suas invocações fazem o trabalho pesado.",
+    recommendedSubclasses: ["Sorcerer (burst mágico)", "Taoist (sustentação)", "Warrior (proteção)"],
+    skillsHighlight: [
+      { name: "Spirit Cascade (Ultimate)", desc: "Libera os espíritos dominados: dano mágico massivo em área.", tag: "Ultimate" },
+      { name: "Spirit Control", desc: "Comanda espíritos para atacar à distância enquanto se mantém protegida.", tag: "Invocação" },
+      { name: "Spirit Shield", desc: "Espírito guardião absorve parte do dano recebido.", tag: "Defesa" },
+      { name: "Elemental Binding", desc: "Espíritos elementais prendem e desaceleram inimigos.", tag: "CC" },
+      { name: "Wand Arts", desc: "Golpes mágicos com a vara, alternando single-target e leques em área.", tag: "Dano" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — Mestra dos Espíritos",
+        focus: "Skill ATK + duração de invocação",
+        skills: ["Spirit Control", "Wand Arts", "Elemental Binding", "Spirit Cascade", "AOE mágico", "Buff de spirits"],
+        rotation: "Spirit Control mantém espíritos atacando → Wand Arts finaliza → Spirit Cascade no grupo",
+        notes: "Mantenha espíritos ativos o tempo todo: eles são seu dano e sua proteção.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Controladora Recuada",
+        focus: "CRIT DMG + controle (bind/slow)",
+        skills: ["Elemental Binding", "Spirit Shield", "Wand Arts", "Spirit Cascade", "CC passivo", "Skill ranged"],
+        rotation: "Elemental Binding (prende) → Spirit Cascade → kite; Spirit Shield quando focada",
+        notes: "Posicione-se atrás dos aliados e deixe os espíritos fazerem o trabalho — você é frágil de perto.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Auto-Ataque Espiritual",
+        focus: "EXP + dano contínuo",
+        skills: ["Spirit Control", "Wand Arts", "AOE leve", "Buff de EXP", "Dano contínuo", "CC passivo"],
+        rotation: "Spirit Control + Wand Arts rodam quase sozinhos em áreas PvE seguras",
+        notes: "Os espíritos atacam enquanto você se move: excelente consistência de farm no AFK.",
+      },
+    ],
+    advancedTips: [
+      "Combine o bind antes do Spirit Cascade: inimigos presos não fogem do AoE.",
+      "Spirit Shield é sua sobrevivência — ative antes de recuar, não depois de levar o burst.",
+      "Em grupo, posicione-se no fundo: o damage passivo dos espíritos não precisa de proximidade.",
+    ],
+    skillOrder: ["Spirit Control", "Wand Arts", "Elemental Binding", "Spirit Shield", "AOE mágico", "Buff de spirits", "Spirit Cascade"],
+    orderNote: "Maximize primeiro a invocação sustentada (Spirit Control + Wand Arts), depois o controle (bind) e a defesa (Shield); o Spirit Cascade fecha a árvore por depender de spirits fortes.",
   },
 ];
 /** Tabela de referência de subclasse recomendada por situação. */
@@ -2076,6 +2297,18 @@ export const CLASS_VIDEOS: Record<string, { id: string; title: string }> = {
   arbalist: {
     id: "hMmHk7OBTr0",
     title: "Arbalist — gameplay de burst e dano à distância",
+  },
+  darkist: {
+    id: "8IW8-NW1opY",
+    title: "Darkist — gameplay com venenos, maldições e ultimate Asura",
+  },
+  lionheart: {
+    id: "zhaGosHGsUk",
+    title: "Lionheart — gameplay: quebrando formações, cura de aliados e debuffs",
+  },
+  spiritsummoner: {
+    id: "KBxPdi4gyWE",
+    title: "Spirit Summoner — preview oficial da nova classe (invocação e AoE)",
   },
 };
 

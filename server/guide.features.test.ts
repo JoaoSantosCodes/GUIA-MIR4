@@ -351,7 +351,7 @@ describe("skills e subclasses", () => {
   it("todas as classes têm 3 builds (pve, pvp, afk) com skills e dicas", async () => {
     const { CLASS_SKILLS, SUBCLASS_TIPS } = await import("@shared/guideData");
     const keys = new Set(CLASS_SKILLS.map(c => c.key));
-    expect(CLASS_SKILLS.length).toBe(5);
+    expect(CLASS_SKILLS.length).toBe(8);
     for (const c of CLASS_SKILLS) {
       expect(keys.has(c.key)).toBe(true);
       const scenarios = c.builds.map(b => b.scenario);

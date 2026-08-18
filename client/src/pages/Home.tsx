@@ -203,7 +203,7 @@ export default function Home() {
               <p>
                 Este portal reúne tudo que você precisa para evoluir: <strong className="text-amber-200">Espíritos</strong> por
                 raridade, sistema de <strong className="text-amber-200">Codex</strong>, locais de farm por nível, guias
-                individuais das cinco classes e um panorama completo da economia do jogo.
+                individuais das oito classes e um panorama completo da economia do jogo.
               </p>
             </div>
 

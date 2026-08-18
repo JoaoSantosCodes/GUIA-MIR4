@@ -72,6 +72,33 @@ export const COMPARE_CLASSES: ClassScores[] = [
       boss: { dano: 82, defesa: 54, utilidade: 76 },
     },
   },
+  {
+    key: "darkist",
+    name: "Darkist",
+    scores: {
+      duel: { dano: 86, defesa: 50, utilidade: 64 },
+      group: { dano: 88, defesa: 46, utilidade: 72 },
+      boss: { dano: 84, defesa: 44, utilidade: 58 },
+    },
+  },
+  {
+    key: "lionheart",
+    name: "Lionheart",
+    scores: {
+      duel: { dano: 74, defesa: 70, utilidade: 76 },
+      group: { dano: 80, defesa: 72, utilidade: 84 },
+      boss: { dano: 78, defesa: 66, utilidade: 70 },
+    },
+  },
+  {
+    key: "spiritsummoner",
+    name: "Spirit Summoner",
+    scores: {
+      duel: { dano: 82, defesa: 48, utilidade: 72 },
+      group: { dano: 86, defesa: 44, utilidade: 82 },
+      boss: { dano: 84, defesa: 42, utilidade: 68 },
+    },
+  },
 ];
 
 export const ATTR_LABELS: Record<string, string> = {

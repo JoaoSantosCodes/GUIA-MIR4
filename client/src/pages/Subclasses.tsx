@@ -23,6 +23,9 @@ const CLASS_IMAGES: Record<string, string> = {
   arbalist: "/manus-storage/class-arbalist_05cdc1ee.jpg",
   taoist: "/manus-storage/class-taoist_87d085ab.jpg",
   lancer: "/manus-storage/class-lancer_d7a4f100.jpg",
+  darkist: "/manus-storage/class-darkist-portrait_0894e6c9.png",
+  lionheart: "/manus-storage/class-lionheart-portrait_0410c572.png",
+  spiritsummoner: "/manus-storage/class-spiritsummoner-portrait_52130936.png",
 };
 
 export default function Subclasses() {
