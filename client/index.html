@@ -14,6 +14,14 @@
   </head>
 
   <body>
+    <script>
+      // Restaurar tema persistente do localStorage antes do primeiro paint (evita flash de tema errado)
+      try {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "light") document.documentElement.classList.remove("dark");
+        else document.documentElement.classList.add("dark");
+      } catch (_) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script

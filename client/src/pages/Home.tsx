@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -102,6 +102,15 @@ const SECTIONS = [
     desc: "Árvores de habilidades recomendadas e builds avançadas — PvE, PvP e AFK — com dicas de subclasse por classe.",
     image: "",
     accent: "text-violet-400",
+  },
+  {
+    key: "equipamentos",
+    path: "/equipamentos",
+    icon: Shield,
+    title: "Equipamentos & Geminação",
+    desc: "Slots de equipamento, stats por tipo, custos de enhancement por estágio e o uso de Darksteel, Jade e Dragon Steel em cada grau.",
+    image: "",
+    accent: "text-emerald-400",
   },
 ];
 

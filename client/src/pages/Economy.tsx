@@ -1,9 +1,10 @@
 import { ECONOMY_TIPS, SECTION_IMAGES, CURRENCIES } from "@shared/guideData";
 import PageBanner from "@/components/guide/PageBanner";
+import CommentsSection from "@/components/guide/CommentsSection";
 import FavButton from "@/components/guide/FavButton";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Coins, ShieldAlert, Gem, Store, TrendingUp, RefreshCcw } from "lucide-react";
+import { Coins, ShieldAlert, Gem, Store, TrendingUp, RefreshCcw, Lightbulb } from "lucide-react";
 
 export default function Economy() {
   const { isAuthenticated } = useAuth();
@@ -112,7 +113,14 @@ export default function Economy() {
             </p>
           </div>
         </section>
-      </div>
+      <section>
+  <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+    <Lightbulb className="h-6 w-6" />
+    Dicas da comunidade — Economy
+  </h2>
+  <CommentsSection pageKey="economy" farmKey="geral" title="Economy" />
+</section>
+</div>
     </div>
   );
 }

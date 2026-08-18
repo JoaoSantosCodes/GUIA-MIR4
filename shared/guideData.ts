@@ -5,7 +5,7 @@
 
 export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
 
-export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery" | "seal";
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery" | "seal" | "gear";
 
 export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
   "spirit",
@@ -17,6 +17,7 @@ export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
   "sabuk",
   "mystery",
   "seal",
+  "gear",
 ];
 
 export const RARITY_ORDER: Rarity[] = ["UC", "Raro", "Épico", "Lendário", "Mítico"];
@@ -1830,3 +1831,84 @@ export const SUBCLASS_TIPS = {
     "A subclasse não transfere equipamentos — o set precisa ser mantido para os dois estilos.",
   ],
 };
+
+/**
+ * Equipamentos & Geminação (Enhancement)
+ * Sistema de fortalecimento de equipamentos: Darksteel + Copper por estágio,
+ * custos crescentes, stats por tipo de slot e materiais de grau (Dragonsteel etc.).
+ * Valores indicativos de comunidade (2022–2026), podem variar por patch.
+ */
+export interface EquipmentType {
+  key: string;
+  slot: string; // slot do equipamento
+  examples: string[]; // exemplos de itens
+  statPerLevel: string; // stat principal ganho por nível de enhancement
+  statSecondary: string; // stats secundários
+  enhCostBase: number; // Darksteel base por estágio inicial
+}
+export const EQUIPMENT_TYPES: EquipmentType[] = [
+  { key: "weapon", slot: "Arma (primária e secundária)", examples: ["Espadas", "Cajados", "Bestas", "Lanças", "Chamas"], statPerLevel: "ATK físico/mágico por estágio — armas lentas ganham mais ATK por nível", statSecondary: "CRIT (chance de crítico) em níveis avançados", enhCostBase: 5000 },
+  { key: "armor", slot: "Armadura", examples: ["Peitoral", "Manto"], statPerLevel: "DEF física/mágica + Max HP por estágio", statSecondary: "DMG Reduction em níveis altos", enhCostBase: 4000 },
+  { key: "helm", slot: "Elmo", examples: ["Capuz", "Capacete", "Viseira"], statPerLevel: "Max HP + DEF por estágio", statSecondary: "RESIST a debuffs (Stun, Silence) em níveis avançados", enhCostBase: 3500 },
+  { key: "gloves", slot: "Luvas", examples: ["Manoplas", "Braceletes de combate"], statPerLevel: "ATK + HIT (precisão) por estágio", statSecondary: "CRIT Rate em níveis altos", enhCostBase: 3000 },
+  { key: "pants", slot: "Calças", examples: ["Calça de couro", "Greivas"], statPerLevel: "Max HP + DEF por estágio", statSecondary: "DMG Reduction física", enhCostBase: 3000 },
+  { key: "boots", slot: "Botas", examples: ["Botas", "Sandálias reforçadas"], statPerLevel: "Max HP + EVA (evasão) por estágio", statSecondary: "Mobilidade e resistência a knockdown", enhCostBase: 2500 },
+  { key: "necklace", slot: "Colar", examples: ["Amuletos", "Colares de jade"], statPerLevel: "ATK% e Max HP por estágio", statSecondary: "RESIST elemental", enhCostBase: 3000 },
+  { key: "rings", slot: "Anéis (2 slots)", examples: ["Anel de ferro", "Anel selado"], statPerLevel: "CRIT + ATK físico/mágico por estágio", statSecondary: "Skill CD Reduction em níveis avançados", enhCostBase: 3000 },
+  { key: "bracelet", slot: "Pulseira", examples: ["Pulseira de runas"], statPerLevel: "Max HP + CRIT EVA por estágio", statSecondary: "Poção MP/HP +", enhCostBase: 2500 },
+  { key: "dragon-artifact", slot: "Dragon Artifact (5 tipos)", examples: ["Ornate Blade", "Heavenly Bell", "Incense Burner", "Crescent Jade", "Bronze Mirror"], statPerLevel: "Stats grandes por estágio (ATK DMG Boost, PvP DMG Reduction, DEF, HP)", statSecondary: "Categorias Black/White Dragon chegam a +15 de enhance", enhCostBase: 250000 },
+];
+
+/** Custo de enhancement por estágio (Darksteel + Copper), referência indicativa. */
+export interface EnhanceStageCost {
+  stage: number;
+  darksteel: number;
+  copper: number;
+  failRisk: string; // risco de falha
+}
+export const ENHANCE_COSTS: EnhanceStageCost[] = [
+  { stage: 1, darksteel: 5000, copper: 100000, failRisk: "Baixo — falha custa apenas o material" },
+  { stage: 2, darksteel: 7500, copper: 150000, failRisk: "Baixo" },
+  { stage: 3, darksteel: 10000, copper: 200000, failRisk: "Moderado" },
+  { stage: 4, darksteel: 15000, copper: 300000, failRisk: "Moderado" },
+  { stage: 5, darksteel: 25000, copper: 500000, failRisk: "Alto — equipamentos antigos podiam ser destruídos" },
+  { stage: 6, darksteel: 50000, copper: 1000000, failRisk: "Alto" },
+  { stage: 7, darksteel: 100000, copper: 2000000, failRisk: "Muito alto — Dragon Artifacts Rare/Epic destroem ao falhar" },
+  { stage: 8, darksteel: 200000, copper: 4000000, failRisk: "Extremo" },
+  { stage: 9, darksteel: 400000, copper: 8000000, failRisk: "Extremo" },
+  { stage: 10, darksteel: 800000, copper: 16000000, failRisk: "Máximo — requer itens de proteção" },
+];
+
+/** Materiais por grau de equipamento e uso de Darksteel/Jade/Dragonsteel. */
+export interface GradeInfo {
+  key: string;
+  name: string;
+  color: string;
+  darksteelCraft: string; // Darksteel para craft
+  jade: string; // uso de Jade / Eternal
+  dragonsteel: string; // uso de Dragonsteel
+  maxEnhance: string;
+  note: string;
+}
+export const GRADE_INFO: GradeInfo[] = [
+  { key: "uc", name: "Incomum (UC)", color: "text-slate-300", darksteelCraft: "Apenas Copper + drops básicos", jade: "Não usa", dragonsteel: "Não usa", maxEnhance: "Até +5", note: "Gratuito no início; substitua o quanto antes." },
+  { key: "raro", name: "Raro (Azul)", color: "text-blue-400", darksteelCraft: "~250.000 Darksteel (Dragon Artifact raro)", jade: "Eternal Coldsteel/Jade x10 no craft", dragonsteel: "25 Dragonsteel por Dragon Artifact", maxEnhance: "Até +7 (Rare Dragon Artifact)", note: "Primeira meta realista de farm — craft via ferreiro com materiais de dragão raros." },
+  { key: "epico", name: "Épico (Roxo)", color: "text-violet-400", darksteelCraft: "~2.500.000 Darksteel (Dragon Artifact épico)", jade: "Eternal x30 no craft; Eternal crafted consome Darksteel + 5 Dragonsteel", dragonsteel: "250 Dragonsteel por Dragon Artifact", maxEnhance: "Até +10 (Black/White Dragon)", note: "Requer grind constante; combine Clan Expedition + Magic Square fissurado." },
+  { key: "lendario", name: "Lendário (Dourado)", color: "text-amber-400", darksteelCraft: "~25.000.000 Darksteel (Dragon Artifact lendário)", jade: "Eternal Lendário x50 (crafted com 25 Dragonsteel cada)", dragonsteel: "2.500 Dragonsteel por Dragon Artifact", maxEnhance: "Até +10 (Dragon Artifact) / +15 (Black/White Dragon)", note: "Topo do conteúdo atual; Black/White Dragon não são destruídos ao falhar o enhance." },
+  { key: "mitico", name: "Mítico (Vermelho)", color: "text-red-400", darksteelCraft: "Chaotic Enhancement Stones (100 Dragonsteel cada)", jade: "Radiant Spacetime Powder + enhancement stones lendários", dragonsteel: "Divine Dragon's Soul + centenas de Dragonsteel", maxEnhance: "Depende do patch (15+)", note: "Despertar de lendário exige Divine Dragon's Soul (pity: 5 falhas = 1 alma garantida)." },
+];
+
+/** Regras e dicas de geminação/enhancement. */
+export const GEMMING_TIPS = [
+  "O enhancement gasta Darksteel + Copper por estágio e o custo cresce exponencialmente — planeje antes de tentar +7.",
+  "Em equipamentos antigos, falha no +5 ou +6 podia destruir o item; use os itens de proteção (Safe Enhancement) sempre que disponíveis.",
+  "Dragon Artifacts Rare e Epic são destruídos ao falhar no enhance; Black/White Dragon apenas perdem 1–3 níveis — prefira herdá-los.",
+  "O enhance NÃO transfere automaticamente ao trocar de grau: use Inheritance (Rare→Raro mesmo grau) antes de evoluir o equipamento.",
+  "Priorize os slots: Arma > Armadura > Colar > Anéis > demais. O ATK da arma multiplica todo o dano.",
+  "Dragonsteel não é negociável — acumule pelas vias diárias: Clan Expedition, Magic Square fissurado e Secret Peak.",
+  "Guarde Glittering Powder e Life Essence para craftar Eternals: eles escalam o grau do equipamento antes do enhance caro.",
+  "A ordem ideal: craft do grau alvo → enhance gradual → Pressure Points (6 pontos, cada refresh consome Dragonsteel).",
+];
+
+/** Chave da página de equipamentos para comentários. */
+export const EQUIPMENT_PAGE_KEY = "gear" as const;

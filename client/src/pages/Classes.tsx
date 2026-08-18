@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { CLASSES } from "@shared/guideData";
 import PageBanner from "@/components/guide/PageBanner";
+import CommentsSection from "@/components/guide/CommentsSection";
 import FavButton from "@/components/guide/FavButton";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { Shield, Sparkles, Crosshair, Heart, Swords, ThumbsUp, ThumbsDown, ListOrdered, Wrench } from "lucide-react";
+import { Shield, Sparkles, Crosshair, Heart, Swords, ThumbsUp, ThumbsDown, ListOrdered, Wrench, Lightbulb } from "lucide-react";
 
 const ROLE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Tanque: Shield,
@@ -135,7 +136,14 @@ export default function Classes() {
             );
           })}
         </div>
-      </div>
+      <section>
+  <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+    <Lightbulb className="h-6 w-6" />
+    Dicas da comunidade — Classes
+  </h2>
+  <CommentsSection pageKey="classes" farmKey="geral" title="Classes" />
+</section>
+</div>
     </div>
   );
 }

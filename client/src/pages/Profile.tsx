@@ -3,8 +3,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem } from "lucide-react";
+import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES } from "@shared/guideData";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -17,6 +17,7 @@ const SECTION_META: Record<string, { label: string; path: string; Icon: typeof S
   sabuk: { label: "Sabuk & Guildas", path: "/sabuk", Icon: Castle },
   mystery: { label: "Mistérios", path: "/misterios", Icon: Sparkles },
   seal: { label: "Selos", path: "/selos", Icon: Gem },
+  gear: { label: "Equipamentos", path: "/equipamentos", Icon: Shield },
 };
 
 export default function Profile() {
@@ -54,6 +55,11 @@ export default function Profile() {
       }
       case "raid":
       case "boss": return RAIDS.find(r => r.key === key)?.name ?? key;
+      case "gear": {
+        const equip = EQUIPMENT_TYPES.find(e => e.key === key);
+        if (equip) return `Equipamento: ${equip.slot} (${equip.examples.join(", ")})`;
+        return key ?? type;
+      }
       default: return key ?? type;
     }
   };

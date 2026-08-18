@@ -152,6 +152,22 @@ describe("favorites.toggle with sabuk/mystery items", () => {
   });
 });
 
+describe("favorites.toggle with gear items", () => {
+  it("accepts a valid gear item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.favorites.toggle({ itemId: "gear:weapon", itemType: "gear" });
+    expect(result.added).toBe(true);
+    expect(db.addFavorite).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an unknown gear item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.favorites.toggle({ itemId: "gear:nao-existe", itemType: "gear" }),
+    ).rejects.toThrow();
+  });
+});
+
 describe("comments", () => {
   const validFarmKey = "snake-valley";
 

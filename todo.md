@@ -97,4 +97,14 @@
 - [x] Notificações visuais no calendário de eventos: painel "Próximos horários" com contagens para Sabuk/Magic Square
 - [x] Página Subclasses & Skills (/subclasses) com árvores recomendadas e builds avançadas por classe (tabs PvE/PvP/AFK)
 - [x] Rota, navegação, busca indexada e links na Home para as novas páginas (favorito seal:calculadora, pageKey "skills")
-- [ ] Screenshots verificados + checkpoint e entrega
+- [x] Chave seal:calculadora aceita no backend de favoritos + árvore de progressão visual por classe (skillOrder/orderNote)
+- [x] Screenshots verificados (Subclasses com árvore de progressão, Calculadora com 4 cards de resultado + Gold) + checkpoint e entrega
+
+## Nova funcionalidade: comentários Economia/Classes/Raids, Equipamentos & Geminação e tema persistente
+- [x] Pesquisar geminação de equipamentos (Darksteel, Jade, Dragon Steel) por tipo de item
+- [x] Dados de equipamentos em shared/guideData.ts: EQUIPMENT_TYPES (10 slots), ENHANCE_COSTS (+1..+10), GRADE_INFO (5 graus), GEMMING_TIPS
+- [x] Página Equipamentos & Geminação (/equipamentos) com stats por slot, custos de enhancement e uso por grau
+- [x] Favorito "gear" (schema enum + routers validação), pageKey "gear" nos comentários, rota /equipamentos, nav, busca indexada, card na Home e título no Profile
+- [x] Comentários com votação nas páginas Economia, Classes e Raids (pageKeys classes/economy/raids validados)
+- [x] Preferência de tema persistente: ThemeContext com localStorage("theme") + script inline anti-flash no index.html
+- [x] Testes vitest (31 aprovados) + screenshots desktop/mobile + checkpoint e entrega

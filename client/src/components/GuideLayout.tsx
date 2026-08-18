@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS } from "@shared/guideData";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -37,6 +37,7 @@ export const GUIDE_SECTIONS = [
   { key: "calendario", label: "Calendário", path: "/calendario" },
   { key: "calculadora", label: "Calculadora", path: "/calculadora" },
   { key: "subclasses", label: "Subclasses", path: "/subclasses" },
+  { key: "equipamentos", label: "Equipamentos", path: "/equipamentos" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -219,6 +220,36 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       path: "/calendario",
     }),
   );
+  EQUIPMENT_TYPES.forEach(t =>
+    hits.push({
+      id: `equip-${t.key}`,
+      type: "gear",
+      title: `${t.slot} (${t.examples.join(", ")}) — ${t.statPerLevel} · ${t.statSecondary}`,
+      section: "gear",
+      sectionLabel: "Equipamentos & Geminação",
+      path: "/equipamentos",
+    }),
+  );
+  GRADE_INFO.forEach(g =>
+    hits.push({
+      id: `grade-${g.key}`,
+      type: "gear",
+      title: `${g.name} — ${g.darksteelCraft} · ${g.note}`,
+      section: "gear",
+      sectionLabel: "Equipamentos & Geminação",
+      path: "/equipamentos",
+    }),
+  );
+  ENHANCE_COSTS.forEach(c =>
+    hits.push({
+      id: `enhance-${c.stage}`,
+      type: "gear",
+      title: `Enhance +${c.stage} — ${c.darksteel.toLocaleString("pt-BR")} Darksteel + ${c.copper.toLocaleString("pt-BR")} Copper · ${c.failRisk}`,
+      section: "gear",
+      sectionLabel: "Equipamentos & Geminação",
+      path: "/equipamentos",
+    }),
+  );
   return hits;
 };
 
@@ -387,6 +418,7 @@ function HitIcon({ type }: { type: string }) {
     case "event": return <Calendar className={cls} />;
     case "calc": return <Calculator className={cls} />;
     case "skills": return <Layers className={cls} />;
+    case "gear": return <Gem className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

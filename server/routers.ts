@@ -4,10 +4,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
-import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, CLASS_SKILLS } from "@shared/guideData";
+import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, CLASS_SKILLS, EQUIPMENT_TYPES } from "@shared/guideData";
 import { PAGE_COMMENT_KEYS } from "./_core/pageComments";
 
-const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery", "seal"]);
+const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery", "seal", "gear"]);
 
 const favoriteInput = z.object({
   itemId: z.string().min(1).max(120),
@@ -32,6 +32,7 @@ function validateGuideItem(itemId: string, itemType: z.infer<typeof favoritesIte
     case "sabuk": return SABUK_CONTENT.some(s => s.key === key) || key === "torre-conquista";
     case "mystery": return MYSTERIES.some(m => m.key === key) || key === "torre-conquista";
     case "seal": return ["darksteel-seal", "jade-seal", "dragon-seal", "calculadora"].includes(key);
+    case "gear": return EQUIPMENT_TYPES.some(e => e.key === key);
   }
 }
 
@@ -81,11 +82,11 @@ export const appRouter = router({
 
   comments: router({
     list: publicProcedure
-      .input(z.object({ pageKey: z.enum(["farm", "sabuk", "mystery", "seal", "skills"]), farmKey: z.string().min(1).max(120) }))
+      .input(z.object({ pageKey: z.enum(["farm", "sabuk", "mystery", "seal", "skills", "gear", "classes", "economy", "raids"]), farmKey: z.string().min(1).max(120) }))
       .query(({ input }) => db.listPageComments(input.pageKey, input.farmKey)),
     add: protectedProcedure
       .input(z.object({
-        pageKey: z.enum(["farm", "sabuk", "mystery", "seal", "skills"]),
+        pageKey: z.enum(["farm", "sabuk", "mystery", "seal", "skills", "gear", "classes", "economy", "raids"]),
         farmKey: z.string().min(1).max(120),
         content: z.string().trim().min(3).max(300),
       }))
@@ -96,6 +97,8 @@ export const appRouter = router({
         else if (input.pageKey === "mystery") valid = input.farmKey === "geral" || MYSTERIES.some(m => m.key === input.farmKey) || input.farmKey === "torre-conquista";
         else if (input.pageKey === "seal") valid = input.farmKey === "geral" || SEAL_GUIDE.some(s => s.stage === input.farmKey);
         else if (input.pageKey === "skills") valid = input.farmKey === "geral" || CLASS_SKILLS.some(c => c.key === input.farmKey);
+        else if (input.pageKey === "gear") valid = input.farmKey === "geral" || EQUIPMENT_TYPES.some(e => e.key === input.farmKey);
+        else if (input.pageKey === "classes" || input.pageKey === "economy" || input.pageKey === "raids") valid = input.farmKey === "geral";
         if (!valid) {
           throw new Error("Chave de comentário inválida");
         }

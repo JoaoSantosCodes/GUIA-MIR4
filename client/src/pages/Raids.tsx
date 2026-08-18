@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { RAIDS, RAID_MECHANICS, type RaidDifficulty } from "@shared/guideData";
 import PageBanner from "@/components/guide/PageBanner";
+import CommentsSection from "@/components/guide/CommentsSection";
 import FavButton from "@/components/guide/FavButton";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
-  Shield, Swords, Target, Skull, ChevronDown, ChevronUp, Crown,
+  Shield, Swords, Target, Skull, ChevronDown, ChevronUp, Crown, Lightbulb,
 } from "lucide-react";
 
 const DIFFICULTY_STYLES: Record<RaidDifficulty, { color: string; border: string; bg: string }> = {
@@ -173,7 +174,14 @@ export default function Raids() {
             </span>
           </p>
         </div>
-      </div>
+      <section>
+  <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+    <Lightbulb className="h-6 w-6" />
+    Dicas da comunidade — Raids
+  </h2>
+  <CommentsSection pageKey="raids" farmKey="geral" title="Raids" />
+</section>
+</div>
     </div>
   );
 }
