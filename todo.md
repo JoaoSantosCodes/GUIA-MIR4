@@ -50,4 +50,17 @@
 - [x] Testes vitest para favoritos raid/boss e comentários (16 testes aprovados)
 - [x] Screenshot desktop e mobile das novas páginas (/raids, /espiritos, /farm)
 - [x] Checkpoint (v b36ea8c8) salvo — todas as 3 funcionalidades novas implementadas e testadas (16 testes)
-- [x] Comentários com polling de 30s para atualização quase em tempo real (auto-publish já ativo: checkpoint = publicação)
+- [x] Comentários com polling de 30s para atualização quase em tempo real (auto-publish já ativo: checkpoint cfa39dae = publicação)
+
+## Nova funcionalidade: upvote/downvote, progresso Codex, Tier List e Leveling
+- [x] Pesquisar/sintetizar tier list de espíritos por cenário (PvP, Mineração, Bosses) e combos recomendados
+- [x] Pesquisar/sintetizar guia de leveling por faixa (1-10, 10-20, 20-30, 30-40, 40-50, 50-60, 60-70, 70-100, 100+)
+- [x] Voto (up/down) na tabela farm_comments + colunas de score
+- [x] Procedures tRPC comments.vote e helpers db
+- [x] UI de votos na CommentsSection com ordenação por score
+- [x] Rastreador de progresso no Codex: barra total no topo + barra e contador por categoria nos filtros
+- [x] Página Tier List (/tier-list) com rankings por cenário e combos de 4 espíritos
+- [x] Página Leveling (/nivel) com faixas 1-10, 10-20, ..., 100+ em acordeão
+- [x] Rotas, navegação, busca indexada e testes para as novas páginas (21 testes aprovados, incl. teste de dados do leveling guide)
+- [x] Screenshots verificados (/tier-list, /nivel, /farm, /codex, /espiritos, /raids) — UI votos/progresso renderizada
+- [x] Screenshot desktop/mobile, pnpm test/check e checkpoint final

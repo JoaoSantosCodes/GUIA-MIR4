@@ -47,6 +47,8 @@ export const farmComments = mysqlTable(
     userId: int("userId").notNull(),
     farmKey: varchar("farmKey", { length: 120 }).notNull(),
     content: text("content").notNull(),
+    upvotes: int("upvotes").default(0).notNull(),
+    downvotes: int("downvotes").default(0).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (t) => [index("farmKey_idx").on(t.farmKey)],

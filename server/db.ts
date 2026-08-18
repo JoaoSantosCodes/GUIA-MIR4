@@ -147,6 +147,8 @@ export async function listFarmComments(farmKey: string) {
       userId: farmComments.userId,
       farmKey: farmComments.farmKey,
       content: farmComments.content,
+      upvotes: farmComments.upvotes,
+      downvotes: farmComments.downvotes,
       createdAt: farmComments.createdAt,
       userName: users.name,
     })
@@ -170,6 +172,26 @@ export async function addFarmComment(userId: number, farmKey: string, content: s
   if (!db) throw new Error("Database not available");
   await db.insert(farmComments).values({ userId, farmKey, content });
   return { success: true };
+}
+
+export async function voteComment(
+  commentId: number,
+  kind: "up" | "down",
+  delta: 1 | -1,
+): Promise<{ success: true; upvotes: number; downvotes: number }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (delta !== 1 && delta !== -1) throw new Error("Delta inválido");
+  const rows = await db.select().from(farmComments).where(eq(farmComments.id, commentId)).limit(1);
+  const row = rows[0];
+  if (!row) throw new Error("Comentário não encontrado");
+  const col: "upvotes" | "downvotes" = kind === "up" ? "upvotes" : "downvotes";
+  await db
+    .update(farmComments)
+    .set({ [col]: Math.max(0, (row[col] ?? 0) + delta) } as never)
+    .where(eq(farmComments.id, commentId));
+  const updated = await db.select({ upvotes: farmComments.upvotes, downvotes: farmComments.downvotes }).from(farmComments).where(eq(farmComments.id, commentId)).limit(1);
+  return { success: true, upvotes: updated[0]?.upvotes ?? 0, downvotes: updated[0]?.downvotes ?? 0 };
 }
 
 export async function removeFarmComment(userId: number, commentId: number) {

@@ -26,6 +26,20 @@ export default function Codex() {
   const totalItems = CODEX_ITEMS.length;
   const pct = Math.round((totalCollected / totalItems) * 100);
 
+  const categoryStats = useMemo(
+    () =>
+      CODEX_CATEGORIES.map(cat => {
+        const items = CODEX_ITEMS.filter(c => c.category === cat);
+        const done = items.filter(c => collected.has(c.key)).length;
+        return { cat, total: items.length, done };
+      }),
+    [collected],
+  );
+  const catMap = useMemo(
+    () => new Map(categoryStats.map(c => [c.cat, c])),
+    [categoryStats],
+  );
+
   const toggle = trpc.codexProgress.toggle.useMutation({
     onMutate: async ({ itemId, collected: isCollected }) => {
       await utils.codexProgress.list.cancel();
@@ -143,20 +157,44 @@ export default function Codex() {
             Marque os itens que você já registrou. Filtre por categoria para focar no que falta.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {(["Todas", ...CODEX_CATEGORIES] as const).map(c => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={cn(
-                  "rounded-md border px-4 py-1.5 text-sm font-medium transition-all active:scale-[0.97]",
-                  category === c
-                    ? "border-amber-500 bg-amber-900/40 text-amber-300"
-                    : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200 hover:border-amber-700/50",
-                )}
-              >
-                {c}
-              </button>
-            ))}
+            {(["Todas", ...CODEX_CATEGORIES] as const).map(c => {
+              const stats = c !== "Todas" ? catMap.get(c) : undefined;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={cn(
+                    "rounded-md border px-4 py-1.5 text-sm font-medium transition-all active:scale-[0.97]",
+                    category === c
+                      ? "border-amber-500 bg-amber-900/40 text-amber-300"
+                      : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200 hover:border-amber-700/50",
+                  )}
+                >
+                  {c}
+                  {stats && (
+                    <span className="ml-1.5 text-[10px] text-slate-500">
+                      {stats.done}/{stats.total}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Progresso por categoria */}
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {categoryStats.map(s => {
+              const catPct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+              return (
+                <div key={s.cat} className="rounded-lg border border-amber-900/40 bg-black/20 p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-amber-300/90">{s.cat}</span>
+                    <span className="text-slate-400">{s.done}/{s.total} ({catPct}%)</span>
+                  </div>
+                  <Progress value={catPct} className="mt-2 [&>div]:bg-gradient-to-r [&>div]:from-amber-700 [&>div]:to-amber-500" />
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-2">

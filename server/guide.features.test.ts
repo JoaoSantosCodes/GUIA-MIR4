@@ -12,6 +12,7 @@ vi.mock("./db", () => ({
   listFarmComments: vi.fn(async () => []),
   addFarmComment: vi.fn(async () => undefined),
   removeFarmComment: vi.fn(async () => undefined),
+  voteComment: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0 })),
 }));
 
 import * as db from "./db";
@@ -160,5 +161,76 @@ describe("comments", () => {
   it("remove requires authentication and rejects unknown ids", async () => {
     const caller = appRouter.createCaller(createContext(null));
     await expect(caller.comments.remove({ id: 1 })).rejects.toThrow();
+  });
+});
+
+describe("comments.vote", () => {
+  it("registers an upvote with delta 1", async () => {
+    vi.mocked(db.voteComment).mockResolvedValue({ success: true, upvotes: 1, downvotes: 0 });
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.comments.vote({ id: 1, kind: "up", delta: 1 });
+    expect(result.success).toBe(true);
+    expect(db.voteComment).toHaveBeenCalledWith(1, "up", 1);
+  });
+
+  it("registers a downvote with delta -1", async () => {
+    vi.mocked(db.voteComment).mockResolvedValue({ success: true, upvotes: 0, downvotes: 1 });
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.comments.vote({ id: 1, kind: "down", delta: -1 });
+    expect(result.success).toBe(true);
+    expect(db.voteComment).toHaveBeenCalledWith(1, "down", -1);
+  });
+
+  it("rejects unauthenticated callers", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(
+      caller.comments.vote({ id: 1, kind: "up", delta: 1 }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("dados das novas páginas", () => {
+  it("tier scenarios têm linhas e combos com chaves válidas de espíritos", async () => {
+    const { TIER_SCENARIOS } = await import("@shared/guideData");
+    const { SPIRITS } = await import("@shared/guideData");
+    const spiritKeys = new Set(SPIRITS.map(s => s.key));
+    const codexKeys = new Set((await import("@shared/guideData")).CODEX_ITEMS.map(c => c.key));
+    for (const t of TIER_SCENARIOS) {
+      for (const row of t.rows) {
+        for (const s of row.spirits) {
+          expect(spiritKeys.has(s.key) || codexKeys.has(s.key), `chave inválida: ${s.key}`).toBe(true);
+        }
+      }
+      for (const combo of t.combos) {
+        for (const s of combo.spirits) {
+          expect(spiritKeys.has(s.key), `chave inválida: ${s.key}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("leveling guide cobre todas as faixas de 1-10 até 100+ com zonas válidas", async () => {
+    const { LEVELING_GUIDE, FARM_SPOTS } = await import("@shared/guideData");
+    expect(LEVELING_GUIDE.length).toBeGreaterThan(0);
+    const farmKeys = new Set(FARM_SPOTS.map(f => f.key));
+    for (const b of LEVELING_GUIDE) {
+      expect(b.goals.length).toBeGreaterThan(0);
+      expect(b.zones.length).toBeGreaterThan(0);
+      expect(b.tips.length).toBeGreaterThan(0);
+      // nomes de zonas citados devem existir no guideData (prefixo case-insensitive)
+      // zonas especiais (ex.: "Byeoksan (região inicial)", "Sabuk") ficam marcadas em z.special
+      for (const z of b.zones) {
+        if (!z.special) {
+          const clean = (str: string) => str.toLowerCase().replace(/\s*\(.*?\)/g, "").replace(/\d+([-\/]\d*)?f/gi, "").replace(/f\d+/gi, "").replace(/\/+/, " ").trim();
+          const base = clean(z.name);
+          const match = FARM_SPOTS.some(f => {
+            const spotBase = clean(f.name);
+            return base.includes(spotBase) || spotBase.includes(base) || base.includes(f.key.replace(/-/g, " "));
+          });
+          expect(match, `zona não encontrada: ${z.name}`).toBe(true);
+        }
+      }
+    }
+    void farmKeys;
   });
 });

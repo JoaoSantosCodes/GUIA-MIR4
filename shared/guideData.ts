@@ -678,3 +678,375 @@ export const RAID_MECHANICS = {
     },
   ],
 };
+
+// =====================================================================
+// TIER LIST DE ESPÍRITOS (por cenário)
+// =====================================================================
+
+export type SpiritTier = "S" | "A" | "B" | "C";
+
+export const TIER_STYLES: Record<SpiritTier, { label: string; color: string; border: string; bg: string }> = {
+  S: { label: "Tier S", color: "text-amber-300", border: "border-amber-500/60", bg: "bg-amber-500/15" },
+  A: { label: "Tier A", color: "text-violet-300", border: "border-violet-500/60", bg: "bg-violet-500/15" },
+  B: { label: "Tier B", color: "text-sky-300", border: "border-sky-500/60", bg: "bg-sky-500/15" },
+  C: { label: "Tier C", color: "text-slate-300", border: "border-slate-500/60", bg: "bg-slate-500/10" },
+};
+
+export type TierScenario = "pvp" | "mining" | "boss";
+
+export interface TierRow {
+  tier: SpiritTier;
+  spirits: { key: string; name: string; reason: string }[];
+}
+
+export interface TierCombo {
+  label: string;
+  spirits: { key: string; name: string }[];
+  note: string;
+}
+
+export interface TierScenarioData {
+  key: TierScenario;
+  label: string;
+  description: string;
+  rows: TierRow[];
+  combos: TierCombo[];
+}
+
+export const TIER_SCENARIOS: TierScenarioData[] = [
+  {
+    key: "pvp",
+    label: "PvP",
+    description:
+      "Prioriza redução de dano crítico, PvP DMG Reduction e habilidades defensivas que sobrevivem a foco concentrado. Espíritos de CRIT DMG Reduction e evasão sobem no topo.",
+    rows: [
+      {
+        tier: "S",
+        spirits: [
+          { key: "lendario-placeholder", name: "Styx (L) / Goldking (L)", reason: "Atributos esmagadores + passivas de raid que anulam dano concentrado." },
+          { key: "snowfox", name: "Snow Fox", reason: "CRIT DMG Reduction −10% e chance de Evade instantâneo salvam contra burst de Sorcerer e Arbalist." },
+          { key: "darknyan", name: "Darknyan", reason: "Ressurreição com 25% do HP evita mortes instantâneas em guerras de Sabuk." },
+        ],
+      },
+      {
+        tier: "A",
+        spirits: [
+          { key: "epico-placeholder", name: "Biyoho (E) / Reaper (E)", reason: "Versões superiores com DEF elevada e procs de alto impacto." },
+          { key: "crystaglass", name: "Crystaglass", reason: "PvP ATK + Bash Reduction + proc de ATK." },
+          { key: "goldking", name: "Goldking", reason: "Stun + proc de ATK/DEF; útil em trocas agressivas." },
+        ],
+      },
+      {
+        tier: "B",
+        spirits: [
+          { key: "horyong", name: "Horyong", reason: "Recuperação de HP por ataque ajuda em trocas prolongadas." },
+          { key: "galesoul", name: "Galesoul", reason: "CRIT ATK com sustain de emergência em HP baixo." },
+          { key: "raro-placeholder", name: "Raros defensivos", reason: "Transição até conseguir épicos e lendários." },
+        ],
+      },
+      {
+        tier: "C",
+        spirits: [
+          { key: "flory", name: "Flory", reason: "Bônus de coleta não ajudam em combate." },
+          { key: "doggo", name: "Doggo", reason: "Apenas sobrevivência básica." },
+        ],
+      },
+    ],
+    combos: [
+      {
+        label: "Combo de sobrevivência",
+        spirits: [
+          { key: "lendario-placeholder", name: "Styx (L)" },
+          { key: "darknyan", name: "Darknyan" },
+          { key: "snowfox", name: "Snow Fox" },
+          { key: "epico-placeholder", name: "Biyoho (E)" },
+        ],
+        note: "Redução de dano + evade + ressurreição: ideal para tanquear em Sabuk e guerras de clã.",
+      },
+    ],
+  },
+  {
+    key: "mining",
+    label: "Mineração",
+    description:
+      "Prioriza velocidade de mineração e coleta para maximizar Darksteel e recursos por hora. Quanto mais rápido você minera, mais rápido escala para raids e Magic Square.",
+    rows: [
+      {
+        tier: "S",
+        spirits: [
+          { key: "styx", name: "Styx", reason: "Coleta −10% e Mineração −10% com proc defensivo forte para sobreviver em Snake Valley." },
+          { key: "leocrat", name: "Leocrat Khun", reason: "Coleta −10%, Mineração −10% + PvP DMG Reduction −8%: o combo de farm definitivo." },
+        ],
+      },
+      {
+        tier: "A",
+        spirits: [
+          { key: "flory", name: "Flory", reason: "Coleta −10% e Mineração −10%; puro acelerador de farm." },
+          { key: "epico-placeholder", name: "Épicos de farm", reason: "Atributos gerais mais altos encurtam o tempo por mineração." },
+          { key: "horyong", name: "Horyong", reason: "Coleta de energia sustenta longas sessões AFK." },
+        ],
+      },
+      {
+        tier: "B",
+        spirits: [
+          { key: "raro-placeholder", name: "Raros de coleta", reason: "Bom custo-benefício antes dos épicos." },
+          { key: "lamper", name: "Lamper", reason: "Coleta de energia + Copper para renda paralela." },
+          { key: "uc-magicstone", name: "Spirits UC de coleta", reason: "Base acessível para quem está começando." },
+        ],
+      },
+      {
+        tier: "C",
+        spirits: [
+          { key: "doggo", name: "Doggo", reason: "Sem bônus relevantes de coleta." },
+          { key: "uc-weapon-t1", name: "Spirits UC de combate", reason: "Bônus de ataque não aceleram mineração." },
+        ],
+      },
+    ],
+    combos: [
+      {
+        label: "Combo de Darksteel",
+        spirits: [
+          { key: "styx", name: "Styx" },
+          { key: "leocrat", name: "Leocrat Khun" },
+          { key: "flory", name: "Flory" },
+          { key: "horyong", name: "Horyong" },
+        ],
+        note: "Foco total em mineração/coleta com defesa mínima para sobreviver em áreas contestadas.",
+      },
+    ],
+  },
+  {
+    key: "boss",
+    label: "Bosses",
+    description:
+      "Prioriza Boss DMG Reduction e Boss ATK Reduction para raids, Magic Square e World Bosses. Sobrevivência prolongada é o que permite DPS consistente sem morrer para mecânicas.",
+    rows: [
+      {
+        tier: "S",
+        spirits: [
+          { key: "lendario-placeholder", name: "Styx (L) / Goldking (L)", reason: "Passivas de raid — as únicas feitas para conteúdo de boss endgame." },
+          { key: "snowfox", name: "Snow Fox", reason: "Boss DMG Reduction −6% + evade: quase obrigatória em Magic Square." },
+        ],
+      },
+      {
+        tier: "A",
+        spirits: [
+          { key: "epico-placeholder", name: "Biyoho (E) / Reaper (E)", reason: "Versões superiores com DEF elevada e redução de boss forte." },
+          { key: "darknyan", name: "Darknyan", reason: "Boss DMG Reduction −15% + ressurreição: seguro para raids longas." },
+          { key: "inferno", name: "Inferno", reason: "Boss DMG Reduction −15% + proc de cura por ataque." },
+        ],
+      },
+      {
+        tier: "B",
+        spirits: [
+          { key: "horyong", name: "Horyong", reason: "Sustain de HP ajuda em raids prolongadas." },
+          { key: "uc-armor-t1", name: "Reduções UC", reason: "Base defensiva aceitável para Magic Square de entrada." },
+          { key: "raro-placeholder", name: "Raros de boss", reason: "Reduções sólidas até conseguir lendários." },
+        ],
+      },
+      {
+        tier: "C",
+        spirits: [
+          { key: "flory", name: "Flory", reason: "Bônus de coleta não afetam combate com boss." },
+          { key: "doggo", name: "Doggo", reason: "Reduções muito baixas para raids." },
+        ],
+      },
+    ],
+    combos: [
+      {
+        label: "Combo de Raid",
+        spirits: [
+          { key: "lendario-placeholder", name: "Styx (L)" },
+          { key: "snowfox", name: "Snow Fox" },
+          { key: "darknyan", name: "Darknyan" },
+          { key: "inferno", name: "Inferno" },
+        ],
+        note: "Composição clássica de raid: máxima redução de dano de boss + sustain para garantir First Kill Rewards.",
+      },
+    ],
+  },
+];
+
+export const TIER_NOTE =
+  "As posições refletem os bônus passivos por cenário. Espíritos lendários e míticos dominam todos os cenários — os rankings focam na relevância relativa dentro de cada cenário. Espíritos de evento rotativo (Lulu, Wooska) sobem para o Tier S quando disponíveis.";
+
+// =====================================================================
+// GUIA DE LEVELING POR FAIXA DE NÍVEL
+// =====================================================================
+
+export interface LevelBand {
+  range: string;
+  title: string;
+  goals: string[];
+  zones: { name: string; note: string; special?: boolean }[];
+  tips: string[];
+}
+
+export const LEVELING_GUIDE: LevelBand[] = [
+  {
+    range: "1-10",
+    title: "Despertar em Byeoksan",
+    goals: [
+      "Seguir a Quest Guide principal — a XP por missão é o que mais rende",
+      "Coletar energia (Energy Gathering) sempre que o cooldown permitir",
+      "Criar sua conta de Darksteel para já minerar recursos iniciais",
+    ],
+    zones: [
+      { name: "Byeoksan (região inicial)", note: "Área segura — PvP desativado para aprendizes.", special: true },
+    ],
+    tips: [
+      "Reserve Darksteel para os 3 primeiros slots de equipamento: arma, capacete e armadura.",
+      "Ative o AFK Farm cedo e deixe o jogo minerando enquanto você joga ativamente.",
+      "Complete as missões de tutorial para ganhar tokens de invocação de espírito UC.",
+    ],
+  },
+  {
+    range: "10-20",
+    title: "Primeiros passos como mercenário",
+    goals: [
+      "Alcançar Nível 20 para desbloquear a invocação de espíritos",
+      "Fazer o primeiro summons com tickets UC",
+      "Começar a farmar materiais para Constitution",
+    ],
+    zones: [
+      { name: "Byeoksan / arredores", note: "Continue a Quest Guide.", special: true },
+      { name: "Secret Mine (eventual)", note: "Boa fonte de itens UC Tier 1 para o Codex.", special: true },
+    ],
+    tips: [
+      "O Doggo (UC) é gratuito — use-o como base até conseguir algo melhor.",
+      "Participe do evento de assistência mensal para ganhar o Horyong (espírito de energia).",
+      "A partir do nível 15, habilite o auto-combate para caça AFK em áreas seguras.",
+    ],
+  },
+  {
+    range: "20-30",
+    title: "Labyrinth e primeiros desafios",
+    goals: [
+      "Dominar Bicheon Labyrinth 3F (25-60) para farm de recursos e itens UC",
+      "Montar um setup de 4 espíritos UC focado em coleta/mineração",
+      "Entrar no Magic Square assim que disponível (câmaras de Magic Stone)",
+    ],
+    zones: [
+      { name: "Nefariox Necropolis", note: "20-29 — transição natural pós-Byeoksan." },
+      { name: "Bicheon Labyrinth 3F", note: "25-60 — farm de UC, Flower Oil e drops de mid-game." },
+      { name: "Secret Passage", note: "31-75 — rota paralela eficiente se precisar de XP." },
+    ],
+    tips: [
+      "Registre os itens UC no Codex sempre que possível — os bônus de conclusão são permanentes.",
+      "O Magic Stone da câmara UC é a primeira pedra que todo build precisa.",
+      "Comece a guardar tickets de summons para eventos de invocação rara.",
+    ],
+  },
+  {
+    range: "30-40",
+    title: "Demon Bull e expansão territorial",
+    goals: [
+      "Farmar Demon Bull Temple (31-35) e Demon Bull Labyrinth (30-80)",
+      "Fazer sua primeira raid de clã (Unihorn Horn / Magic Stone)",
+      "Completar os primeiros tiers do Codex de Equipamentos",
+    ],
+    zones: [
+      { name: "Demon Bull Temple", note: "31-35 — XP sólido e drops de acessório UC." },
+      { name: "Demon Bull Labyrinth", note: "30-80 — Greater Yang Pill e Unihorn Slice para o Codex." },
+      { name: "Bicheon Valley", note: "40-45 — prepare-se para a próxima faixa." },
+    ],
+    tips: [
+      "Junte-se a um clã ativo: os Clan Boss semanais são a fonte dos Epic Dragon Statues.",
+      "Unihorn Slice é um material UC importante — farme em lote.",
+      "Priorize Constitution: cada ponto de HP vale mais que ATK no early game.",
+    ],
+  },
+  {
+    range: "40-50",
+    title: "Crystalline Forest e épicos no radar",
+    goals: [
+      "Farmar Crystalline Forest (30-76) por materiais de Codex",
+      "Obter o primeiro espírito Épico via Clan Boss",
+      "Fazer a primeira incursão a Snake Valley para Darksteel",
+    ],
+    zones: [
+      { name: "Crystalline Forest", note: "30-76 — uma das zonas mais rentáveis do mid game." },
+      { name: "Snake Pit", note: "45-60 — XP elevado e drops de armadura UC/épica." },
+      { name: "Snake Valley", note: "90-95 (Darksteel) — entre com setup completo e clã." },
+    ],
+    tips: [
+      "Snake Valley é PvP aberto: vá com o clã ou em horário de baixa concorrência.",
+      "Os espíritos épicos mudam o jogo — priorize Biyoho e Reaper assim que conseguir.",
+      "Ative o AFK Mining em paralelo: o Darksteel acumulado vale DRACO.",
+    ],
+  },
+  {
+    range: "50-60",
+    title: "Consolidação do mid game",
+    goals: [
+      "Completar equipamentos UC Tier 2 e começar a caçar épicos",
+      "Subir no ranking do Collection Codex (bônus por posição no servidor)",
+      "Fazer raids de boss (King Bull Fiend, Nefariox King) pela primeira vez",
+    ],
+    zones: [
+      { name: "Snake Pit / Crystalline Forest", note: "45-76 — rotacione as duas para não estagnar." },
+      { name: "Crystalline Mountain", note: "76 — próxima área de XP quando estiver pronto.", special: true },
+    ],
+    tips: [
+      "Participe dos raids de boss mesmo sem gear perfeita — First Kill Rewards são valiosos.",
+      "Concentre-se em 1-2 espíritos por cenário em vez de espalhar recursos.",
+      "Verifique o Mercado semanalmente: preços de materiais caem nos fins de semana.",
+    ],
+  },
+  {
+    range: "60-70",
+    title: "Snake Valley e raids constantes",
+    goals: [
+      "Farmar Snake Valley F3/F4 (61-75) — uma das melhores rotas de XP do jogo",
+      "Construir o combo de raid: redução de boss + sustain",
+      "Acumular Darksteel para a primeira conversão em DRACO",
+    ],
+    zones: [
+      { name: "Snake Valley F3/F4", note: "61-95 — XP e drops balanceados; zona PvP ativa e Darksteel." },
+      { name: "Secret Passage (70-75)", note: "Alternativa se Snake Valley estiver saturado." },
+    ],
+    tips: [
+      "100.000 Darksteel = 1 DRACO — planeje a conversão quando o preço do token estiver alto.",
+      "As raids Hall of Greed e Demon's Ruin desbloqueiam drops épicos/lendários: entre 1x por dia.",
+      "Ajuste seu combo de espíritos por atividade: farm ≠ raid ≠ PvP.",
+    ],
+  },
+  {
+    range: "70-100",
+    title: "Caminho para o endgame",
+    goals: [
+      "Alcançar Crystalline Mountain (76) e preparar para Phantasia Desert (100)",
+      "Obter o primeiro espírito Lendário (Styx L / Goldking L) via evento de invocação",
+      "Dominar Vipergeist Prison e raids de endgame",
+    ],
+    zones: [
+      { name: "Crystalline Mountain", note: "76 — XP denso, recursos de tier alto." },
+      { name: "Snake Valley (Darksteel)", note: "90-95 — continue minerando em grupo." },
+      { name: "Phantasia Desert", note: "100 — porta de entrada do endgame." },
+    ],
+    tips: [
+      "Lendários definem o endgame: guarde summons premium para os eventos certos.",
+      "World Bosses dropam materiais únicos — marque os horários com o clã.",
+      "Comece a montar gear para Sabuk War: PvP em larga escala é o conteúdo endgame.",
+    ],
+  },
+  {
+    range: "100+",
+    title: "Endgame: Sabuk e Nine Dragon",
+    goals: [
+      "Dominar Sabuk (105+) — o campo de batalha definitivo entre clãs",
+      "Explorar Nine Dragon (130+) — o conteúdo mais desafiador do jogo",
+      "Competir no ranking do Collection Codex e das raids",
+    ],
+    zones: [
+      { name: "Sabuk", note: "105+ — PvP massivo; o clã que controla Sabuk domina o servidor." },
+      { name: "Nine Dragon", note: "130+ — bosses e drops de raridade máxima." },
+      { name: "Phantasia Desert", note: "100 — rota de farm endgame quando Sabuk estiver fechado." },
+    ],
+    tips: [
+      "No endgame, a coordenação de clã vale mais que gear individual.",
+      "Mantenha espíritos lendários/míticos equipados: a diferença de atributos é brutal.",
+      "Continue convertendo Darksteel em DRACO conforme o mercado — é sua renda passiva.",
+    ],
+  },
+];

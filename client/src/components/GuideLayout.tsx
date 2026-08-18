@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull } from "lucide-react";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS } from "@shared/guideData";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp } from "lucide-react";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -28,6 +28,8 @@ export const GUIDE_SECTIONS = [
   { key: "classes", label: "Classes", path: "/classes" },
   { key: "economia", label: "Economia", path: "/economia" },
   { key: "raids", label: "Raids e Bosses", path: "/raids" },
+  { key: "tier-list", label: "Tier List", path: "/tier-list" },
+  { key: "nivel", label: "Leveling", path: "/nivel" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -108,6 +110,26 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       section: "economy",
       sectionLabel: "Economia",
       path: "/economia#dicas",
+    }),
+  );
+  TIER_SCENARIOS.forEach(t =>
+    hits.push({
+      id: `tier-${t.key}`,
+      type: "tier",
+      title: `Tier List ${t.label} — ${t.description}`,
+      section: "tier",
+      sectionLabel: "Tier List",
+      path: "/tier-list",
+    }),
+  );
+  LEVELING_GUIDE.forEach(b =>
+    hits.push({
+      id: `nivel-${b.range}`,
+      type: "nivel",
+      title: `Nível ${b.range}: ${b.title} — ${[...b.goals, ...b.zones.map(z => z.name), ...b.tips].join(" · ")}`,
+      section: "nivel",
+      sectionLabel: "Leveling",
+      path: `/nivel#faixa-${b.range}`,
     }),
   );
   MAGIC_SQUARE_CHAMBERS.forEach(m =>
@@ -283,6 +305,8 @@ function HitIcon({ type }: { type: string }) {
     case "farm": return <Pickaxe className={cls} />;
     case "class": return <Swords className={cls} />;
     case "raid": return <Skull className={cls} />;
+    case "tier": return <Trophy className={cls} />;
+    case "nivel": return <TrendingUp className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

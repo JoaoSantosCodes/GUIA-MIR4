@@ -12,6 +12,8 @@ import Farm from "./pages/Farm";
 import Classes from "./pages/Classes";
 import Economy from "./pages/Economy";
 import Raids from "./pages/Raids";
+import TierList from "./pages/TierList";
+import Leveling from "./pages/Leveling";
 import Profile from "./pages/Profile";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -25,6 +27,8 @@ function Router() {
       <Route path={"/classes"} component={Classes} />
       <Route path={"/economia"} component={Economy} />
       <Route path={"/raids"} component={Raids} />
+      <Route path={"/tier-list"} component={TierList} />
+      <Route path={"/nivel"} component={Leveling} />
       <Route path={"/perfil"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

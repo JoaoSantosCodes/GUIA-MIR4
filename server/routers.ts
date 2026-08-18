@@ -91,6 +91,13 @@ export const appRouter = router({
         await db.addFarmComment(ctx.user.id, input.farmKey, input.content);
         return { success: true } as const;
       }),
+    vote: protectedProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        kind: z.enum(["up", "down"]),
+        delta: z.union([z.literal(1), z.literal(-1)]),
+      }))
+      .mutation(async ({ input }) => db.voteComment(input.id, input.kind, input.delta)),
     remove: protectedProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {

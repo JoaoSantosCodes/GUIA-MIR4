@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Trash2, UserCircle2, Loader2 } from "lucide-react";
+import { MessageSquare, Trash2, UserCircle2, Loader2, ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface Props {
   farmKey: string;
@@ -24,10 +24,34 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
   );
   const { data: myFavs } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
 
-  const commentsWithNames = useMemo(
-    () => (comments ?? []).map(c => ({ ...c })),
-    [comments],
-  );
+  const commentsWithNames = useMemo(() => {
+    const list = (comments ?? []).map(c => ({
+      ...c,
+      score: (c.upvotes ?? 0) - (c.downvotes ?? 0),
+    }));
+    // Best tips first (by score), then newest
+    return list.sort((a, b) => b.score - a.score || b.id - a.id);
+  }, [comments]);
+
+  const vote = trpc.comments.vote.useMutation({
+    onMutate: async ({ id, kind, delta }) => {
+      await utils.comments.list.cancel({ farmKey });
+      const prev = utils.comments.list.getData({ farmKey });
+      utils.comments.list.setData({ farmKey }, old =>
+        old?.map(c =>
+          c.id === id
+            ? { ...c, upvotes: kind === "up" ? Math.max(0, (c.upvotes ?? 0) + delta) : (c.upvotes ?? 0), downvotes: kind === "down" ? Math.max(0, (c.downvotes ?? 0) + delta) : (c.downvotes ?? 0) }
+            : c,
+        ) ?? old,
+      );
+      return { prev };
+    },
+    onError: (_err, _input, ctx) => {
+      utils.comments.list.setData({ farmKey }, ctx?.prev);
+      toast.error("Falha ao registrar o voto");
+    },
+    onSettled: () => invalidate(),
+  });
 
   const invalidate = () => utils.comments.list.invalidate({ farmKey });
 
@@ -78,41 +102,67 @@ export default function CommentsSection({ farmKey, title = "Dicas da comunidade"
         ) : commentsWithNames.length === 0 ? (
           <p className="text-xs text-slate-500 italic">Nenhuma dica ainda — seja o primeiro a compartilhar!</p>
         ) : (
-          commentsWithNames.map(c => {
-            const isMine = isAuthenticated && (c as { userId?: number }).userId === user?.id;
-            return (
-              <div
-                key={c.id}
-                className={cn(
-                  "rounded-md border px-3 py-2 text-sm",
-                  isMine ? "border-amber-700/50 bg-amber-950/20" : "border-slate-800/60 bg-black/20",
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="flex items-center gap-1.5 text-xs text-amber-300/80">
-                    <UserCircle2 className="h-3.5 w-3.5" />
-                    {(c as { userName?: string }).userName ?? "Jogador"}
-                    <span className="text-slate-600">·</span>
-                    <span className="text-slate-500">
-                      {new Date(c.createdAt).toLocaleDateString("pt-BR")} {new Date(c.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </p>
-                  {isMine && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-slate-500 hover:text-red-400"
-                      aria-label="Excluir minha dica"
-                      onClick={() => remove.mutate({ id: c.id })}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+          <>
+            <p className="text-xs text-slate-600 mb-2">Ordenadas pelas dicas mais votadas pela comunidade.</p>
+            {commentsWithNames.map(c => {
+              const isMine = isAuthenticated && (c as { userId?: number }).userId === user?.id;
+              return (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "rounded-md border px-3 py-2 text-sm",
+                    isMine ? "border-amber-700/50 bg-amber-950/20" : "border-slate-800/60 bg-black/20",
                   )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 text-xs text-amber-300/80">
+                      <UserCircle2 className="h-3.5 w-3.5" />
+                      {(c as { userName?: string }).userName ?? "Jogador"}
+                      <span className="text-slate-600">·</span>
+                      <span className="text-slate-500">
+                        {new Date(c.createdAt).toLocaleDateString("pt-BR")} {new Date(c.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-slate-500 hover:text-emerald-400"
+                        aria-label="Votar a favor"
+                        onClick={() => vote.mutate({ id: c.id, kind: "up", delta: 1 })}
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <span className={cn("min-w-6 text-center text-xs font-semibold", (c.score ?? 0) > 0 ? "text-emerald-400" : (c.score ?? 0) < 0 ? "text-red-400" : "text-slate-500")}>
+                        {c.score ?? 0}
+                      </span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-slate-500 hover:text-red-400"
+                        aria-label="Votar contra"
+                        onClick={() => vote.mutate({ id: c.id, kind: "down", delta: 1 })}
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                      </Button>
+                      {isMine && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 text-slate-500 hover:text-red-400"
+                          aria-label="Excluir minha dica"
+                          onClick={() => remove.mutate({ id: c.id })}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="mt-1 text-slate-300 leading-relaxed">{c.content}</p>
                 </div>
-                <p className="mt-1 text-slate-300 leading-relaxed">{c.content}</p>
-              </div>
-            );
-          })
+              );
+            })}
+          </>
         )}
       </div>
 
