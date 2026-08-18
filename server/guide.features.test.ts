@@ -453,6 +453,33 @@ describe("events.upcoming", () => {
     expect(sabuk).toBeDefined();
     expect(sabuk!.minutesUntil).toBeGreaterThan(0);
   });
+
+  it("marca evento como ativo quando a ocorrência está dentro da janela de duração", async () => {
+    const { computeUpcomingAlerts } = await import("./events");
+    // Região NA fuso America/New_York (EDT = UTC-4 em agosto). 10:15Z = 06:15 ET:
+    // Leader's III (ciclo 3h) começa às 06:00 ET = 10:00Z → 15 min dentro da duração de 45 min
+    const now = new Date("2026-08-19T10:15:00Z");
+    const alerts = computeUpcomingAlerts("na", now);
+    const leader = alerts.find(a => a.key === "ms-leader3");
+    expect(leader?.activeNow).toBe(true);
+    expect(leader?.minutesUntil).toBe(0);
+    const box = alerts.find(a => a.key === "ms-box-red");
+    // Red Box (ciclo 1h, duração 30 min) começou às 06:00 ET = 10:00Z → também ativo
+    expect(box?.activeNow).toBe(true);
+  });
+
+  it("não marca evento como ativo depois que a duração termina", async () => {
+    const { computeUpcomingAlerts } = await import("./events");
+    // 10:50Z = 06:50 ET: 50 min após o início do Red Box (duração 30 min) → inativo
+    const now = new Date("2026-08-19T10:50:00Z");
+    const alerts = computeUpcomingAlerts("na", now);
+    const box = alerts.find(a => a.key === "ms-box-red");
+    expect(box?.activeNow).toBe(false);
+    expect(box?.minutesUntil).toBeGreaterThan(0);
+    // Leader's III (duração 45 min, início 10:00Z) já expirou aos 10:50Z
+    const leader = alerts.find(a => a.key === "ms-leader3");
+    expect(leader?.activeNow).toBe(false);
+  });
 });
 
 describe("faq.topTips", () => {
@@ -478,6 +505,20 @@ describe("faq.topTips", () => {
     expect(farmPage!.tips[0].score).toBe(8);
     const raidsPage = pages.find(p => p.pageKey === "raids");
     expect(raidsPage?.tips[0].score).toBe(10);
+  });
+
+  it("ordena por score e não deixa dica com muitos downvotes vencer dica de score maior", async () => {
+    const rows = [
+      { id: 1, pageKey: "farm", farmKey: "geral", content: "dica ruim", upvotes: 20, downvotes: 18, createdAt: new Date(), userName: "u1" },
+      { id: 2, pageKey: "farm", farmKey: "geral", content: "dica boa", upvotes: 12, downvotes: 0, createdAt: new Date(), userName: "u2" },
+    ];
+    vi.mocked(db.fetchTopTips).mockResolvedValue(rows as never);
+    const caller = appRouter.createCaller(createContext(null));
+    const pages = await caller.faq.topTips({});
+    const farmPage = pages.find(p => p.pageKey === "farm");
+    // score(1) = 2, score(2) = 12 → dica boa deve ficar em primeiro
+    expect(farmPage?.tips[0].id).toBe(2);
+    expect(farmPage?.tips[1].id).toBe(1);
   });
 });
 

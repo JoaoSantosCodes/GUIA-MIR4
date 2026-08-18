@@ -65,6 +65,10 @@ export function mapTopTips(rows: RawTopTipRow[], minUpvotes: number = 0, limitPe
     });
     perPage.set(r.pageKey, list);
   }
+  // Ordena as dicas dentro de cada página por score (upvotes - downvotes)
+  Array.from(perPage.values()).forEach(tips => {
+    tips.sort((a: TopTip, b: TopTip) => b.score - a.score);
+  });
   return Array.from(perPage.entries())
     .map(([pageKey, tips]) => ({ pageKey, sectionLabel: SECTION_LABELS[pageKey] ?? pageKey, tips }))
     .sort((a, b) => Math.max(...b.tips.map(t => t.score)) - Math.max(...a.tips.map(t => t.score)));

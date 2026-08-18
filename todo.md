@@ -120,9 +120,9 @@
 - [x] Testes vitest (39 aprovados) + screenshots desktop verificados + checkpoint e entrega
 
 ## Nova funcionalidade: notificações de eventos, FAQ comunitário e builds compartilháveis
-- [ ] Notificação no cabeçalho (badge "próximos eventos") quando um evento do calendário estiver a <= 15 min de começar (polling a cada 30s, alerta Sonner)
-- [ ] Seção FAQ comunitária: procedure tRPC para listar dicas mais votadas por página (top comments por score)
-- [ ] Página/rota FAQ (/faq) agregando top dicas votadas de todas as páginas com navegação para a seção original
-- [ ] Importar/exportar builds de skills em formato de texto (string codificada por classe/build, modal de exportar + campo de importar na página Subclasses)
-- [ ] Rotas, navegação, busca indexada e link na Home para as novas páginas
-- [ ] Testes vitest + screenshots + checkpoint e entrega
+- [x] Notificação no cabeçalho (badge "próximos eventos") quando um evento do calendário estiver a <= 15 min de começar (polling a cada 30s, alerta Sonner, EventNotificationsBell + router events.upcoming por região)
+- [x] Seção FAQ comunitária: procedure tRPC para listar dicas mais votadas por página (router faq.topTips, score = upvotes - downvotes, db.fetchTopTips)
+- [x] Página/rota FAQ (/faq) agregando top dicas votadas de todas as páginas com navegação para a seção original (client/src/pages/Faq.tsx)
+- [x] Importar/exportar builds de skills em formato de texto (shared/buildCodec.ts formato MIR4-SKILLS:..., componente BuildShare na página Subclasses)
+- [x] Rotas, navegação, busca indexada e link na Home para as novas páginas (rota /faq registrada, entrada em GUIDE_SECTIONS e índice de busca)
+- [x] Testes vitest (47 aprovados, incl. events.upcoming, faq.topTips e buildCodec) + screenshots verificados + checkpoint e entrega

@@ -1,9 +1,18 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield, Package } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers, Shield, Package, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
 const SECTIONS = [
+  {
+    key: "faq",
+    path: "/faq",
+    icon: HelpCircle,
+    title: "FAQ Comunitária",
+    desc: "As melhores dicas da comunidade, classificadas automaticamente pelos votos — upvote e downvote em cada seção.",
+    image: SECTION_IMAGES.farm,
+    accent: "text-amber-400",
+  },
   {
     key: "espiritos",
     path: "/espiritos",

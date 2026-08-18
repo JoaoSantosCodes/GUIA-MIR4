@@ -1,4 +1,5 @@
 import { eq, and, inArray, desc, isNotNull } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -259,5 +260,5 @@ export async function fetchTopTips() {
     .from(farmComments)
     .leftJoin(users, eq(farmComments.userId, users.id))
     .where(isNotNull(farmComments.pageKey))
-    .orderBy(desc(farmComments.upvotes));
+    .orderBy(desc(sql`(upvotes - downvotes)`));
 }
