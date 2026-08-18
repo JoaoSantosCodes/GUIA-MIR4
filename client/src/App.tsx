@@ -14,6 +14,8 @@ import Economy from "./pages/Economy";
 import Raids from "./pages/Raids";
 import TierList from "./pages/TierList";
 import Leveling from "./pages/Leveling";
+import Sabuk from "./pages/Sabuk";
+import Misterios from "./pages/Misterios";
 import Profile from "./pages/Profile";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -29,6 +31,8 @@ function Router() {
       <Route path={"/raids"} component={Raids} />
       <Route path={"/tier-list"} component={TierList} />
       <Route path={"/nivel"} component={Leveling} />
+      <Route path={"/sabuk"} component={Sabuk} />
+      <Route path={"/misterios"} component={Misterios} />
       <Route path={"/perfil"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
@@ -39,7 +43,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="dark" switchable>
         <TooltipProvider>
           <Toaster position="bottom-right" theme="dark" />
           <ScrollToTop />

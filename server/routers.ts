@@ -4,9 +4,9 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
-import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS } from "@shared/guideData";
+import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
 
-const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss"]);
+const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery"]);
 
 const favoriteInput = z.object({
   itemId: z.string().min(1).max(120),
@@ -28,6 +28,8 @@ function validateGuideItem(itemId: string, itemType: z.infer<typeof favoritesIte
     case "class": return CLASSES.some(c => c.key === key);
     case "economy": return true;
     case "boss": return RAIDS.some(r => r.key === key);
+    case "sabuk": return SABUK_CONTENT.some(s => s.key === key) || key === "torre-conquista";
+    case "mystery": return MYSTERIES.some(m => m.key === key) || key === "torre-conquista";
   }
 }
 

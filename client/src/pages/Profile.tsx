@@ -3,8 +3,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull } from "lucide-react";
+import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -14,6 +14,8 @@ const SECTION_META: Record<string, { label: string; path: string; Icon: typeof S
   economy: { label: "Economia", path: "/economia", Icon: Coins },
   raid: { label: "Raids e Bosses", path: "/raids", Icon: Skull },
   boss: { label: "Raids e Bosses", path: "/raids", Icon: Skull },
+  sabuk: { label: "Sabuk & Guildas", path: "/sabuk", Icon: Castle },
+  mystery: { label: "Mistérios", path: "/misterios", Icon: Sparkles },
 };
 
 export default function Profile() {
@@ -41,6 +43,10 @@ export default function Profile() {
       case "codex": return CODEX_ITEMS.find(c => c.key === key)?.name ?? key;
       case "farm": return FARM_SPOTS.find(f => f.key === key)?.name ?? key;
       case "class": return CLASSES.find(c => c.key === key)?.name ?? key;
+      case "sabuk":
+        if (key === "torre-conquista") return "Torre da Conquista";
+        return SABUK_CONTENT.find(s => s.key === key)?.title ?? key;
+      case "mystery": return MYSTERIES.find(m => m.key === key)?.name ?? key;
       case "raid":
       case "boss": return RAIDS.find(r => r.key === key)?.name ?? key;
       default: return key ?? type;

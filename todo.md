@@ -41,7 +41,7 @@
 ## Nova funcionalidade: Raids e Bosses, filtros de Espíritos e comentários
 - [x] Pesquisar raids/bosses do MIR4 (nomes, nível recomendado, mecânicas, drops)
 - [x] Criar dados de bosses (RAIDS) em shared/guideData.ts
-- [ ] Tabela bosses no schema, migração e aplicação SQL
+- [x] Tabela de bosses desnecessária — raids/bosses são conteúdo estático em shared/guideData.ts (não é conteúdo dinâmico por usuário)
 - [x] Helpers db + procedures tRPC para comentários (tabela farm_comments)
 - [x] Página Raids com estratégia de combate, filtros por dificuldade e tabelas de drops por boss
 - [x] Rota /raids registrada no App.tsx, navegação e busca indexada
@@ -64,3 +64,15 @@
 - [x] Rotas, navegação, busca indexada e testes para as novas páginas (21 testes aprovados, incl. teste de dados do leveling guide)
 - [x] Screenshots verificados (/tier-list, /nivel, /farm, /codex, /espiritos, /raids) — UI votos/progresso renderizada
 - [x] Screenshot desktop/mobile, pnpm test/check e checkpoint final
+
+## Nova funcionalidade: Sabuk War, Guildas, tema toggle e Mistérios
+- [x] Pesquisar Guerra de Sabuk (regras, fases do cerco, recompensas, guild mechanics)
+- [x] Pesquisar Torre da Conquista e outros conteúdos de conquista, mistérios/segredos do MIR4
+- [x] Dados de Sabuk War + guildas + Mistérios em shared/guideData.ts (tipos favorito "sabuk"/"mystery", enums e schema atualizados no banco)
+- [x] Página Sabuk (/sabuk) com estratégias de cerco, fases, recompensas e mecânicas de guilda
+- [x] Página Mistérios (/misterios) com segredos, dicas avançadas e conquistas (Torre da Conquista etc.)
+- [x] Toggle modo escuro/claro no header (o site base é dark; tema claro como opção)
+- [x] Rota, navegação, busca indexada e favoritos para as novas páginas
+- [x] Favoritos de Torre da Conquista aceitos no backend (chave torre-conquista validada)
+- [x] Títulos amigáveis sabuk/mystery no Profile
+- [x] Screenshots desktop + checkpoint e entrega

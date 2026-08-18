@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp } from "lucide-react";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS } from "@shared/guideData";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -30,6 +31,8 @@ export const GUIDE_SECTIONS = [
   { key: "raids", label: "Raids e Bosses", path: "/raids" },
   { key: "tier-list", label: "Tier List", path: "/tier-list" },
   { key: "nivel", label: "Leveling", path: "/nivel" },
+  { key: "sabuk", label: "Sabuk", path: "/sabuk" },
+  { key: "misterios", label: "Mistérios", path: "/misterios" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -152,12 +155,33 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       path: `/raids#${r.key}`,
     }),
   );
+  SABUK_CONTENT.forEach(s =>
+    hits.push({
+      id: `sabuk-${s.key}`,
+      type: "sabuk",
+      title: `${s.title} — ${[s.description, ...s.details].join(" · ")}`,
+      section: "sabuk",
+      sectionLabel: "Sabuk & Guildas",
+      path: "/sabuk",
+    }),
+  );
+  MYSTERIES.forEach(m =>
+    hits.push({
+      id: `mystery-${m.key}`,
+      type: "mystery",
+      title: `${m.name} (${m.location}) — ${m.tip}`,
+      section: "mystery",
+      sectionLabel: "Mistérios",
+      path: `/misterios#${m.key}`,
+    }),
+  );
   return hits;
 };
 
 export default function GuideLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   const { user, loading } = useAuth();
+  const { theme, toggleTheme, switchable } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -210,6 +234,12 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
               <Search className="h-4 w-4" />
               <span className="hidden sm:inline">Buscar no guia</span>
             </Button>
+
+            {switchable && (
+              <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-amber-200 hover:bg-amber-900/30" aria-label="Alternar tema">
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+            )}
 
             {loading ? null : user ? (
               <div className="flex items-center gap-2">
@@ -307,6 +337,8 @@ function HitIcon({ type }: { type: string }) {
     case "raid": return <Skull className={cls} />;
     case "tier": return <Trophy className={cls} />;
     case "nivel": return <TrendingUp className={cls} />;
+    case "sabuk": return <Castle className={cls} />;
+    case "mystery": return <BookOpen className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

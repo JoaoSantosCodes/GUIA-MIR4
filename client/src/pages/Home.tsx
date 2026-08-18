@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -48,6 +48,24 @@ const SECTIONS = [
     desc: "Moedas, Darksteel, token DRACO, funcionamento do Mercado e dicas de acumulação de riqueza.",
     image: SECTION_IMAGES.economy,
     accent: "text-amber-300",
+  },
+  {
+    key: "sabuk",
+    path: "/sabuk",
+    icon: Castle,
+    title: "Sabuk & Guildas",
+    desc: "Guerra de Sabuk, Sabuk Clash entre servidores, poderes do Imperador, estratégias de cerco e mecânicas de clã.",
+    image: "",
+    accent: "text-red-400",
+  },
+  {
+    key: "misterios",
+    path: "/misterios",
+    icon: Sparkles,
+    title: "Mistérios & Conquista",
+    desc: "Cadeias de mistérios ocultos com atributos permanentes e a Torre da Conquista com seus 10 edifícios upáveis.",
+    image: "",
+    accent: "text-violet-400",
   },
 ];
 
@@ -159,7 +177,7 @@ export default function Home() {
         <div className="container">
           <h2 className="gold-text text-2xl md:text-3xl font-bold text-center">Seções do Guia</h2>
           <p className="text-center text-slate-400 mt-2 text-sm">Navegue diretamente para o que você precisa</p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {SECTIONS.map((s, i) => (
               <Link
                 key={s.key}

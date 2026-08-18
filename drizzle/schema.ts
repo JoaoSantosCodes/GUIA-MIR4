@@ -28,7 +28,7 @@ export const favorites = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
     itemId: varchar("itemId", { length: 120 }).notNull(),
-    itemType: mysqlEnum("itemType", ["spirit", "codex", "farm", "class", "economy", "boss"]).notNull(),
+    itemType: mysqlEnum("itemType", ["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery"]).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (t) => [uniqueIndex("userId_itemId").on(t.userId, t.itemId)],

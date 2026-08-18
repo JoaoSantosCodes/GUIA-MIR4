@@ -119,6 +119,36 @@ describe("favorites.toggle with raid/boss items", () => {
   });
 });
 
+describe("favorites.toggle with sabuk/mystery items", () => {
+  it("accepts a valid sabuk item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.favorites.toggle({ itemId: "sabuk:guerra-sabuk", itemType: "sabuk" });
+    expect(result.added).toBe(true);
+    expect(db.addFavorite).toHaveBeenCalledOnce();
+  });
+
+  it("accepts a valid mystery item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.favorites.toggle({ itemId: "mystery:nefariox-horn", itemType: "mystery" });
+    expect(result.added).toBe(true);
+    expect(db.addFavorite).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an unknown sabuk item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.favorites.toggle({ itemId: "sabuk:nao-existe", itemType: "sabuk" }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects an unknown mystery item id", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    await expect(
+      caller.favorites.toggle({ itemId: "mystery:nao-existe", itemType: "mystery" }),
+    ).rejects.toThrow();
+  });
+});
+
 describe("comments", () => {
   const validFarmKey = "snake-valley";
 
@@ -207,6 +237,25 @@ describe("dados das novas páginas", () => {
         }
       }
     }
+  });
+
+  it("sabuk content e mistérios têm chaves e passos não vazios", async () => {
+    const { SABUK_CONTENT, MYSTERIES, CONQUEST_INFO } = await import("@shared/guideData");
+    expect(SABUK_CONTENT.length).toBeGreaterThan(0);
+    expect(MYSTERIES.length).toBeGreaterThan(0);
+    const sabukKeys = new Set(SABUK_CONTENT.map(s => s.key));
+    for (const s of SABUK_CONTENT) {
+      expect(s.title.length).toBeGreaterThan(0);
+      expect(s.description.length).toBeGreaterThan(0);
+      expect(s.details.length).toBeGreaterThan(0);
+    }
+    for (const m of MYSTERIES) {
+      expect(m.steps.length).toBeGreaterThan(0);
+      expect(m.reward.length).toBeGreaterThan(0);
+      expect(m.tip.length).toBeGreaterThan(0);
+    }
+    expect(CONQUEST_INFO.buildings.length).toBe(10);
+    void sabukKeys;
   });
 
   it("leveling guide cobre todas as faixas de 1-10 até 100+ com zonas válidas", async () => {

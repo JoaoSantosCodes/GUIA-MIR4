@@ -5,7 +5,18 @@
 
 export type Rarity = "UC" | "Raro" | "Épico" | "Lendário" | "Mítico";
 
-export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss";
+export type FavoriteItemType = "spirit" | "codex" | "farm" | "class" | "economy" | "boss" | "sabuk" | "mystery";
+
+export const FAVORITE_ITEM_TYPES: FavoriteItemType[] = [
+  "spirit",
+  "codex",
+  "farm",
+  "class",
+  "economy",
+  "boss",
+  "sabuk",
+  "mystery",
+];
 
 export const RARITY_ORDER: Rarity[] = ["UC", "Raro", "Épico", "Lendário", "Mítico"];
 
@@ -1050,3 +1061,205 @@ export const LEVELING_GUIDE: LevelBand[] = [
     ],
   },
 ];
+
+// =====================================================================
+// GUERRA DE SABUK E GUILDAS (Clãs)
+// =====================================================================
+
+export interface SabukEntry {
+  key: string;
+  title: string;
+  description: string;
+  details: string[];
+}
+
+export const SABUK_CONTENT: SabukEntry[] = [
+  {
+    key: "guerra-sabuk",
+    title: "Como funciona a Guerra de Sabuk",
+    description:
+      "A Guerra de Sabuk é a batalha semanal entre clãs do próprio servidor pelo controle do Castelo de Sabuk. O clã que acumula mais pontos ao final de aproximadamente 1 hora de batalha conquista o castelo — o líder do clã vencedor se torna o Rei do Castelo de Bicheon/Sabuk.",
+    details: [
+      "A batalha acontece entre clãs do mesmo servidor, geralmente ao fim de semana (sábado, horário anunciado no servidor).",
+      "Pontos são ganhos ao matar inimigos na área do castelo, destruir estruturas de defesa e controlar pontos estratégicos.",
+      "Organize a party em grupos: tanques nas linhas de frente, DPS em flancos e healers protegidos atrás de pilares.",
+      "Membros que não estão em combate direto podem farmar recursos na periferia — cada membro contribui para o score do clã.",
+    ],
+  },
+  {
+    key: "sabuk-clash",
+    title: "Sabuk Clash — a guerra entre servidores",
+    description:
+      "O Sabuk Clash é a guerra regional em estilo torneio entre os reis dos castelos de todos os servidores de uma região. A disputa dura 3 semanas e passa por 3 Gateways semanais: Attack Route (1ª rodada), Castle Gate (2ª rodada) e Sabuk Castle (final). O líder do clã vencedor é coroado Imperador do Castelo de Sabuk.",
+    details: [
+      "Roda 1: 16 clãs disputam 8 Monolitos em 8 áreas — os 8 clãs que gravarem um Monolito avançam.",
+      "Roda 2: entre os 8 clãs, 4 gravam Monolitos e avançam à final.",
+      "Final (Gateway 3 — Sabuk Castle): entre os 4 clãs, aquele que capturar o Monolito se torna o clã do Imperador.",
+      "Apenas clãs que são Reis do Castelo de Bicheon podem participar — conquistar Sabuk no próprio servidor é o pré-requisito.",
+      "Se nenhum Monolito for gravado nas rodadas 1 ou 2, o Sabuk Clash encerra e o trono permanece vago até a próxima disputa.",
+    ],
+  },
+  {
+    key: "recompensas-sabuk",
+    title: "Recompensas e poderes do Imperador",
+    description:
+      "O Imperador e seu clã ganham autoridade real sobre o território: poder de governança, prêmios exclusivos e benefícios que se espalham por todo o servidor.",
+    details: [
+      "50.000 Clan Copper para o clã vencedor do Sabuk Clash.",
+      "Montura exclusiva Sabuk Destrier — apenas o Imperador pode comprar e montar.",
+      "Símbolo exclusivo disponível somente para o clã do Imperador.",
+      "Título Imperial concedido a um clã da região do Imperador.",
+      "Presente comum para todos os usuários de todos os servidores no dia seguinte à final (ex.: Epic Dragon Oil of Blessing, Rare Dragonsteel Box).",
+      "Poderes de governo: nomear cargos do governo no clã rei, gerenciar os impostos acumulados no Armazém de Sabuk, ajustar alíquotas por servidor, premiar personagens específicos, declarar Decretos Imperiais e enviar mensagens que aparecem em todos os servidores da região.",
+    ],
+  },
+  {
+    key: "estrategias-cerco",
+    title: "Estratégias de cerco para conquistar Sabuk",
+    description:
+      "Vencer a Guerra de Sabuk exige coordenação de clã, não apenas poder individual. Estas são as práticas consolidadas da comunidade.",
+    details: [
+      "Divida o clã em esquadrões: 1 grupo de tanques segura o portão, 2 grupos de DPS flanqueiam, 1 grupo reserva contra-ataca invasões.",
+      "Comunique-se por voice chat externo — o chat do jogo não sustenta a velocidade de decisão de um cerco.",
+      "Priorize matar healers e DPS inimigos antes de trocar dano com tanques: a eliminação de um healer desestabiliza o grupo inteiro.",
+      "Guarde ultimates e buffs de espírito para os últimos 15 minutos, quando os pontos decidem a batalha.",
+      "Controle o respawn: reposicione membros caídos rapidamente para não perder pressão de números.",
+      "No Sabuk Clash, estude o adversário nas rodadas anteriores — clãs que desperdiçam DPS em mobs menores perdem nas finais.",
+    ],
+  },
+  {
+    key: "guilda",
+    title: "Mecânicas de Guilda (Clã)",
+    description:
+      "Os clãs (clans) são a unidade de cooperação do MIR4: concentram atividades diárias, raids semanais e a guerra de Sabuk. Criar ou ingressar exige nível 10+, pelo ícone de Clã no canto superior direito.",
+    details: [
+      "Crie o clã acessando o ícone de Clã (nível 10+), escolhendo nome e emblema — exige recursos iniciais (Copper/Energy).",
+      "Clan Boss semanal: cada clã enfrenta um boss semanal que dropa Epic Dragon Statues — fonte principal de espíritos Épicos.",
+      "Clan Expedition: expedições cooperativas com torres upáveis (Fox Spirit Beast e similares) — mantenha as torres em nível alto para bônus de atributos.",
+      "Recursos do clã (Copper/Clan Points) são acumulados por membros — participe diariamente de missões de clã para contribuir.",
+      "Clan Match (desde set/2024): torneio de até 32 clãs, aberto a membros nível 90+.",
+      "Clan Alliance: clãs podem formar alianças com chat compartilhado para coordenação de guerras e darksteel.",
+      "Dica: um bom clã vale mais que gear individual — procure clãs ativos com Sabuk War programada.",
+    ],
+  },
+  {
+    key: "clan-match",
+    title: "Clan Match — o torneio entre clãs",
+    description:
+      "Conteúdo PvP competitivo lançado em setembro de 2024: até 32 clãs disputam em rodadas eliminatórias, com membros nível 90+ habilitados a participar.",
+    details: [
+      "Até 32 clãs participam por temporada, em formato eliminatório.",
+      "Apenas membros nível 90 ou superior podem entrar nas partidas.",
+      "Prêmios de temporada incluem equipamentos, recursos e reconhecimento público do clã vencedor.",
+      "Exige organização de roster: selecione os membros de maior PS e atributos PvP para o time titular.",
+    ],
+  },
+];
+
+// =====================================================================
+// MISTÉRIOS E CONQUISTA (Torre da Conquista)
+// =====================================================================
+
+export interface MysteryQuest {
+  key: string;
+  name: string;
+  location: string;
+  steps: string[];
+  reward: string;
+  tip: string;
+}
+
+export const MYSTERIES: MysteryQuest[] = [
+  {
+    key: "nefariox-horn",
+    name: "Nefariox Horn",
+    location: "Cave of the World Beetles / Ginkgo Valley / Bicheon Town",
+    steps: [
+      "The First Sage: fale com o Dwarf Digger na Cave of the World Beetles para iniciar.",
+      "Bloodshade Nefariox Horn: em Ginkgo Valley, aceite a request Madman's Trace e localize a Grotesque Statue.",
+      "Beautiful Sister Magya: em Ginkgo Valley, complete a task Treasure's Aura.",
+      "Nefariox Pearl: em Bicheon Town, complete a request For the Greater Good.",
+    ],
+    reward: "Atributos permanentes (ATK/DEF) e pré-requisito para promoção de edifícios do Conquest.",
+    tip: "Comece este mistério logo: desbloqueia progressão de conteúdo e bônus que valem para todas as classes.",
+  },
+  {
+    key: "myriad-needle",
+    name: "Myriad Needle",
+    location: "Ginkgo Valley / áreas de ervas",
+    steps: [
+      "Herbalist Hong's True Identity — inicie a cadeia investigando o herbalista.",
+      "An Herb More Valuable than Gold — siga o rastro da erva rara.",
+      "Those Tainted by Demonic Energy — enfrente os corrompidos por energia demoníaca.",
+      "Overambitious Father — complete a Clandestine Investigation 1 para desbloquear o Secret.",
+      "Flower of the Demonic Cult — descubra a flor do culto demoníaco.",
+      "Mad Healer Pung's Trace — conclua a cadeia rastreando o curandeiro louco.",
+    ],
+    reward: "Bônus de atributos permanentes e acesso a conteúdos avançados.",
+    tip: "As quests de Myriad Needle têm muitos requisitos de coleta — leve ervas e poções suficientes antes de iniciar.",
+  },
+  {
+    key: "noble-cause",
+    name: "A Noble Cause",
+    location: "Bicheon Town / vilas vizinhas",
+    steps: [
+      "Jo Gyu's Corruption — investigue a corrupção local.",
+      "Noh Wunjang's Evil Path — siga o caminho do vilão.",
+      "Cleaning the Backstreet — limpe as ruas da cidade.",
+      "Lies and Hypocrisy — desvende as mentiras e hipocrisias.",
+      "A Proposal Gem — conclua a cadeia com a joia da proposta.",
+    ],
+    reward: "Atributos permanentes e progresso de lore essencial para o Conquest.",
+    tip: "As quests acontecem em áreas urbanas de nível baixo — resolva cedo no leveling para não travar edifícios do Conquest depois.",
+  },
+  {
+    key: "lost-tome",
+    name: "The Lost Tome",
+    location: "Snake Pit Village / áreas de Snake Valley",
+    steps: [
+      "The Owner of the Ring: investigue corpos com marca de Life Leech; descubra Chunsim transformada em Bull Fiend e a família Ma em Snake Pit Village.",
+      "Bull Fiend Woman: continue após The Owner of the Ring.",
+      "Endless Misunderstanding: complete Bull Fiend Woman primeiro.",
+      "Past Grudge: complete Endless Misunderstanding primeiro.",
+      "Two Tombs: etapa final da cadeia do Lost Tome.",
+    ],
+    reward: "Atributos permanentes elevados — uma das cadeias mais longas e recompensadoras.",
+    tip: "A cadeia exige paciência narrativa: cada capítulo destrava o seguinte. Não pule diálogos — pistas de localização aparecem neles.",
+  },
+  {
+    key: "incomparable-master",
+    name: "Incomparable Master",
+    location: "Snake Pit / Trading Post / montanhas",
+    steps: [
+      "Clue 1 — Boundless Trickster Wuam: vá ao Snake Pit, suba a montanha e fale com Bok Yangjeo no topo.",
+      "Clue 2: siga o ícone no mapa e fale com Leo Wujeong, que toca seu instrumento.",
+      "Clue 3: obtenha o Talisman (pode exigir abrir o baú várias vezes) e leve ao Trading Post, falando com Yewol.",
+      "Clue 4: fale com Yewol novamente (ela recolhe o Talisman); encontre Wuam na estrada para Pakua Stonewall.",
+      "Clue 5: volte ao Trading Post e siga o marcador para Wuam na montanha.",
+      "Clue 6: complete a raid do Grand Centipede com o Centipede Venom Mystery no inventário; entregue a Yeo Wujeong.",
+      "Clue 7: no Trading Post, siga até Ferocious Wild Tiger Pa Gonhyeop e observe a luz verde na montanha.",
+      "Clue 8: derrote o Grand Centipedeus, obtenha o Centipede Hust e lute contra Wuam na fenda final para concluir.",
+    ],
+    reward: "Bônus de atributos permanentes e o título de conclusão da cadeia mais complexa do jogo.",
+    tip: "A cadeia mistura requests, raids e exploração — tenha party pronta para o Grand Centipede antes de avançar.",
+  },
+];
+
+export const CONQUEST_INFO = {
+  title: "Torre da Conquista (Conquest)",
+  description:
+    "O Conquest é o sistema de progressão pessoal de edifícios: são 10 estruturas upáveis até o nível 17, essenciais para o Power Score e para bônus como aumento de armazenamento de Darksteel e redução de imposto do Mercado. Promover exige três coisas ao mesmo tempo: nível do personagem, nível da Tower of Conquest e missões completas de zonas específicas.",
+  buildings: [
+    { name: "Tower of Conquest", role: "Edifício central — quase todos os outros exigem seu nível para evoluir." },
+    { name: "Mine", role: "Aumenta o Darksteel Gain Boost (até +15%) e DEF Mágica." },
+    { name: "Forge", role: "Aumenta DEF Física e o armazenamento de Darksteel." },
+    { name: "Tower of Quintessence", role: "Reduz o Market Tax Rate (até −20%) — poupança direta nas vendas do Mercado." },
+    { name: "Millennial Tree", role: "Atributos de sobrevivência (HP/MP) e pré-requisito de edifícios avançados." },
+    { name: "Portal", role: "Facilita deslocamento e desbloqueia acessos." },
+    { name: "Tower of Victory", role: "Bônus de Boss ATK DMG Boost e Boss DMG Reduction." },
+    { name: "Training Sanctum", role: "Atributos de EXP e treino." },
+    { name: "Holy Shrine", role: "Bônus de atributos e proteção." },
+    { name: "Sanctuary of Hydra", role: "Edifício avançado de atributos endgame." },
+  ],
+  tip: "Nunca deixe o Conquest para trás: mistérios resolvidos e edifícios atrasados travam missões, requests e a progressão inteira. Cada promoção leva tempo (como o unsealing) — inicie promoções antes de dormir.",
+};
