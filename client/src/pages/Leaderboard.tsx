@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
-import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem } from "lucide-react";
+import { useState } from "react";
+import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem, ScrollText } from "lucide-react";
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import PageBanner from "@/components/guide/PageBanner";
@@ -22,8 +24,20 @@ const PODIUM_ICON: Record<number, React.ReactNode> = {
 };
 
 export default function Leaderboard() {
-  const { data: entries, isLoading } = trpc.community.goldLeaderboard.useQuery(undefined, { refetchInterval: 60000 });
   const auth = useAuth();
+  const [mode, setMode] = useState<"gold" | "unified">("gold");
+
+  const { data: goldEntries, isLoading: goldLoading } = trpc.community.goldLeaderboard.useQuery(undefined, {
+    refetchInterval: 60000,
+    enabled: mode === "gold",
+  });
+  const { data: unifiedEntries, isLoading: unifiedLoading } = trpc.community.unifiedLeaderboard.useQuery(undefined, {
+    refetchInterval: 60000,
+    enabled: mode === "unified",
+  });
+
+  const entries = mode === "gold" ? goldEntries : unifiedEntries;
+  const isLoading = mode === "gold" ? goldLoading : unifiedLoading;
 
   const podium = useMemo(() => entries?.slice(0, 3) ?? [], [entries]);
   const rest = useMemo(() => entries?.slice(3) ?? [], [entries]);
@@ -32,17 +46,45 @@ export default function Leaderboard() {
     () => (auth.user?.id ? entries?.find(e => Number(e.userId) === Number(auth.user!.id)) : undefined),
     [entries, auth.user?.id],
   );
-  const myPosition = useMemo(() => (myEntry && entries ? entries.indexOf(myEntry) + 1 : 0), [myEntry, entries]);
-  const myBadges = useMemo(() => myEntry?.goldBadges, [myEntry]);
+  const myPosition = useMemo(() => (myEntry && entries ? (entries as unknown[]).indexOf(myEntry) + 1 : 0), [myEntry, entries]);
+  const myScore = useMemo(() => (myEntry ? Number((myEntry as { totalScore?: number; goldBadges?: number }).totalScore ?? (myEntry as { goldBadges?: number }).goldBadges) : 0), [myEntry]);
 
   return (
     <div className="min-h-screen pb-16">
-      <PageBanner
+        <PageBanner
         title="Placar da Comunidade"
-        subtitle='Os jogadores com mais medalhas "Dica de Ouro" — conquiste a sua ao votar nas melhores dicas!'
+        subtitle={
+          mode === "gold"
+            ? 'Os jogadores com mais medalhas "Dica de Ouro" — conquiste a sua ao votar nas melhores dicas!'
+            : "Ranking unificado: Dicas de Ouro + medalhas do Codex somadas"
+        }
         className="gold-text"
       />
       <div className="container max-w-4xl px-4">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="inline-flex overflow-hidden rounded-md border border-amber-700/50">
+            <button
+              type="button"
+              onClick={() => setMode("gold")}
+              className={cn(
+                "px-3 py-1.5 text-xs font-semibold transition-colors",
+                mode === "gold" ? "bg-amber-700/40 text-amber-200" : "bg-transparent text-slate-400 hover:text-amber-200",
+              )}
+            >
+              Dicas de Ouro
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("unified")}
+              className={cn(
+                "border-l border-amber-700/50 px-3 py-1.5 text-xs font-semibold transition-colors",
+                mode === "unified" ? "bg-amber-700/40 text-amber-200" : "bg-transparent text-slate-400 hover:text-amber-200",
+              )}
+            >
+              Unificado
+            </button>
+          </div>
+        </div>
         <section className="mb-6 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-transparent p-4">
           <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <p className="text-sm text-muted-foreground">
@@ -56,10 +98,12 @@ export default function Leaderboard() {
           {auth.isAuthenticated ? (
             <ExportRankingCardDialog
               userName={auth.user?.name ?? "Aventureiro"}
-              goldBadges={Number(myBadges) || 0}
-              rarityBadges={Number(myEntry?.rarityBadges) || 0}
+              goldBadges={Number((myEntry as { goldBadges?: number })?.goldBadges) || 0}
+              rarityBadges={Number((myEntry as { rarityBadges?: number })?.rarityBadges) || 0}
+              totalScore={mode === "unified" ? Number(myScore) || 0 : undefined}
               position={myPosition ?? 0}
               total={entries?.length ?? 0}
+              mode={mode}
             />
           ) : (
             <p className="text-sm text-muted-foreground">Faça login para ver sua posição e exportar seu card.</p>
@@ -110,14 +154,27 @@ export default function Leaderboard() {
                     {idx === 0 ? "Ouro" : idx === 1 ? "Prata" : "Bronze"}
                   </div>
                   <div className="mb-1 mt-1 truncate font-semibold">{e.userName ?? `Jogador #${e.userId}`}</div>
-                  <div className="flex items-center justify-center gap-1 text-amber-400">
-                    <Crown className="h-4 w-4" />
-                    <span className="text-2xl font-bold">{Number(e.goldBadges)}</span>
-                  </div>
-                  {Number(e.rarityBadges) > 0 && (
+                  {"totalScore" in e ? (
+                    <>
+                      <div className="flex items-center justify-center gap-1 text-amber-400">
+                        <ScrollText className="h-4 w-4" />
+                        <span className="text-2xl font-bold">{Number(e.totalScore)}</span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-0.5 text-amber-400"><Crown className="h-3 w-3" />{Number(e.goldBadges)}</span>
+                        <span className="flex items-center gap-0.5 text-purple-300"><Gem className="h-3 w-3" />{Number((e as { codexMedals?: number }).codexMedals)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1 text-amber-400">
+                      <Crown className="h-4 w-4" />
+                      <span className="text-2xl font-bold">{Number(e.goldBadges)}</span>
+                    </div>
+                  )}
+                  {Number((e as { rarityBadges?: number })?.rarityBadges ?? 0) > 0 && (
                     <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-purple-400/40 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
                       <Gem className="h-3 w-3" />
-                      {Number(e.rarityBadges)} conquista{Number(e.rarityBadges) === 1 ? "" : "s"} de raridade
+                      {Number((e as { rarityBadges?: number }).rarityBadges)} conquista{Number((e as { rarityBadges?: number }).rarityBadges) === 1 ? "" : "s"} de raridade
                     </div>
                   )}
                 </Card>
@@ -139,21 +196,38 @@ export default function Leaderboard() {
                       <Crown className="h-4 w-4 text-amber-400" />
                     </div>
                     <span className="flex-1 truncate font-medium">{e.userName ?? `Jogador #${e.userId}`}</span>
-                    <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
-                      <Crown className="h-3.5 w-3.5" />
-                      {Number(e.goldBadges)}
-                    </span>
-                    <span className="flex items-center gap-1 text-sm font-semibold text-purple-300" title="Conquistas de raridade do Codex">
-                      <Gem className="h-3.5 w-3.5" />
-                      {Number(e.rarityBadges)}
-                    </span>
+                    {"totalScore" in e ? (
+                      <>
+                        <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
+                          <ScrollText className="h-3.5 w-3.5" />
+                          {Number(e.totalScore)}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <span className="text-amber-400"><Crown className="h-3 w-3" />{Number(e.goldBadges)}</span>
+                          <span className="text-purple-300"><Gem className="h-3 w-3" />{Number((e as { codexMedals?: number }).codexMedals)}</span>
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
+                          <Crown className="h-3.5 w-3.5" />
+                          {Number(e.goldBadges)}
+                        </span>
+                        <span className="flex items-center gap-1 text-sm font-semibold text-purple-300" title="Conquistas de raridade do Codex">
+                          <Gem className="h-3.5 w-3.5" />
+                          {Number((e as { rarityBadges?: number }).rarityBadges)}
+                        </span>
+                      </>
+                    )}
                     {auth.user?.id && myEntry?.userId === e.userId && myPosition > 0 && (
                       <ExportRankingCardDialog
                         userName={e.userName ?? "Aventureiro"}
-                        goldBadges={Number(e.goldBadges)}
-                        rarityBadges={Number(e.rarityBadges)}
+                        goldBadges={Number((e as { goldBadges?: number }).goldBadges)}
+                        rarityBadges={Number((e as { rarityBadges?: number }).rarityBadges)}
+                        totalScore={mode === "unified" ? Number((e as { totalScore?: number }).totalScore) || 0 : undefined}
                         position={myPosition}
                         total={entries?.length ?? 0}
+                        mode={mode}
                         trigger={
                           <span className="ml-1 inline-flex cursor-pointer items-center gap-1 rounded-md border border-amber-600/60 bg-amber-950/50 px-2 py-1 text-[11px] font-medium text-amber-200 transition-colors hover:bg-amber-900/50">
                             <ImageDown className="h-3 w-3" /> Exportar

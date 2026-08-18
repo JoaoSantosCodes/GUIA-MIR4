@@ -208,8 +208,18 @@
 - [x] Testes vitest (87 aprovados, incl. 2 testes de exportAchievementCard: título/descrição/nome/data e achievedAt) + screenshots verificados + checkpoint
 
 ## Nova funcionalidade: compartilhamento nativo do card de conquista, última conquista permanente, preferência de celebração, skill atualizada
-- [ ] Botão de compartilhamento nativo no card de conquista exportado (navigator.share no mobile, Clipboard no desktop)
-- [ ] Painel de destaque permanente no topo do perfil com a última conquista desbloqueada
-- [ ] Preferência nas configurações do perfil para desativar som e confetes das conquistas
-- [ ] Atualizar a skill reutilizável (game-guide-builder) com o processo atual via /skill-creator e validar
-- [ ] Testes vitest + screenshots + checkpoint e entrega
+- [x] Botão de compartilhamento nativo no card de conquista exportado (Compartilhar via exportCardShared: navigator.share no mobile, Clipboard no desktop, download fallback; achievedAt passado ao dialog)
+- [x] Painel de destaque permanente no topo do perfil com a última conquista desbloqueada (localStorage mir4-last-achievement, medalha, data, botão Exportar card)
+- [x] Preferência nas configurações do perfil para desativar som e confetes das conquistas (toggle Celebração no header do perfil, localStorage mir4-achievement-celebration, condicional no som e no confete)
+- [x] Atualizar a skill reutilizável (game-guide-builder) com painel permanente, toggle e share de conquista — validada (quick_validate.py: Skill is valid)
+- [x] Testes vitest (93 aprovados, incl. 6 testes de celebrationState com localStorage mock) + screenshots verificados + checkpoint bb43e711 salvo
+
+## Nova funcionalidade: placar unificado, histórico de conquistas, notificação de conquistas acumuladas
+
+- [x] Placar unificado: ranquear usuários pela soma de Dicas de Ouro + medalhas do Codex (backend novo helper/endpoint db.unifiedLeaderboard + community.unifiedLeaderboard, frontend /placar com toggle Unificado, card de ranking exporta com modo unificado/totalScore)
+- [x] Histórico de conquistas no perfil: listar todas as conquistas desbloqueadas com datas (celebrationState: mir4-achievement-history + source session/retro; seção "Histórico de Conquistas" no Profile com badge de origem)
+- [x] Notificação de conquistas acumuladas ao retornar ao site (banner com até 5 novidades desde a última visita, comparando retro reconstruído com registros de sessão, dismissível, respeitando prefers-reduced-motion)
+- [x] Registro em sessão: appendAchievementHistory com source "session" e data exata ao desbloquear + backfill retro no mount (achievementRetroDates.ts: reconstrói datas por N-ésima coleta/última coleta da raridade/categoria, dedupe key+data)
+- [x] Atualizar a skill reutilizável (game-guide-builder) com placar unificado, histórico de conquistas com datas retro e banner de novidades acumuladas — validada (quick_validate.py: Skill is valid)
+- [x] Testes vitest (110 aprovados, incl. 11 novos: achievementRetroDates + celebrationHistory) + screenshots verificados
+- [ ] Checkpoint e entrega

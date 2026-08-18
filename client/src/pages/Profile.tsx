@@ -11,8 +11,9 @@ import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, 
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
 import { evaluateCodexAchievements } from "@/lib/codexAchievements";
-import { readCelebrationEnabled, readLastAchievement, writeCelebrationEnabled, writeLastAchievement } from "@/lib/celebrationState";
-import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo } from "lucide-react";
+import { readCelebrationEnabled, readLastAchievement, writeCelebrationEnabled, writeLastAchievement, readAchievementHistory, appendAchievementHistory } from "@/lib/celebrationState";
+import { backfillRetroHistory, reconstructRetroAchievements } from "@/lib/achievementRetroDates";
+import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo, ScrollText } from "lucide-react";
 import AchievementCardDialog from "@/components/AchievementCardDialog";
 import AchievementConfetti from "@/components/AchievementConfetti";
 
@@ -221,11 +222,43 @@ function achievementTooltip(key: string, iconKey: string): string {
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [achCardOpen, setAchCardOpen] = useState(false);
   const [lastUnlocked, setLastUnlocked] = useState(() => readLastAchievement());
+  const [achievementHistory, setAchievementHistory] = useState(() => readAchievementHistory());
+  const [accumulatedNotices, setAccumulatedNotices] = useState<string[] | null>(null);
+  const accumulatedDismissedRef = useRef(false);
   const [celebrationEnabled, setCelebrationEnabled] = useState(() => readCelebrationEnabled());
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
+  /** Histórico de conquistas + notificação de conquistas acumuladas ao retornar ao site. */
+  useEffect(() => {
+    if (!progress || progress.length === 0) return;
+    // 1. preenche o histórico local com conquistas reconstruídas a partir das datas de coleta
+    backfillRetroHistory(
+      progress.map(p => ({ itemId: p.itemId, collectedAt: new Date(p.collectedAt).getTime() })),
+      { read: readAchievementHistory, append: e => appendAchievementHistory(e) },
+    );
+    // 2. relê o histórico (agora incluindo retro) para exibição
+    setAchievementHistory(readAchievementHistory());
+    // 3. notificação acumulada: conquistas ganhas que não estavam na sessão anterior
+    if (accumulatedDismissedRef.current) return;
+    accumulatedDismissedRef.current = true;
+    const retro = reconstructRetroAchievements(
+      progress.map(p => ({ itemId: p.itemId, collectedAt: new Date(p.collectedAt).getTime() })),
+    );
+    const retroKeys = new Set(retro.map(r => r.key));
+    const knownSession = new Set(achievementHistory.filter(e => e.source === "session").map(e => e.key));
+    const brandNew = retro.filter(r => !knownSession.has(r.key));
+    // só notifica quando há conquistas genuinamente novas desde a última visita
+    const lastVisit = achievementHistory.length > 0 ? Math.max(...achievementHistory.map(e => e.unlockedAt)) : 0;
+    const sinceLastVisit = retro.filter(r => r.unlockedAt > lastVisit && !knownSession.has(r.key));
+    if (sinceLastVisit.length > 0 || brandNew.length === retro.length) {
+      // retro vazia mas progresso existe => tudo é novidade acumulada; senão, só as novas
+      const notices = retro.length === 0 ? [] : (sinceLastVisit.length > 0 ? sinceLastVisit : brandNew).map(r => r.title);
+      setAccumulatedNotices(notices.slice(0, 5));
+    }
+  }, [progress]);
+
   useEffect(() => {
     if (!initializedRef.current) {
       // carga inicial: apenas registra as conquistas já existentes (sem notificação)
@@ -250,6 +283,16 @@ function achievementTooltip(key: string, iconKey: string): string {
         unlockedAt: Date.now(),
       });
       setLastUnlocked({ title: latest.title, description: latest.description, iconKey: latest.iconKey, unlockedAt: Date.now() });
+      // registra a conquista no histórico persistente (fonte "session", data exata)
+      const entry = appendAchievementHistory({
+        key: latest.key,
+        title: latest.title,
+        description: latest.description,
+        iconKey: latest.iconKey,
+        unlockedAt: Date.now(),
+        source: "session",
+      });
+      setAchievementHistory(entry);
       // jingle suave de celebração (Web Audio), respeitando a preferência de celebração
       if (celebrationEnabled) playAchievementSound();
       if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
@@ -612,6 +655,73 @@ function achievementTooltip(key: string, iconKey: string): string {
             );
           })}
         </div>
+      </section>
+
+      {/* Banner de conquistas acumuladas (ao retornar ao site) */}
+      {accumulatedNotices !== null && accumulatedNotices.length > 0 && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/70 bg-gradient-to-r from-amber-950/95 to-red-950/90 px-4 py-3 shadow-xl shadow-amber-500/25 backdrop-blur",
+            reducedMotion ? "" : "animate-in slide-in-from-top-4 fade-in duration-300",
+          )}
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-amber-400/70 bg-amber-900/60 text-amber-300" style={{ boxShadow: "0 0 18px rgba(245,208,110,0.35)" }}>
+            <ScrollText className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400">Conquistas acumuladas desde sua última visita</p>
+            <p className="text-sm font-semibold text-amber-100">
+              Você desbloqueou {accumulatedNotices.length} nova{accumulatedNotices.length !== 1 ? "s" : ""} medalha{accumulatedNotices.length !== 1 ? "s" : ""}:
+            </p>
+            <p className="mt-0.5 text-xs text-amber-200/80">{accumulatedNotices.join(" · ")}</p>
+          </div>
+          <button
+            aria-label="Fechar notificação de conquistas acumuladas"
+            onClick={() => setAccumulatedNotices(null)}
+            className="ml-auto shrink-0 text-xs text-amber-300/70 hover:text-amber-200 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Histórico de conquistas */}
+      <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
+        <h2 className="font-bold text-amber-300">Histórico de conquistas</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Todas as medalhas desbloqueadas por você, com as datas em que foram conquistadas.
+        </p>
+        {achievementHistory.length > 0 ? (
+          <ul className="mt-4 divide-y divide-amber-900/30">
+            {achievementHistory.map(e => {
+              const Icon = ACHIEVEMENT_ICONS[(e.iconKey as keyof typeof ACHIEVEMENT_ICONS) ?? "star"];
+              const isRarity = /^faixa-t[2-5]$/.test(e.key);
+              return (
+                <li key={`${e.key}-${e.unlockedAt}`} className="flex items-center gap-3 py-2.5">
+                  <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", isRarity ? "border-purple-400/70 bg-purple-900/40 text-purple-300" : "border-amber-500/70 bg-amber-900/40 text-amber-400")}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={cn("text-sm font-semibold", isRarity ? "text-purple-200" : "text-amber-200")}>{e.title}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">{e.description}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-0.5">
+                    <p className="text-[11px] text-slate-300">{new Date(e.unlockedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</p>
+                    <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide", e.source === "session" ? "border border-amber-500/60 bg-amber-900/40 text-amber-300" : "border border-slate-700/60 bg-slate-800/60 text-slate-400")}>
+                      {e.source === "session" ? "na sessão" : "reconstruída"}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-4 flex items-center gap-2 py-4 text-center text-xs text-slate-500">
+            <Medal className="h-3.5 w-3.5" /> Nenhuma conquista desbloqueada ainda — explore a página do Codex e marque seus primeiros itens!
+          </p>
+        )}
       </section>
 
       {/* Histórico de votos */}

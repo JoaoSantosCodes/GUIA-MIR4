@@ -169,6 +169,8 @@ export const appRouter = router({
   /** Placar da comunidade: usuários com mais medalhas "Dica de Ouro". */
   community: router({
     goldLeaderboard: publicProcedure.query(() => db.goldLeaderboard()),
+    /** Placar unificado: soma de Dicas de Ouro + medalhas do Codex. */
+    unifiedLeaderboard: publicProcedure.query(() => db.unifiedLeaderboard()),
   }),
   /** Public shareable profile (favorites + codex progress) — no auth required. */
   share: router({

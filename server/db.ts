@@ -1,5 +1,6 @@
 import { eq, and, gte, inArray, desc, isNotNull } from "drizzle-orm";
 import { CODEX_ITEMS } from "../shared/guideData";
+import { evaluateCodexAchievements } from "../client/src/lib/codexAchievements";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes } from "../drizzle/schema";
@@ -399,4 +400,68 @@ export async function goldLeaderboard() {
     out.push({ ...row, rarityBadges });
   }
   return out;
+}
+
+/**
+ * Placar unificado da comunidade: ranqueia usuários pela soma de
+ * Dicas de Ouro (votos +1 em dicas com 10+ upvotes) e medalhas do Codex
+ * (conquistas desbloqueadas: marcos de total, categorias, raridades, faixas).
+ * Retorna os 50 primeiros com os subtotais separados para transparência.
+ */
+export async function unifiedLeaderboard() {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Votos registrados em dicas "Dica de Ouro" (score >= 10 upvotes)
+  const goldRows = await db
+    .select({
+      userId: commentVotes.userId,
+      goldBadges: sql<number>`count(*)`,
+    })
+    .from(commentVotes)
+    .innerJoin(farmComments, eq(commentVotes.commentId, farmComments.id))
+    .where(and(eq(commentVotes.vote, 1), gte(farmComments.upvotes, GOLD_TIP_UPVOTES)))
+    .groupBy(commentVotes.userId);
+  const goldByUser = new Map<number, number>();
+  for (const r of goldRows) goldByUser.set(r.userId, r.goldBadges);
+
+  // Todas as conquistas do Codex que o usuário desbloqueou
+  const progressRows = await db
+    .select({ userId: codexProgress.userId, itemId: codexProgress.itemId })
+    .from(codexProgress)
+    .where(isNotNull(codexProgress.collectedAt));
+  const progressByUser = new Map<number, string[]>();
+  for (const r of progressRows) {
+    const list = progressByUser.get(r.userId) ?? [];
+    list.push(r.itemId);
+    progressByUser.set(r.userId, list);
+  }
+
+  const medalsByUser = new Map<number, number>();
+  for (const entry of Array.from(progressByUser)) {
+    const userId = entry[0];
+    const collectedIds = entry[1];
+    medalsByUser.set(userId, evaluateCodexAchievements(collectedIds).filter((a: { earned: boolean }) => a.earned).length);
+  }
+
+  const totalByUser = new Map<number, { gold: number; medals: number; total: number }>();
+  for (const userId of Array.from(new Set([...Array.from(goldByUser.keys()), ...Array.from(medalsByUser.keys())]))) {
+    const gold = goldByUser.get(userId) ?? 0;
+    const medals = medalsByUser.get(userId) ?? 0;
+    totalByUser.set(userId, { gold, medals, total: gold + medals });
+  }
+
+  const ranked = Array.from(totalByUser.entries())
+    .map(([userId, s]) => ({ userId, ...s }))
+    .sort((a, b) => (b.total === a.total ? b.medals - a.medals : b.total - a.total))
+    .slice(0, 50);
+
+  const nameRows = await db
+    .select({ id: users.id, name: users.name })
+    .from(users)
+    .where(inArray(users.id, ranked.map(r => r.userId)));
+  const names = new Map<number, string | null>();
+  for (const r of nameRows) names.set(r.id, r.name);
+
+  return ranked.map(r => ({ userId: r.userId, userName: names.get(r.userId) ?? null, goldBadges: r.gold, codexMedals: r.medals, totalScore: r.total }));
 }

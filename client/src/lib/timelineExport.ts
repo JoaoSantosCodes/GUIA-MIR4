@@ -190,6 +190,9 @@ interface RankingExportOptions {
   rarityBadges?: number;
   position: number;
   total: number;
+  /** "gold" usa o padrão Dicas de Ouro; "unified" destaca o totalScore (Dicas de Ouro + medalhas Codex). */
+  rankingMode?: "gold" | "unified";
+  totalScore?: number;
   style?: CardStyle;
   onDone?: () => void;
   /** Canvas pré-criado para receber o desenho (compartilhamento direto, sem download). */
@@ -199,7 +202,7 @@ interface RankingExportOptions {
 /**
  * Exporta um card do placar com a posição do usuário no ranking.
  */
-export async function exportRankingCard({ userName, goldBadges, rarityBadges, position, total, style = DEFAULT_CARD_STYLE, onDone, drawTo }: RankingExportOptions): Promise<void> {
+export async function exportRankingCard({ userName, goldBadges, rarityBadges, position, total, rankingMode = "gold", totalScore = 0, style = DEFAULT_CARD_STYLE, onDone, drawTo }: RankingExportOptions): Promise<void> {
   const canvas = drawTo ?? document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEADER_H + 360 + FOOTER_H;
@@ -211,20 +214,22 @@ export async function exportRankingCard({ userName, goldBadges, rarityBadges, po
     userName,
     subtitle: "— Placar da Comunidade",
     badgeText:
-      goldBadges > 0 && rarityBadges && rarityBadges > 0
-        ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro · ◆ ${rarityBadges} raridade`
-        : goldBadges > 0
-          ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro`
-          : rarityBadges && rarityBadges > 0
-            ? `◆ ${rarityBadges} conquista${rarityBadges !== 1 ? "s" : ""} de raridade`
-            : undefined,
+      rankingMode === "unified"
+        ? `★ ${totalScore} pontos — Ouro + Codex`
+        : goldBadges > 0 && rarityBadges && rarityBadges > 0
+          ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro · ◆ ${rarityBadges} raridade`
+          : goldBadges > 0
+            ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro`
+            : rarityBadges && rarityBadges > 0
+              ? `◆ ${rarityBadges} conquista${rarityBadges !== 1 ? "s" : ""} de raridade`
+              : undefined,
   });
 
   // Posição central
   const midY = HEADER_H + 30;
   ctx.fillStyle = "#8b94a0";
   ctx.font = "24px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText("Posição no ranking de Dicas de Ouro", MARGIN, midY);
+  ctx.fillText(rankingMode === "unified" ? "Posição no placar unificado" : "Posição no ranking de Dicas de Ouro", MARGIN, midY);
 
   const palette = THEMES_PRIVATE[style.theme];
   ctx.fillStyle = palette.title;
@@ -241,7 +246,11 @@ export async function exportRankingCard({ userName, goldBadges, rarityBadges, po
     ctx.fillText(position === 1 ? "🏆 Top 1 da comunidade!" : position === 2 ? "🥈 Pódio do ranking!" : "🥉 Pódio do ranking!", MARGIN, midY + 296);
   }
 
-  if (rarityBadges && rarityBadges > 0) {
+  if (rankingMode === "unified") {
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 24px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`★ ${goldBadges} Dicas de Ouro  ·  ◆ ${Math.max(totalScore - goldBadges, 0)} medalhas do Codex`, MARGIN, midY + 340);
+  } else if (rarityBadges && rarityBadges > 0) {
     ctx.fillStyle = "#a78bfa";
     ctx.font = "bold 24px 'Segoe UI', Arial, sans-serif";
     ctx.fillText(`◆ ${rarityBadges} conquista${rarityBadges !== 1 ? "s" : ""} de raridade do Codex`, MARGIN, midY + 340);

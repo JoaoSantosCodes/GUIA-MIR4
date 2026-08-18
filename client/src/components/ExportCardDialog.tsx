@@ -42,15 +42,38 @@ export function ExportActivityCardDialog({ userName, goldBadges, items, trigger 
 interface RankingDialogProps {
   userName: string;
   goldBadges: number;
-  rarityBadges: number;
+  rarityBadges?: number;
   position: number;
   total: number;
+  mode?: "gold" | "unified";
+  totalScore?: number;
   trigger?: React.ReactNode;
 }
 
 /** Botão/dialog de exportação do card do placar com personalização. */
-export function ExportRankingCardDialog({ userName, goldBadges, rarityBadges, position, total, trigger }: RankingDialogProps) {
-  return <ExportCardDialogInner mode="ranking" userName={userName} goldBadges={goldBadges} rarityBadges={rarityBadges} position={position} total={total} trigger={trigger} />;
+export function ExportRankingCardDialog({
+  userName,
+  goldBadges,
+  rarityBadges,
+  position,
+  total,
+  mode,
+  totalScore,
+  trigger,
+}: RankingDialogProps) {
+  return (
+    <ExportCardDialogInner
+      mode="ranking"
+      userName={userName}
+      goldBadges={goldBadges}
+      rarityBadges={rarityBadges ?? 0}
+      position={position}
+      total={total}
+      rankingMode={mode ?? "gold"}
+      totalScore={totalScore ?? 0}
+      trigger={trigger}
+    />
+  );
 }
 
 interface InnerProps {
@@ -61,10 +84,12 @@ interface InnerProps {
   items?: TimelineItemLike[];
   position?: number;
   total?: number;
+  rankingMode?: "gold" | "unified";
+  totalScore?: number;
   trigger?: React.ReactNode;
 }
 
-function ExportCardDialogInner({ mode, userName, goldBadges, rarityBadges, items = [], position, total, trigger }: InnerProps) {
+function ExportCardDialogInner({ mode, userName, goldBadges, rarityBadges, items = [], position, total, rankingMode = "gold", totalScore = 0, trigger }: InnerProps) {
   const [style, setStyle] = useState<CardStyle>(DEFAULT_CARD_STYLE);
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -88,7 +113,18 @@ function ExportCardDialogInner({ mode, userName, goldBadges, rarityBadges, items
         }
         await exportTimelineCard({ userName, goldBadges, items: maxItems, style, onDone: () => {}, drawTo: canvas });
       } else {
-        await exportRankingCard({ userName, goldBadges, rarityBadges: rarityBadges ?? 0, position: position ?? 0, total: total ?? 0, style, onDone: () => {}, drawTo: canvas });
+        await exportRankingCard({
+          userName,
+          goldBadges,
+          rarityBadges: rarityBadges ?? 0,
+          position: position ?? 0,
+          total: total ?? 0,
+          rankingMode,
+          totalScore,
+          style,
+          onDone: () => {},
+          drawTo: canvas,
+        });
       }
       await exportCardShared(canvas, userName, {
         onShared: () => toast.success("Card compartilhado pelo menu do dispositivo!"),
@@ -175,7 +211,7 @@ function ExportCardDialogInner({ mode, userName, goldBadges, rarityBadges, items
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-[11px]" style={{ color: style.theme === "blood" ? "#f3f4f6" : "#e5e7eb" }}>
                 <Sparkles className="h-3 w-3" style={{ color: style.theme === "mystic" ? "#a78bfa" : "#b8860b" }} />
-                {goldBadges > 0 ? `${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro` : "Guia MIR4"}
+                {rankingMode === "unified" ? `${totalScore} pontos no placar unificado` : goldBadges > 0 ? `${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro` : "Guia MIR4"}
               </p>
             </div>
           </div>
