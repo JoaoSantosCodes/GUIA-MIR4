@@ -206,3 +206,10 @@
 - [x] Notificação sonora suave + confete na tela ao desbloquear nova conquista (Web Audio jingle 3 tons + AchievementConfetti canvas ~2,5s, prefers-reduced-motion respeitado, auto-dismiss 2,5s)
 - [x] Atualizar a skill reutilizável (game-guide-builder) com ordenação, exportAchievementCard e celebração som+confete — validada (quick_validate.py: Skill is valid)
 - [x] Testes vitest (87 aprovados, incl. 2 testes de exportAchievementCard: título/descrição/nome/data e achievedAt) + screenshots verificados + checkpoint
+
+## Nova funcionalidade: compartilhamento nativo do card de conquista, última conquista permanente, preferência de celebração, skill atualizada
+- [ ] Botão de compartilhamento nativo no card de conquista exportado (navigator.share no mobile, Clipboard no desktop)
+- [ ] Painel de destaque permanente no topo do perfil com a última conquista desbloqueada
+- [ ] Preferência nas configurações do perfil para desativar som e confetes das conquistas
+- [ ] Atualizar a skill reutilizável (game-guide-builder) com o processo atual via /skill-creator e validar
+- [ ] Testes vitest + screenshots + checkpoint e entrega

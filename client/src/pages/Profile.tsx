@@ -11,6 +11,7 @@ import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, 
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
 import { evaluateCodexAchievements } from "@/lib/codexAchievements";
+import { readCelebrationEnabled, readLastAchievement, writeCelebrationEnabled, writeLastAchievement } from "@/lib/celebrationState";
 import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo } from "lucide-react";
 import AchievementCardDialog from "@/components/AchievementCardDialog";
 import AchievementConfetti from "@/components/AchievementConfetti";
@@ -219,6 +220,8 @@ function achievementTooltip(key: string, iconKey: string): string {
   const [showCelebration, setShowCelebration] = useState(false);
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [achCardOpen, setAchCardOpen] = useState(false);
+  const [lastUnlocked, setLastUnlocked] = useState(() => readLastAchievement());
+  const [celebrationEnabled, setCelebrationEnabled] = useState(() => readCelebrationEnabled());
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
@@ -239,15 +242,22 @@ function achievementTooltip(key: string, iconKey: string): string {
       setUnlockedDesc(latest.description);
       setUnlockedKey(latest.key);
       setShowCelebration(true);
-      // jingle suave de celebração (Web Audio), respeitando a preferência de som
-      playAchievementSound();
+      // registra a última conquista desbloqueada (painel permanente do perfil)
+      writeLastAchievement({
+        title: latest.title,
+        description: latest.description,
+        iconKey: latest.iconKey,
+        unlockedAt: Date.now(),
+      });
+      setLastUnlocked({ title: latest.title, description: latest.description, iconKey: latest.iconKey, unlockedAt: Date.now() });
+      // jingle suave de celebração (Web Audio), respeitando a preferência de celebração
+      if (celebrationEnabled) playAchievementSound();
       if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
       unlockedTimerRef.current = setTimeout(() => setJustUnlocked(null), 6000);
       if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
       celebrationTimerRef.current = setTimeout(() => setShowCelebration(false), 2500);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [earnedCount, codexAchievements]);
+  }, [celebrationEnabled, earnedCount, codexAchievements]);
   useEffect(() => () => {
     if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
     if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
@@ -372,7 +382,35 @@ function achievementTooltip(key: string, iconKey: string): string {
           </div>
         </div>
       )}
-      {showCelebration && <AchievementConfetti />}
+      {showCelebration && celebrationEnabled && <AchievementConfetti />}
+
+      {/* Painel permanente da última conquista desbloqueada */}
+      {lastUnlocked && (
+        <section className="mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/50 bg-gradient-to-r from-amber-950/70 via-amber-900/40 to-transparent px-4 py-3 shadow-sm shadow-amber-500/15">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-amber-400/70 bg-amber-900/60 text-amber-300" style={{ boxShadow: "0 0 14px rgba(245,208,110,0.3)" }}>
+            {ACHIEVEMENT_ICONS[(lastUnlocked.iconKey as keyof typeof ACHIEVEMENT_ICONS) ?? "star"]({ className: "h-5 w-5" }) as React.ReactNode}
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Última conquista</p>
+            <p className="text-sm font-bold text-amber-100">{lastUnlocked.title}</p>
+            <p className="text-[11px] text-slate-400">Desbloqueada em {new Date(lastUnlocked.unlockedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</p>
+          </div>
+          <button
+            type="button"
+            aria-label="Abrir card da última conquista"
+            onClick={() => {
+              setUnlockedKey(
+                codexAchievements.find(a => a.title === lastUnlocked.title)?.key ?? null,
+              );
+              setAchCardOpen(true);
+            }}
+            className="ml-auto inline-flex items-center gap-1.5 rounded border border-amber-600/50 bg-amber-950/50 px-2.5 py-1.5 text-[11px] font-medium text-amber-200 transition-colors hover:bg-amber-900/60"
+          >
+            <ImageDown className="h-3.5 w-3.5" /> Exportar card
+          </button>
+        </section>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="gold-text text-3xl font-bold">Meu Perfil</h1>
@@ -395,7 +433,35 @@ function achievementTooltip(key: string, iconKey: string): string {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 rounded-full border border-slate-700/60 bg-black/25 px-3 py-1">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-[11px] text-slate-300">Celebração</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={celebrationEnabled}
+              aria-label={celebrationEnabled ? "Desativar som e confetes de conquistas" : "Ativar som e confetes de conquistas"}
+              onClick={() => {
+                setCelebrationEnabled(on => {
+                  writeCelebrationEnabled(!on);
+                  return !on;
+                });
+                toast.success(celebrationEnabled ? "Som e confetes de conquistas desativados" : "Som e confetes de conquistas ativados");
+              }}
+              className={cn(
+                "relative h-4 w-7 rounded-full transition-colors duration-200",
+                celebrationEnabled ? "bg-amber-600" : "bg-slate-700",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform duration-200",
+                  celebrationEnabled ? "translate-x-3.5" : "translate-x-0.5",
+                )}
+              />
+            </button>
+          </div>
           <Button
             variant="outline"
             onClick={() => {
@@ -424,6 +490,7 @@ function achievementTooltip(key: string, iconKey: string): string {
             title: celebrationAchievement.title,
             description: celebrationAchievement.description,
             icon: celebrationAchievement.icon,
+            achievedAt: lastUnlocked?.title === celebrationAchievement.title ? lastUnlocked.unlockedAt : undefined,
           }}
           userName={user.name ?? "Aventureiro"}
           goldBadges={goldBadges}
