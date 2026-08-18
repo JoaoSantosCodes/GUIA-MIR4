@@ -55,3 +55,54 @@ describe("timelineExport", () => {
     }
   });
 });
+
+describe("marca d'água nos cards em lote", () => {
+  it("exportCategoryCard aceita userName e desenha o nome e a data no card", async () => {
+    const { exportCategoryCard } = await import("./timelineExport");
+    const ctx = {
+      createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      fillText: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      set fillStyle(_v: string) {
+        /* noop */
+      },
+      set font(_v: string) {
+        /* noop */
+      },
+      set textAlign(_v: string) {
+        /* noop */
+      },
+      measureText: vi.fn(() => ({ width: 0 })),
+      canvas: { width: 1200, height: 900 },
+    } as unknown as CanvasRenderingContext2D;
+    const canvas = {
+      width: 1200,
+      height: 900,
+      getContext: vi.fn(() => ctx),
+      toDataURL: vi.fn(() => "data:image/png;base64,MOCK"),
+    } as unknown as HTMLCanvasElement;
+
+    await exportCategoryCard({
+      data: {
+        category: "Consumíveis",
+        items: [
+          { name: "Poção de Cura Rara", rarity: "Raro", tier: 2, collected: true },
+        ],
+        collectedCount: 1,
+        categoryTotal: 6,
+      },
+      userName: "Joao Santos",
+      drawTo: canvas,
+    });
+
+    const calls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.map(c => String(c[0]));
+    expect(calls.some(c => c.includes("Colecionado por Joao Santos"))).toBe(true);
+    const dateCall = calls.find(c => c.startsWith("Em "));
+    expect(dateCall).toBeTruthy();
+    expect(dateCall).toMatch(/20\d\d/);
+  });
+});

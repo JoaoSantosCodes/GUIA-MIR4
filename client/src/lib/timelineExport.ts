@@ -396,11 +396,25 @@ export interface CategoryCardData {
   categoryTotal: number;
 }
 
+/** Marca d'água discreta desenhada no rodapé do card em lote do Codex. */
+function drawWatermark(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, userName: string | null) {
+  const nameLine = userName ? `Colecionado por ${truncate(userName, 30)}` : null;
+  const dateLine = `Em ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`;
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.font = "14px 'Segoe UI', Arial, sans-serif";
+  ctx.textAlign = "right";
+  if (nameLine) {
+    ctx.fillText(nameLine, WIDTH - MARGIN, canvas.height - FOOTER_H + 36);
+  }
+  ctx.fillText(dateLine, WIDTH - MARGIN, canvas.height - FOOTER_H + 58);
+  ctx.textAlign = "left";
+}
+
 /**
  * Exporta um card em lote resumindo todos os itens de uma categoria do Codex
  * (ou o Codex completo quando category for vazia).
  */
-export async function exportCategoryCard({ data, style = DEFAULT_CARD_STYLE, onDone, drawTo }: { data: CategoryCardData; style?: CardStyle; onDone?: () => void; drawTo?: HTMLCanvasElement }): Promise<void> {
+export async function exportCategoryCard({ data, style = DEFAULT_CARD_STYLE, onDone, drawTo, userName = null }: { data: CategoryCardData; style?: CardStyle; onDone?: () => void; drawTo?: HTMLCanvasElement; userName?: string | null }): Promise<void> {
   const canvas = drawTo ?? document.createElement("canvas");
   const header = `— ${data.category || "Codex Completo"}`;
   const ratio = data.categoryTotal > 0 ? data.collectedCount / data.categoryTotal : 0;
@@ -450,6 +464,7 @@ export async function exportCategoryCard({ data, style = DEFAULT_CARD_STYLE, onD
   }
 
   drawFooter(ctx, canvas);
+  drawWatermark(ctx, canvas, userName);
 
   if (!drawTo) await downloadCanvas(canvas, "codex-categoria");
   onDone?.();

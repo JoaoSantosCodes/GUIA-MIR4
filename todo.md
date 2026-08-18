@@ -181,8 +181,14 @@
 - [x] Testes vitest para novas conquistas de faixa (83 aprovados) + screenshots verificados + checkpoint e entrega
 
 ## Nova funcionalidade: persistência de filtros, export em lote e badges de raridade
-- [ ] Persistir preferências de filtro do Codex (busca, categoria, raridade, faixa) em localStorage e restaurar na reabertura da página
-- [ ] Exportação em lote: botão para gerar um único card PNG resumindo todos os itens de uma categoria (com botão por categoria no Codex)
-- [ ] Exibir conquistas de raridade (faixa-t2..t5) no perfil e na página de placar (/placar)
-- [ ] Testes vitest + screenshots + checkpoint
-- [ ] Documentação do projeto: Implementation Plan, SFPS Specification, Manifesto & Coding Standards, Manual de Uso, Walkthrough — arquivos prontos para a pasta GuiaMir4 do Obsidian
+- [x] Persistir preferências de filtro do Codex (busca, categoria, raridade, faixa) em localStorage (mir4-codex-filters) e restaurar na reabertura da página
+- [x] Exportação em lote: CategoryCardDialog + exportCategoryCard — botão por categoria e "Codex completo" no Codex.tsx
+- [x] Exibir conquistas de raridade (faixa-t2..t5) no perfil (destaque roxo + selo RARIDADE) e no placar (contador no pódio/linha + exportRankingCard com rarityBadges)
+- [x] Testes vitest (83 aprovados) + screenshots verificados + checkpoint 75f14b00 salvo
+- [x] Documentação do projeto criada (5 arquivos em /home/ubuntu/docs-obsidian/, entregues em anexo para mover à pasta GuiaMir4 do Obsidian)
+
+## Nova funcionalidade: marca d'água, tooltips e barras de progresso
+- [x] Marca d'água nos cards em lote do Codex (drawWatermark no exportCategoryCard): nome do usuário + data atual (passado do CategoryCardDialog via useAuth)
+- [x] Tooltip nas conquistas de raridade do perfil (selo Raridade group-hover): descrição + instruções de registro da raridade na página Codex
+- [x] Barra de progresso visual por categoria no Codex (grid com Progress e catPct% + contagem, abaixo dos filtros — já implementado e verificado em screenshot)
+- [x] Testes vitest (84 aprovados, incl. teste da marca d'água) + screenshots verificados + checkpoint

@@ -63,6 +63,7 @@ export default function CategoryCardDialog({ category, items, collected, catDone
           data: cardData,
           style,
           drawTo: canvas,
+          userName: isAuthenticated ? user?.name ?? null : null,
           onDone: () => {
             if (!cancelled) setDrawing(false);
           },
@@ -120,7 +121,7 @@ export default function CategoryCardDialog({ category, items, collected, catDone
   const handleDownload = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    await exportCategoryCard({ data: cardData, style, onDone: () => toast.success("Download iniciado!") });
+    await exportCategoryCard({ data: cardData, style, userName: isAuthenticated ? user?.name ?? null : null, onDone: () => toast.success("Download iniciado!") });
   };
 
   return (

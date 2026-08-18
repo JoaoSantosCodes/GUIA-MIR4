@@ -137,6 +137,19 @@ export default function Profile() {
   const codexDone = progress?.length ?? 0;
 
   const ACHIEVEMENT_ICONS = { book: IconBook, gem: IconGem, crown: IconCrown, sparkle: IconSparkles, sword: IconSwords, star: IconStar } as const;
+
+const RARITY_LABEL: Record<string, string> = {
+  "faixa-t1": "UC",
+  "faixa-t2": "Raro",
+  "faixa-t3": "Épico",
+  "faixa-t4": "Lendário",
+  "faixa-t5": "Mítico",
+};
+
+function rarityLabelFor(key: string): string {
+  return RARITY_LABEL[key] ?? key;
+}
+
   const codexAchievements = useMemo(
     () => evaluateCodexAchievements(progress?.map(p => p.itemId) ?? []),
     [progress],
@@ -365,8 +378,16 @@ export default function Profile() {
                 )}
               >
                 {isRarity && (
-                  <span className="absolute -top-1.5 right-2 rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                  <span className="absolute -top-1.5 right-2 z-10 group relative cursor-help rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white hover:bg-purple-400">
                     Raridade
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute right-0 top-full z-20 mt-1 hidden w-56 rounded-md border border-purple-400/60 bg-[oklch(0.15_0.03_300)] px-3 py-2 text-[11px] font-normal normal-case tracking-normal leading-relaxed text-purple-100 shadow-lg shadow-black/50 group-hover:block"
+                    >
+                      <strong className="block text-purple-300">{a.description}</strong>
+                      Na página <span className="font-semibold">Codex</span>, registre cada item da raridade {rarityLabelFor(a.key)} marcando como coletado — quando TODOS os itens dessa raridade estiverem registrados, a conquista é desbloqueada automaticamente.
+                      <span className="absolute left-1/2 -top-1 h-0 w-0 -translate-x-1/2 border-b-[5px] border-l-[5px] border-r-[5px] border-b-purple-400/60 border-l-transparent border-r-transparent" />
+                    </span>
                   </span>
                 )}
                 <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", a.earned ? (isRarity ? "border-purple-400/70 bg-purple-900/40 text-purple-300" : "border-amber-500/70 bg-amber-900/40 text-amber-400") : "border-slate-700/60 bg-slate-900/40 text-slate-500")}>
