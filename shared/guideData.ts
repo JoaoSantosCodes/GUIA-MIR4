@@ -1482,3 +1482,351 @@ export const GAME_EVENTS: GameEvent[] = [
     tip: "Guarde os materiais de craft para dias de evento — as taxas de sucesso e drops costumam melhorar.",
   },
 ];
+
+/**
+ * Calculadora Darksteel & DRACO
+ * Estimativas indicativas de Darksteel por hora de mineração por selo e área,
+ * e parâmetros de conversão para DRACO. Valores médios de comunidade (2024–2026)
+ * e podem variar conforme servidor, eventos e competição de veias.
+ */
+export interface MineArea {
+  key: string;
+  name: string;
+  levelRange: string;
+  dsPerHourBase: number; // Darksteel/hora base (sem selo)
+  note: string;
+  minSealLevel?: number; // nível de selo mínimo recomendado (0 = qualquer)
+}
+export const MINE_AREAS: MineArea[] = [
+  { key: "bicheon", name: "Bicheon Town", levelRange: "1–30", dsPerHourBase: 12_000, note: "Sem disputa; picaretas da cidade e veias próximas.", minSealLevel: 0 },
+  { key: "ginkgo", name: "Ginkgo Valley", levelRange: "30–45", dsPerHourBase: 18_000, note: "Veias seguras; combine com coleta de ervas.", minSealLevel: 0 },
+  { key: "byeoksan", name: "Byeoksan", levelRange: "45–70", dsPerHourBase: 26_000, note: "Zona clássica de minério; leve party para manter veias.", minSealLevel: 1 },
+  { key: "snake", name: "Snake Valley", levelRange: "40–60", dsPerHourBase: 22_000, note: "Monstros densos; afk farm com party funciona bem.", minSealLevel: 1 },
+  { key: "jinyu-low", name: "Mount Jinyu (andar baixo)", levelRange: "60–75", dsPerHourBase: 34_000, note: "Veias de nível alto com menos competição; bom para farm noturno.", minSealLevel: 2 },
+  { key: "jinyu-elite", name: "Mount Jinyu F1–F3 (elite)", levelRange: "75+", dsPerHourBase: 55_000, note: "Veias de elite, sempre disputadas; vá com party de guilda.", minSealLevel: 3 },
+  { key: "secret-peak", name: "Secret Peak", levelRange: "75+", dsPerHourBase: 42_000, note: "Minério raro + summons de boss para drop adicional.", minSealLevel: 3 },
+  { key: "ms-mining", name: "Magic Square — Mining Chamber", levelRange: "60+", dsPerHourBase: 30_000, note: "Minério seguro sem PK (4,4% por warp); combine com farm externo.", minSealLevel: 2 },
+  { key: "ms-darksteel", name: "Magic Square — Darksteel Chamber", levelRange: "80+", dsPerHourBase: 80_000, note: "Veias épicas/lendárias (2,2% por warp); PK ativo.", minSealLevel: 3 },
+];
+
+/** Multiplicador de ganho por estágio de selo (nível do selo → multiplicador). */
+export const SEAL_MULTIPLIER: Record<number, number> = {
+  0: 1.0, // sem selo
+  1: 1.25, // Darksteel Seal
+  2: 1.55, // Jade Seal
+  3: 2.0, // Dragon Seal
+};
+
+export interface DsCalcParams {
+  sealLevel: 0 | 1 | 2 | 3;
+  areaKey: string;
+  hours: number;
+  afk: boolean; // true = apenas AFK (menos eficiente)
+}
+
+/** Resultado da estimativa de mineração. */
+export interface DsCalcResult {
+  dsPerHour: number;
+  totalDs: number;
+  goldEstimate: { min: number; max: number };
+  draco: number;
+  dsToNextDraco: number;
+}
+
+export const DRACO_REQUIREMENT = 100_000; // Darksteel por 1 DRACO (mais taxa)
+export const DRACO_FEE = 0.1; // taxa de processamento (~10%)
+
+export function calculateMining(params: DsCalcParams): DsCalcResult {
+  const area = MINE_AREAS.find(a => a.key === params.areaKey) ?? MINE_AREAS[0];
+  const mult = SEAL_MULTIPLIER[params.sealLevel] ?? 1;
+  const afkPenalty = params.afk ? 0.8 : 1;
+  const dsPerHour = Math.round(area.dsPerHourBase * mult * afkPenalty);
+  const totalDs = dsPerHour * params.hours;
+  // Gold: venda indireta de Darksteel no Mercado — estimativa de 1 Gold ≈ 400–800 DS
+  const goldMin = Math.round(totalDs / 800);
+  const goldMax = Math.round(totalDs / 400);
+  const effective = totalDs * (1 - DRACO_FEE);
+  return {
+    dsPerHour,
+    totalDs,
+    goldEstimate: { min: goldMin, max: goldMax },
+    draco: Math.floor(effective / DRACO_REQUIREMENT),
+    dsToNextDraco: totalDs > 0 ? Math.max(0, Math.round((Math.ceil(effective / DRACO_REQUIREMENT) * DRACO_REQUIREMENT) / (1 - DRACO_FEE) - totalDs)) : DRACO_REQUIREMENT,
+  };
+}
+
+export const CALCULATOR_NOTES = [
+  "Os valores são estimativas indicativas de comunidade e variam por servidor, horário e competição de veias.",
+  "1 DRACO = 100.000 Darksteel + taxa de processamento (~10%). O valor do DRACO muda com oferta e demanda.",
+  "O modo AFK penaliza o ganho em ~20% (interrupções por PK, perda de veias, monstros).",
+  "Em eventos de guerra e invasões, o Darksteel bônus pode multiplicar o ganho — priorize esses horários.",
+  "Requisito mínimo de stock para craft de boxes de Darksteel: 500.000 Darksteel.",
+];
+
+/**
+ * Guia de Subclasses & Skills
+ * Árvores de habilidades recomendadas e builds avançadas por classe e cenário.
+ */
+export type SkillScenario = "pve" | "pvp" | "afk";
+
+export interface SkillBuild {
+  scenario: SkillScenario;
+  label: string;
+  focus: string;
+  skills: string[];
+  rotation: string;
+  notes: string;
+}
+
+export interface ClassSkillsInfo {
+  key: string;
+  name: string;
+  subclassTip: string;
+  recommendedSubclasses: string[];
+  skillsHighlight: { name: string; desc: string; tag: string }[];
+  builds: SkillBuild[];
+  advancedTips: string[];
+  skillOrder: string[];
+  orderNote: string;
+}
+
+export const CLASS_SKILLS: ClassSkillsInfo[] = [
+  {
+    key: "warrior",
+    name: "Warrior",
+    subclassTip: "Warriors de alto nível usam Arbalist como subclasse para levelar rápido (dano à distância no AFK) e Lancer para conteúdo PvP avançado.",
+    recommendedSubclasses: ["Arbalist (leveling AFK)", "Lancer (PvP)", "Taoist (survivability)"],
+    skillsHighlight: [
+      { name: "Dragon Flame", desc: "Ultimate: ATK infundido com Chi Fire que arde no chão e dá boost de dano ao Warrior.", tag: "Ultimate" },
+      { name: "Splitting Slash", desc: "Cancela skills inimigas — chave para abrir contra-ataques.", tag: "Dano" },
+      { name: "Iron Shackle", desc: "Puxa inimigos na direção do Warrior com baixo custo.", tag: "CC" },
+      { name: "Unbreakable Stance", desc: "AOE com boost imenso de ATK e evasão.", tag: "Buff" },
+      { name: "Lion's Roar + Body Check", desc: "Sequência de knockdown e atordoamento para controlar elites.", tag: "CC" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE / Raids — Tanque de Frente",
+        focus: "HP + DMG Reduction + AGGRO",
+        skills: ["Barbaric Charge", "Berserk", "Void Slash", "Ground Smash", "Gale Slash", "Lion's Roar"],
+        rotation: "Charge → Berserk → Void Slash → Ground Smash → Gale Slash → Lion's Roar (Bar 1 limpa mobs antes das elites)",
+        notes: "Segunda barra com Crescent Strike → Body Check → Splitting Slash → Riposte para elites. Priorize HP e redução de dano.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Controlador de Área",
+        focus: "PvP ATK + debuff Success + Resistência",
+        skills: ["Riposte", "Iron Shackle", "Splitting Slash", "Unbreakable Stance", "Body Check", "Dragon Flame"],
+        rotation: "Iron Shackle (puxa) → Body Check (KD) → Splitting Slash (corta skill) → Dragon Flame (ult)",
+        notes: "Grifforse como spirit inicial; leve poções de HP em abundância — sua mobilidade é baixa e precisa cobrir com resistências.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Sobrevivência",
+        focus: "EXP Boost + HP Regen",
+        skills: ["Barbaric Charge", "Void Slash", "Gale Slash", "Lion's Roar", "Body Check", "Crescent Strike"],
+        rotation: "Barra longa de mobs (Bar 1) em área PvE segura: Demon Bull Temple 1F ou Crystalline Forest",
+        notes: "Espíritos de EXP (Khalion + Koiga). A alta defesa torna o Warrior o mais seguro dos cinco para deixar AFK.",
+      },
+    ],
+    advancedTips: [
+      "Use Berserk logo antes do combo de mobs — o boost de ATK multiplica todos os hits da sequência.",
+      "Riposte só funciona após sofrer um hit melee: baita o inimigo antes de usá-la.",
+      "Em raids, a prioridade é manter aggro: Dragon Flame no início garante o boost para o grupo todo.",
+    ],
+    skillOrder: ["Barbaric Charge", "Berserk", "Splitting Slash", "Void Slash", "Lion's Roar", "Iron Shackle", "Unbreakable Stance", "Dragon Flame"],
+    orderNote: "Maximize primeiro o CC e o boost (Barbaric Charge → Berserk), depois o dano AOE; deixe o ultimate Dragon Flame por último porque ele depende do grupo ativo.",
+  },
+  {
+    key: "sorcerer",
+    name: "Sorcerer",
+    subclassTip: "Sorcerers alternam entre Lancer (burst físico) e Taoist (sustentação) como subclasse; Arbalist é forte para farm à distância.",
+    recommendedSubclasses: ["Lancer (burst)", "Arbalist (farm AFK)", "Taoist (sustentação)"],
+    skillsHighlight: [
+      { name: "Dragon Tornado", desc: "Ultimate: tornado de fogo com dano AOE devastador.", tag: "Ultimate" },
+      { name: "Frozen Block", desc: "Congela o corpo e o torna temporariamente imune; inimigos que atacam também congelam.", tag: "Defesa" },
+      { name: "Chain Lightning", desc: "AOE em cadeia que eletrocuta o alvo e os ao redor.", tag: "AOE" },
+      { name: "Dark Vortex", desc: "Abre um portal que puxa inimigos e direciona o arrasto.", tag: "CC" },
+      { name: "Frost Orb + Flame Orb", desc: "Slow + burst elemental — a base de todo farming solo.", tag: "Dano" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — AOE Controller",
+        focus: "Spell ATK + CRIT DMG",
+        skills: ["Frost Orb", "Flame Orb", "Flame Strike", "Frozen Block", "Blizzard", "Chain Lightning"],
+        rotation: "Frost Orb (slow) → Flame Orb (burst) → Blizzard / Chain Lightning para finalizar mobs",
+        notes: "Mantenha sempre distância: a Sorcerer é a classe mais frágil. Use Frozen Block como defesa de emergência.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Glass Cannon",
+        focus: "PvP Magic ATK + CC Accuracy",
+        skills: ["Dark Vortex", "Chain Lightning", "Frozen Block", "Flame Strike", "Dragon Tornado", "Frost Orb"],
+        rotation: "Dark Vortex (puxa/isola) → Chain Lightning → Dragon Tornado (ult) → flee com Flame Strike",
+        notes: "Contra inimigos de burst, Frozen Block + posicionamento decidem o duelo. Nunca lute de frente com Warrior/Lancer.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Clear Rápido",
+        focus: "AOE + EXP Boost",
+        skills: ["Frost Orb", "Flame Orb", "Blizzard", "Chain Lightning", "Flame Strike", "Dark Vortex"],
+        rotation: "AOE contínuo em áreas densas: Crystalline Forest e Secret Peak baixo",
+        notes: "Arbalist como subclasse para o AFK (dano à distância mais seguro). Espíritos com Lucky Drop para monetizar.",
+      },
+    ],
+    advancedTips: [
+      "Frost Orb antes de qualquer combo: o slow garante que todos os hits acertem.",
+      "Dark Vortex pode puxar inimigos para dentro de AOE — posicione o portal entre o mob e sua Blizzard.",
+      "Magic Shield drena rápido contra mobs físicos: alterne com Frozen Block para economizar mana.",
+    ],
+    skillOrder: ["Frost Orb", "Magic Shield", "Frozen Block", "Dark Vortex", "Blizzard", "Firewall", "Chain Lightning", "Magic Ultimate"],
+    orderNote: "Maximize primeiro a defesa e o controle (Frost Orb → Shield), depois o burst AOE; o ultimate fica por último por depender de mana alta.",
+  },
+  {
+    key: "taoist",
+    name: "Taoist",
+    subclassTip: "Taoists ganham Arbalist como subclasse para dano de farm e Warrior para conteúdo de grupo como tank secundário.",
+    recommendedSubclasses: ["Arbalist (farm AFK)", "Warrior (grupo)", "Sorcerer (dano mágico)"],
+    skillsHighlight: [
+      { name: "Heal / Divine Light", desc: "Cura o caster e aliados próximos com luz divina — única classe com heal nativo.", tag: "Suporte" },
+      { name: "Piercing Blades", desc: "Combate melee com potencial de dano surpresa.", tag: "Dano" },
+      { name: "Crowd Control nativo", desc: "CC forte combinado com heal — excelente em party.", tag: "CC" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE / Raids — Suporte Principal",
+        focus: "Support ATK + Healing Power",
+        skills: ["Heal", "Divine Light", "CC nativo", "Piercing Blades", "Buff de party", "Ultimate de suporte"],
+        rotation: "Mantenha heals ativos, alterne CC e buffs; use Piercing Blades entre ciclos de cura",
+        notes: "Indispensável em raids: priorize heal para o tank antes de dano.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Sobrevivência Mágica",
+        focus: "PvP DEF + CC Success",
+        skills: ["Heal", "CC nativo", "Piercing Blades", "Defesa mágica", "Slow", "Ultimate"],
+        rotation: "CC → Heal → kite → repetir; o duelo ganha por desgaste",
+        notes: "Taoist é uma das classes mais difíceis de matar em PvP prolongado — force o desgaste.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — Dano à Distância",
+        focus: "EXP + Lucky Drop",
+        skills: ["Skills ranged", "CC passivo", "Buff de EXP", "Heal passivo", "AOE leve", "Skill de mob único"],
+        rotation: "Dano à distância contínuo em áreas PvE seguras",
+        notes: "Arbalist como subclasse fecha o gap de dano do AFK e garante farm consistente.",
+      },
+    ],
+    advancedTips: [
+      "Em grupo, o valor do Taoist está no uptime de heal — aprenda o timing de dano dos bosses para pré-castar.",
+      "CC combinado com heal torna o Taoist o melhor duelo de desgaste do jogo.",
+      "Piercing Blades é o dano melee surpresa: use após um CC para maximizar hits.",
+    ],
+    skillOrder: ["Heal / Divine Light", "Soul Shield", "Burst Heal", "CC melees", "Piercing Blades", "Debuff mágico", "Ultimate de suporte"],
+    orderNote: "Priorize sempre o kit de cura primeiro (Heal → Shield), depois o CC e só então o dano melee — a subclasse (Arbalist) resolve o DPS do AFK.",
+  },
+  {
+    key: "lancer",
+    name: "Lancer",
+    subclassTip: "Lancers são o DPS burst físico do jogo; usam Sorcerer para dano à distância e Arbalist para AFK consistente.",
+    recommendedSubclasses: ["Sorcerer (burst mágico)", "Arbalist (AFK)", "Warrior (tank)"],
+    skillsHighlight: [
+      { name: "Ravaging Blow", desc: "Skill azul de debuff — reduz defesa e amplifica o combo.", tag: "Debuff" },
+      { name: "Ascending Dragon", desc: "Skill azul de debuff — knockback com janela de combo.", tag: "Debuff" },
+      { name: "Double Strike", desc: "Skill verde de dano extra — base do DPS sustentado.", tag: "Dano" },
+      { name: "Crescent Blade", desc: "Skill verde de dano extra — bom em mobs alinhados.", tag: "Dano" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — Burst Físico",
+        focus: "ATK + CRIT Rate",
+        skills: ["Ravaging Blow", "Ascending Dragon", "Double Strike", "Crescent Blade", "Ultimate físico", "Mob AOE"],
+        rotation: "Azul (debuff) → Verde (dano): Ravaging Blow + Ascending Dragon → Double Strike + Crescent Blade",
+        notes: "A regra do Lancer: sempre abra com skills azuis de debuff antes das verdes de dano.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — Assassino de Squishies",
+        focus: "PvP ATK + Penetration",
+        skills: ["Ravaging Blow", "Ascending Dragon", "Double Strike", "Dash / mobilidade", "Ultimate", "CC"],
+        rotation: "Debuff azul → burst verde → ultimate no alvo isolado; recue após o combo",
+        notes: "Lancer brilha contra Sorcerer/Arbalist: feche a distância com o debuff aplicado.",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — DPS Sustentado",
+        focus: "ATK + EXP",
+        skills: ["Double Strike", "Crescent Blade", "Mob AOE", "Skill de dano contínuo", "CC passivo", "Buff"],
+        rotation: "Skills verdes de dano extra em loop em áreas densas",
+        notes: "Menos DPS total que o Arbalist em AFK longo, mas melhor contra mobs resistentes.",
+      },
+    ],
+    advancedTips: [
+      "A ordem azul → verde é fixa: sem debuff aplicado, as skills verdes perdem parte do valor.",
+      "Lancer é o melhor DPS físico de burst do jogo — priorize CRIT Rate sobre CRIT DMG no early.",
+      "Em raids, alterne com o Warrior no tank: Lancer segura aggro temporária com os debuffs.",
+    ],
+    skillOrder: ["Ravaging Blow", "Ascending Dragon", "Double Strike", "Piercing Slash", "Burst físico", "Grito/CC", "Ultimate de burst"],
+    orderNote: "Regra fixa do Lancer: skills azuis (debuff) primeiro, verdes (dano) depois — o DPS inteiro depende dessa ordem.",
+  },
+  {
+    key: "arbalist",
+    name: "Arbalist",
+    subclassTip: "A Arbalist é a melhor subclasse para iniciantes e para levelar: dano à distância consistente em qualquer scenario AFK.",
+    recommendedSubclasses: ["Arbalist (default para levelar)", "Sorcerer (burst)", "Lancer (dano físico)"],
+    skillsHighlight: [
+      { name: "Arrow Rain", desc: "Ultimate: barragem de flechas em área que enfraquece os atingidos.", tag: "Ultimate" },
+      { name: "Cloaking", desc: "Fica invisível — ataques da invisibilidade têm dano bonus.", tag: "Mobilidade" },
+      { name: "Illusion Arrow", desc: "Teleporte + ataque rápido.", tag: "Mobilidade" },
+      { name: "Burst Shell", desc: "Movimento rápido com dano de escape ou engajamento.", tag: "Mobilidade" },
+      { name: "Flash Arrow", desc: "Stun que dá janela de contra-ataque para aliados.", tag: "CC" },
+    ],
+    builds: [
+      {
+        scenario: "pve",
+        label: "PvE — Sniper de Alvo Único",
+        focus: "CRIT DMG + ATK",
+        skills: ["Arrow Rain", "Cloaking", "Illusion Arrow", "Burst Shell", "Flash Arrow", "Skill de alvo único"],
+        rotation: "Cloaking (invisível) → hits bonus → Flash Arrow (stun) → Arrow Rain no grupo",
+        notes: "O dano crítico melhora focando um alvo por vez; alinhe mobs em fila para piercing.",
+      },
+      {
+        scenario: "pvp",
+        label: "PvP — All Attack Kiter",
+        focus: "All ATK + CRIT Rate + Distância",
+        skills: ["Illusion Arrow", "Burst Shell", "Flash Arrow", "Skill ranged DPS", "Defesa passiva", "Ultimate"],
+        rotation: "Kite constante: hit → Illusion Arrow → reposiciona → repete; nunca fique parado",
+        notes: "Build All Attack performa melhor em PvP do que CRIT DMG (mob farm favorece crit).",
+      },
+      {
+        scenario: "afk",
+        label: "Farm AFK — A Escolha Padrão",
+        focus: "EXP + Lucky Drop",
+        skills: ["Skill ranged DPS", "AOE leve", "Dano contínuo", "Buff de EXP", "Skill de alvo único", "Passiva de crit"],
+        rotation: "AFK em qualquer área PvE: a Arbalist é a subclasse mais usada para levelar",
+        notes: "Warriors, Lancers e Taoists de alto nível usam Arbalist como subclasse justamente pelo AFK consistente.",
+      },
+    ],
+    advancedTips: [
+      "Alinhe mobs em fila: os tiros de Arbalist pierce e atingem alvos atrás do primeiro.",
+      "Cloaking + Flash Arrow é o combo de segurança: invisibilidade para escapar e stun para contra-atacar.",
+      "No PvP, mobilidade é tudo: domine Illusion Arrow e Burst Shell para reposicionar entre trocas.",
+    ],
+    skillOrder: ["Skill ranged DPS", "Flash Arrow", "Burst Shell", "Illusion Arrow", "Cloaking", "AOE leve", "Arrow Rain"],
+    orderNote: "Maximize primeiro o DPS contínuo à distância, depois o CC (Flash Arrow) e por fim a mobilidade e o ultimate — o AFK depende do dano sustentado.",
+  },
+];
+/** Tabela de referência de subclasse recomendada por situação. */
+export const SUBCLASS_TIPS = {
+  intro:
+    "A subclasse no MIR4 permite trocar de estilo de combate sem perder o progresso da classe principal. A escolha da subclasse muda completamente o AFK, o PvP e o burst — trate-a como uma segunda build.",
+  rules: [
+    "Leveling rápido: Arbalist é a subclasse padrão para quase todas as classes principais.",
+    "PvP de elite: Warriors e Lancers ganham trocando para subclasse de burst ou de debuff conforme o meta.",
+    "Sustentação: Taoist como subclasse cobre o gap de cura de qualquer DPS.",
+    "A subclasse não transfere equipamentos — o set precisa ser mantido para os dois estilos.",
+  ],
+};

@@ -2,7 +2,7 @@
  * Páginas que aceitam comentários comunitários.
  * Chaves devem bater com os `pageKey` usados no frontend ao chamar comments.list/add.
  */
-export const PAGE_COMMENT_KEYS = ["farm", "sabuk", "mystery", "seal"] as const;
+export const PAGE_COMMENT_KEYS = ["farm", "sabuk", "mystery", "seal", "skills"] as const;
 export type PageCommentKey = (typeof PAGE_COMMENT_KEYS)[number];
 
 export const PAGE_COMMENT_VALID_KEYS: Record<PageCommentKey, (key: string) => boolean> = {
@@ -10,6 +10,8 @@ export const PAGE_COMMENT_VALID_KEYS: Record<PageCommentKey, (key: string) => bo
   sabuk: key => key === "" || key === "geral",
   mystery: key => key === "" || key === "geral",
   seal: key => key === "" || key === "geral",
+  skills: key =>
+    key === "" || ["warrior", "sorcerer", "taoist", "lancer", "arbalist"].includes(key),
 };
 
 /** Chaves válidas de páginas de comentário (usado na validação do input). */

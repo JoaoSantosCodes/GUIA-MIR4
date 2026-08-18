@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, ArrowRight, Flame, Castle, Sparkles, Gem, Calendar, Calculator, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTION_IMAGES } from "@shared/guideData";
 
@@ -84,6 +84,24 @@ const SECTIONS = [
     desc: "Horários da Guerra de Sabuk, Sabuk Clash, Magic Square, bosses mundiais e ciclos diários e semanais do servidor.",
     image: "",
     accent: "text-sky-400",
+  },
+  {
+    key: "calculadora",
+    path: "/calculadora",
+    icon: Calculator,
+    title: "Calculadora Darksteel",
+    desc: "Estime seus ganhos de Darksteel por hora por selo e área, com projeção de Gold no Mercado e conversão para DRACO.",
+    image: "",
+    accent: "text-amber-400",
+  },
+  {
+    key: "subclasses",
+    path: "/subclasses",
+    icon: Layers,
+    title: "Subclasses & Skills",
+    desc: "Árvores de habilidades recomendadas e builds avançadas — PvE, PvP e AFK — com dicas de subclasse por classe.",
+    image: "",
+    accent: "text-violet-400",
   },
 ];
 

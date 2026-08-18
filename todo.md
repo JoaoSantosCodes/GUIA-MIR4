@@ -88,3 +88,13 @@
 - [x] Seção de comentários com votação nas páginas Sabuk e Mistérios
 - [x] Rota, navegação, busca indexada e favoritos para as novas páginas + links na Home + títulos no Profile
 - [x] Testes vitest (26 aprovados) + screenshots desktop/mobile + checkpoint e entrega
+
+## Nova funcionalidade: Calculadora Darksteel/DRACO, notificações de eventos e Subclasses/Skills
+- [x] Pesquisar ganhos de Darksteel por hora (selo, estágio, áreas) e conversão DRACO
+- [x] Pesquisar subclasses e skills por classe (Warrior, Sorcerer, Taoist, Lancer, Arbalist) e builds avançadas
+- [x] Dados de mineração/DRACO (MINE_AREAS, SEAL_MULTIPLIER, calculateMining) e subclasses/skills (CLASS_SKILLS) em shared/guideData.ts
+- [x] Página Calculadora (/calculadora) interativa: selo, estágio, área e horas → estimativa de Darksteel, Gold e DRACO
+- [x] Notificações visuais no calendário de eventos: painel "Próximos horários" com contagens para Sabuk/Magic Square
+- [x] Página Subclasses & Skills (/subclasses) com árvores recomendadas e builds avançadas por classe (tabs PvE/PvP/AFK)
+- [x] Rota, navegação, busca indexada e links na Home para as novas páginas (favorito seal:calculadora, pageKey "skills")
+- [ ] Screenshots verificados + checkpoint e entrega

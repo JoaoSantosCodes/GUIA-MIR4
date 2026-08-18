@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar } from "lucide-react";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS } from "@shared/guideData";
+import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
 export interface SearchHit {
@@ -35,6 +35,8 @@ export const GUIDE_SECTIONS = [
   { key: "misterios", label: "Mistérios", path: "/misterios" },
   { key: "selos", label: "Selos", path: "/selos" },
   { key: "calendario", label: "Calendário", path: "/calendario" },
+  { key: "calculadora", label: "Calculadora", path: "/calculadora" },
+  { key: "subclasses", label: "Subclasses", path: "/subclasses" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -185,6 +187,26 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       section: "seal",
       sectionLabel: "Selos & Geminação",
       path: "/selos",
+    }),
+  );
+  MINE_AREAS.forEach(a =>
+    hits.push({
+      id: `calc-${a.key}`,
+      type: "calc",
+      title: `Mineração ${a.name} (${a.levelRange}) — ~${a.dsPerHourBase.toLocaleString("pt-BR")} DS/h base · ${a.note}`,
+      section: "calc",
+      sectionLabel: "Calculadora Darksteel",
+      path: "/calculadora",
+    }),
+  );
+  CLASS_SKILLS.forEach(c =>
+    hits.push({
+      id: `skills-${c.key}`,
+      type: "skills",
+      title: `${c.name} — builds avançadas · ${[...c.skillsHighlight.map(s => `${s.name}: ${s.desc}`), ...c.builds.map(b => `${b.label}: ${b.focus}`), c.subclassTip].join(" · ")}`,
+      section: "skills",
+      sectionLabel: "Subclasses & Skills",
+      path: `/subclasses#${c.key}`,
     }),
   );
   GAME_EVENTS.forEach(e =>
@@ -363,6 +385,8 @@ function HitIcon({ type }: { type: string }) {
     case "mystery": return <BookOpen className={cls} />;
     case "seal": return <Gem className={cls} />;
     case "event": return <Calendar className={cls} />;
+    case "calc": return <Calculator className={cls} />;
+    case "skills": return <Layers className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

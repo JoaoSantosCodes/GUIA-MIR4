@@ -286,3 +286,63 @@ describe("dados das novas páginas", () => {
     void farmKeys;
   });
 });
+
+describe("calculadora darksteel", () => {
+  it("aplica o multiplicador do selo ao ganho base", async () => {
+    const { calculateMining, SEAL_MULTIPLIER, MINE_AREAS, DRACO_REQUIREMENT } = await import("@shared/guideData");
+    const base = MINE_AREAS.find(a => a.key === "byeoksan")!;
+    for (const level of [0, 1, 2, 3] as const) {
+      const r = calculateMining({ sealLevel: level, areaKey: "byeoksan", hours: 1, afk: false });
+      expect(r.dsPerHour).toBe(Math.round(base.dsPerHourBase * SEAL_MULTIPLIER[level]));
+    }
+  });
+
+  it("aplica penalidade de AFK e projeta DRACO com taxa de 10%", async () => {
+    const { calculateMining, DRACO_REQUIREMENT: DRACO_REQ } = await import("@shared/guideData");
+    const afk = calculateMining({ sealLevel: 2, areaKey: "byeoksan", hours: 1, afk: true });
+    const active = calculateMining({ sealLevel: 2, areaKey: "byeoksan", hours: 1, afk: false });
+    expect(afk.dsPerHour).toBe(Math.round(active.dsPerHour * 0.8));
+    const weekly = calculateMining({ sealLevel: 3, areaKey: "jinyu-elite", hours: 100, afk: false });
+    const effective = weekly.totalDs * 0.9;
+    expect(weekly.draco).toBe(Math.floor(effective / DRACO_REQ));
+  });
+
+  it("rejeita área inexistente caindo para a primeira área", async () => {
+    const { calculateMining, MINE_AREAS } = await import("@shared/guideData");
+    const r = calculateMining({ sealLevel: 1, areaKey: "area-que-nao-existe", hours: 1, afk: false });
+    expect(r.dsPerHour).toBeGreaterThan(0);
+    void MINE_AREAS;
+  });
+});
+
+describe("skills e subclasses", () => {
+  it("todas as classes têm 3 builds (pve, pvp, afk) com skills e dicas", async () => {
+    const { CLASS_SKILLS, SUBCLASS_TIPS } = await import("@shared/guideData");
+    const keys = new Set(CLASS_SKILLS.map(c => c.key));
+    expect(CLASS_SKILLS.length).toBe(5);
+    for (const c of CLASS_SKILLS) {
+      expect(keys.has(c.key)).toBe(true);
+      const scenarios = c.builds.map(b => b.scenario);
+      expect(scenarios).toEqual(["pve", "pvp", "afk"]);
+      for (const b of c.builds) {
+        expect(b.skills.length).toBeGreaterThan(0);
+        expect(b.rotation.length).toBeGreaterThan(0);
+        expect(b.notes.length).toBeGreaterThan(0);
+      }
+      expect(c.skillsHighlight.length).toBeGreaterThan(0);
+      expect(c.advancedTips.length).toBeGreaterThan(0);
+    }
+    expect(SUBCLASS_TIPS.rules.length).toBeGreaterThan(0);
+  });
+});
+
+describe("comentários skills", () => {
+  it("aceita página skills com chave de classe válida e rejeita inválida", async () => {
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const ok = await caller.comments.add({ pageKey: "skills", farmKey: "warrior", content: "Build de teste para warrior" });
+    expect(ok.success).toBe(true);
+    await expect(
+      caller.comments.add({ pageKey: "skills", farmKey: "classe-inexistente", content: "Dica inválida para testar" }),
+    ).rejects.toThrow();
+  });
+});
