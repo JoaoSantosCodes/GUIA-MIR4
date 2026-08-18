@@ -118,3 +118,11 @@
 - [x] Seletor de servidor (SA, SEA, NA, EU, Ásia) no calendário com contagem regressiva personalizada e localStorage do fuso
 - [x] Rotas, navegação, busca indexada, cards na Home e títulos no Profile para as novas páginas
 - [x] Testes vitest (39 aprovados) + screenshots desktop verificados + checkpoint e entrega
+
+## Nova funcionalidade: notificações de eventos, FAQ comunitário e builds compartilháveis
+- [ ] Notificação no cabeçalho (badge "próximos eventos") quando um evento do calendário estiver a <= 15 min de começar (polling a cada 30s, alerta Sonner)
+- [ ] Seção FAQ comunitária: procedure tRPC para listar dicas mais votadas por página (top comments por score)
+- [ ] Página/rota FAQ (/faq) agregando top dicas votadas de todas as páginas com navegação para a seção original
+- [ ] Importar/exportar builds de skills em formato de texto (string codificada por classe/build, modal de exportar + campo de importar na página Subclasses)
+- [ ] Rotas, navegação, busca indexada e link na Home para as novas páginas
+- [ ] Testes vitest + screenshots + checkpoint e entrega

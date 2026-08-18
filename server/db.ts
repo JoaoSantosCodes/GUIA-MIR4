@@ -1,4 +1,4 @@
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -238,4 +238,26 @@ export async function removeFarmComment(userId: number, commentId: number) {
   if (row.userId !== userId) throw new Error("Você só pode excluir seus próprios comentários");
   await db.delete(farmComments).where(eq(farmComments.id, commentId));
   return { success: true };
+}
+
+/** Busca as dicas com melhores votos no banco (usado pelo FAQ comunitário). */
+export async function fetchTopTips() {
+  const db = await getDb();
+  if (!db) return [];
+  const { users } = await import("../drizzle/schema");
+  return db
+    .select({
+      id: farmComments.id,
+      pageKey: farmComments.pageKey,
+      farmKey: farmComments.farmKey,
+      content: farmComments.content,
+      upvotes: farmComments.upvotes,
+      downvotes: farmComments.downvotes,
+      createdAt: farmComments.createdAt,
+      userName: users.name,
+    })
+    .from(farmComments)
+    .leftJoin(users, eq(farmComments.userId, users.id))
+    .where(isNotNull(farmComments.pageKey))
+    .orderBy(desc(farmComments.upvotes));
 }

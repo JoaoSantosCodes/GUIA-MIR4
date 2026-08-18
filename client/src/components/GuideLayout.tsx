@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers, Package } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import EventNotificationsBell from "@/components/EventNotificationsBell";
 import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export const GUIDE_SECTIONS = [
   { key: "subclasses", label: "Subclasses", path: "/subclasses" },
   { key: "equipamentos", label: "Equipamentos", path: "/equipamentos" },
   { key: "materiais", label: "Materiais", path: "/materiais" },
+  { key: "faq", label: "FAQ", path: "/faq" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -251,6 +253,14 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
       path: "/materiais",
     }),
   );
+  hits.push({
+    id: "faq",
+    type: "faq",
+    title: "FAQ Comunitária — dicas mais votadas da comunidade de todas as páginas",
+    section: "faq",
+    sectionLabel: "FAQ Comunitária",
+    path: "/faq",
+  });
   ENHANCE_COSTS.forEach(c =>
     hits.push({
       id: `enhance-${c.stage}`,
@@ -338,6 +348,8 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
                 <LogIn className="h-4 w-4" /> Entrar
               </Button>
             )}
+
+            <EventNotificationsBell />
 
             <Button variant="ghost" size="icon" className="md:hidden text-amber-200" onClick={() => setMobileOpen(v => !v)}>
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

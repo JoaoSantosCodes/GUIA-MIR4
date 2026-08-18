@@ -7,6 +7,8 @@ import * as db from "./db";
 import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, CLASS_SKILLS, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
 import { PAGE_COMMENT_KEYS } from "./_core/pageComments";
 import { getPublicProfile } from "./share";
+import { computeUpcomingAlerts } from "./events";
+import { topTipsByPage } from "./faq";
 
 const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery", "seal", "gear", "materials"]);
 
@@ -122,6 +124,20 @@ export const appRouter = router({
         return { success: true } as const;
       }),
     }),
+  /** Lightweight countdown used by the header notification bell (polling). */
+  events: router({
+    upcoming: publicProcedure
+      .input(z.object({ regionKey: z.string().min(1).max(10) }))
+      .query(({ input }) => computeUpcomingAlerts(input.regionKey)),
+  }),
+
+  /** Aggregates the community's most-upvoted tips per guide page. */
+  faq: router({
+    topTips: publicProcedure
+      .input(z.object({ minUpvotes: z.number().int().min(0).optional() }))
+      .query(({ input }) => topTipsByPage(input.minUpvotes ?? 0)),
+  }),
+
   /** Public shareable profile (favorites + codex progress) — no auth required. */
   share: router({
     getProfile: publicProcedure

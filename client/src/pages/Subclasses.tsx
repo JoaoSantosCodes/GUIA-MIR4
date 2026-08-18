@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Sparkles, Target, Swords, Moon, Star, ChevronRight } from "lucide-react";
+import BuildShare from "@/components/BuildShare";
 
 const SCENARIO_META: Record<string, { icon: React.ReactNode; color: string }> = {
   pve: { icon: <Target className="h-4 w-4" />, color: "text-emerald-400" },
@@ -120,7 +121,7 @@ export default function Subclasses() {
             </TabsList>
             {cls.builds.map(b => (
               <TabsContent key={b.scenario} value={b.scenario}>
-                <BuildCard build={b} />
+                <BuildCard build={b} classKey={cls.key} />
               </TabsContent>
             ))}
           </Tabs>
@@ -174,7 +175,7 @@ export default function Subclasses() {
   );
 }
 
-function BuildCard({ build }: { build: SkillBuild }) {
+function BuildCard({ build, classKey }: { build: SkillBuild; classKey: string }) {
   const meta = SCENARIO_META[build.scenario];
   return (
     <Card className="p-5 bg-slate-900/60 border-amber-700/30">
@@ -183,6 +184,7 @@ function BuildCard({ build }: { build: SkillBuild }) {
           <h4 className={cn("flex items-center gap-2 font-bold text-sm", meta.color)}>
             {meta.icon}
             {build.label}
+            <BuildShare build={build} classKey={classKey} />
           </h4>
           <Badge className="bg-black/40 border border-slate-700/60 text-slate-300">{build.focus}</Badge>
         </div>

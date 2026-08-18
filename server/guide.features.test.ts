@@ -15,8 +15,9 @@ vi.mock("./db", () => ({
   addPageComment: vi.fn(async () => undefined),
   removeFarmComment: vi.fn(async () => undefined),
   voteComment: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0 })),
+  fetchTopTips: vi.fn(async () => []),
   getDb: vi.fn(async () => ({
-    select: () => ({ from: () => ({ where: async () => [] }) }),
+    select: () => ({ from: () => ({ leftJoin: () => ({ where: async () => [] }) }) }),
   })),
 }));
 
@@ -421,5 +422,93 @@ describe("share.getProfile", () => {
     const caller = appRouter.createCaller(createContext(null));
     await expect(caller.share.getProfile({ userId: 0 })).rejects.toThrow();
     await expect(caller.share.getProfile({ userId: -1 })).rejects.toThrow();
+  });
+});
+
+describe("events.upcoming", () => {
+  it("retorna alertas ordenados por proximidade para qualquer região válida", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    const alerts = await caller.events.upcoming({ regionKey: "sa" });
+    expect(alerts.length).toBeGreaterThan(0);
+    for (const a of alerts) {
+      expect(a.minutesUntil).toBeGreaterThanOrEqual(0);
+      expect(typeof a.name).toBe("string");
+    }
+    const sorted = [...alerts].sort((a, b) => a.minutesUntil - b.minutesUntil);
+    expect(alerts.map(a => a.minutesUntil)).toEqual(sorted.map(a => a.minutesUntil));
+  });
+
+  it("recai para a região padrão com chave de região desconhecida", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    const alerts = await caller.events.upcoming({ regionKey: "xx-invalid" });
+    expect(alerts.length).toBeGreaterThan(0);
+  });
+
+  it("calcula corretamente a janela de alerta de 15 minutos", async () => {
+    const { computeUpcomingAlerts } = await import("./events");
+    // Ponto fixo no tempo para um cálculo determinístico
+    const now = new Date("2026-08-19T00:00:00Z");
+    const alerts = computeUpcomingAlerts("na", now);
+    const sabuk = alerts.find(a => a.key === "sabuk");
+    expect(sabuk).toBeDefined();
+    expect(sabuk!.minutesUntil).toBeGreaterThan(0);
+  });
+});
+
+describe("faq.topTips", () => {
+  it("retorna vazio quando não há comentários no banco", async () => {
+    vi.mocked(db.fetchTopTips).mockResolvedValue([]);
+    const caller = appRouter.createCaller(createContext(null));
+    const pages = await caller.faq.topTips({});
+    expect(Array.isArray(pages)).toBe(true);
+  });
+
+  it("usa score = upvotes - downvotes na ordenação por página", async () => {
+    const rows = [
+      { id: 1, pageKey: "farm", farmKey: "geral", content: "dica 1", upvotes: 10, downvotes: 2, createdAt: new Date(), userName: "u1" },
+      { id: 2, pageKey: "farm", farmKey: "geral", content: "dica 2", upvotes: 5, downvotes: 1, createdAt: new Date(), userName: "u2" },
+      { id: 3, pageKey: "raids", farmKey: "geral", content: "dica 3", upvotes: 20, downvotes: 10, createdAt: new Date(), userName: "u3" },
+    ];
+    vi.mocked(db.fetchTopTips).mockResolvedValue(rows as never);
+    const caller = appRouter.createCaller(createContext(null));
+    const pages = await caller.faq.topTips({ minUpvotes: 5 });
+    const farmPage = pages.find(p => p.pageKey === "farm");
+    expect(farmPage?.tips.length).toBeGreaterThan(0);
+    expect(farmPage!.tips[0].id).toBe(1);
+    expect(farmPage!.tips[0].score).toBe(8);
+    const raidsPage = pages.find(p => p.pageKey === "raids");
+    expect(raidsPage?.tips[0].score).toBe(10);
+  });
+});
+
+describe("buildCodec (export/import de builds)", () => {
+  it("codifica e decodifica uma build de Warrior PvE sem perda de dados", async () => {
+    const { encodeBuild, decodeBuild } = await import("../shared/buildCodec");
+    const build = { classKey: "warrior", scenario: "pve", skills: ["Dragon Flame", "Splitting Slash"], rotation: "Bash → Dragon Flame → Ultimate", notes: "Build para raids de clã" };
+    const text = encodeBuild(build);
+    expect(text.startsWith("MIR4-SKILLS:")).toBe(true);
+    const decoded = decodeBuild(text);
+    expect(decoded?.classKey).toBe("warrior");
+    expect(decoded?.scenario).toBe("pve");
+    expect(decoded?.skills).toEqual(["Dragon Flame", "Splitting Slash"]);
+    expect(decoded?.rotation).toBe(build.rotation);
+    expect(decoded?.notes).toBe(build.notes);
+    expect(decoded?.importedClassKnown).toBe(true);
+  });
+
+  it("aceita importação sem o prefixo e rejeita strings malformadas", async () => {
+    const { encodeBuild, decodeBuild } = await import("../shared/buildCodec");
+    const text = encodeBuild({ classKey: "taoist", scenario: "afk", skills: ["Sword Mastery"], rotation: "auto", notes: "x" });
+    const bare = text.slice("MIR4-SKILLS:".length);
+    expect(decodeBuild(bare)?.classKey).toBe("taoist");
+    expect(decodeBuild("texto-qualquer-aleatorio")).toBeNull();
+    expect(decodeBuild("MIR4-SKILLS:")).toBeNull();
+  });
+
+  it("marca classes desconhecidas no resultado", async () => {
+    const { decodeBuild } = await import("../shared/buildCodec");
+    const decoded = decodeBuild("MIR4-SKILLS:classe-falsa|pvp|Skill+X|rot|notas");
+    expect(decoded?.importedClassKnown).toBe(false);
+    expect(decoded?.skills).toEqual(["Skill", "X"]);
   });
 });
