@@ -318,7 +318,7 @@ export default function Codex() {
                     <span className="font-semibold text-amber-300/90">{s.cat}</span>
                     <span className="text-slate-400">{s.done}/{s.total} ({catPct}%)</span>
                   </div>
-                  <Progress value={catPct} className="mt-2 [&>div]:bg-gradient-to-r [&>div]:from-amber-700 [&>div]:to-amber-500" />
+                  <Progress value={catPct} className={cn("mt-2 [&>div]:bg-gradient-to-r", catPct >= 100 ? "[&>div]:from-emerald-700 [&>div]:to-emerald-400" : "[&>div]:from-amber-700 [&>div]:to-amber-500")} />
                 </div>
               );
             })}

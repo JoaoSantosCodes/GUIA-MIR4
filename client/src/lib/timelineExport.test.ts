@@ -106,3 +106,68 @@ describe("marca d'água nos cards em lote", () => {
     expect(dateCall).toMatch(/20\d\d/);
   });
 });
+
+describe("selo 100% Concluído no card em lote", () => {
+  it("desenha o selo apenas quando a categoria está completa", async () => {
+    const { exportCategoryCard } = await import("./timelineExport");
+    const makeCtx = () => ({
+      createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      fillText: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      roundRect: vi.fn(),
+      rotate: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      translate: vi.fn(),
+      set fillStyle(_v: string) {
+        /* noop */
+      },
+      set font(_v: string) {
+        /* noop */
+      },
+      set textAlign(_v: string) {
+        /* noop */
+      },
+      set textBaseline(_v: string) {
+        /* noop */
+      },
+      set lineWidth(_v: number) {
+        /* noop */
+      },
+      set strokeStyle(_v: string) {
+        /* noop */
+      },
+      measureText: vi.fn(() => ({ width: 0 })),
+      canvas: { width: 1200, height: 900 },
+    });
+    const ctx = makeCtx();
+    const drawTo = {
+      width: 1200,
+      height: 900,
+      getContext: vi.fn(() => ctx),
+      toDataURL: vi.fn(() => "data:image/png;base64,MOCK"),
+    } as unknown as HTMLCanvasElement;
+
+    const complete = {
+      category: "Consumíveis",
+      items: [{ name: "Poção de Cura", rarity: "Raro", tier: 2, collected: true }],
+      collectedCount: 6,
+      categoryTotal: 6,
+    };
+    const partial = { ...complete, collectedCount: 5 };
+
+    await exportCategoryCard({ data: complete, drawTo });
+    const allCalls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.map(c => String(c[0]));
+    expect(allCalls.includes("100% CONCLUÍDO")).toBe(true);
+
+    (ctx.fillText as ReturnType<typeof vi.fn>).mockClear();
+    await exportCategoryCard({ data: partial, drawTo });
+    const partialCalls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls.map(c => String(c[0]));
+    expect(partialCalls.includes("100% CONCLUÍDO")).toBe(false);
+  });
+});

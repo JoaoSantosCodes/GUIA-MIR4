@@ -11,7 +11,7 @@ import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, 
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
 import { evaluateCodexAchievements } from "@/lib/codexAchievements";
-import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar } from "lucide-react";
+import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -148,6 +148,37 @@ const RARITY_LABEL: Record<string, string> = {
 
 function rarityLabelFor(key: string): string {
   return RARITY_LABEL[key] ?? key;
+}
+
+/** Tooltip explicativo por conquista: como desbloquear cada medalha. */
+function achievementTooltip(key: string, iconKey: string): string {
+  switch (key) {
+    case "codex-10":
+      return "Registre 10 itens no Codex marcando-os como coletados na página Codex.";
+    case "codex-25":
+      return "Registre 25 itens no Codex marcando-os como coletados na página Codex.";
+    case "mestre-codex":
+      return "Registre TODOS os itens do Codex (meta máxima): é preciso completar todas as categorias.";
+    case "equipamentos-5":
+      return "Registre todos os itens da categoria Equipamentos como coletados na página Codex.";
+    case "materiais-10":
+      return "Registre todos os itens da categoria Materiais como coletados na página Codex.";
+    case "consumiveis-6":
+      return "Registre todos os itens da categoria Consumíveis como coletados na página Codex.";
+    case "colecionaveis-6":
+      return "Registre todos os itens da categoria Colecionáveis como coletados na página Codex.";
+    case "reputacao-6":
+      return "Registre todos os Badges de Reputação como coletados na página Codex.";
+    case "faixa-t1":
+      return `Registre todos os itens de raridade ${rarityLabelFor(key)} do Codex marcando-os como coletados.`;
+    case "raro-5":
+      return "Colete 5 itens de raridade Raro ou superior no Codex.";
+    case "lendario-1":
+      return "Colete pelo menos 1 item de raridade Lendária ou Mítica no Codex.";
+    default:
+      if (/^faixa-t[2-5]$/.test(key)) return `Registre todos os itens de raridade ${rarityLabelFor(key)} do Codex marcando-os como coletados — quando TODOS os itens dessa raridade estiverem registrados, a conquista é desbloqueada.`;
+      return "Complete o marco correspondente na página Codex marcando itens como coletados.";
+  }
 }
 
   const codexAchievements = useMemo(
@@ -369,29 +400,26 @@ function rarityLabelFor(key: string): string {
               <div
                 key={a.key}
                 className={cn(
-                  "relative flex items-start gap-3 rounded-md border px-3 py-3",
+                  "group relative cursor-help flex items-start gap-3 rounded-md border px-3 py-3",
                   a.earned
                     ? isRarity
-                      ? "border-purple-400/60 bg-gradient-to-br from-purple-950/60 to-purple-900/20 shadow-sm shadow-purple-500/20 ring-1 ring-purple-500/40"
-                      : "border-amber-500/70 bg-gradient-to-br from-amber-950/60 to-amber-900/20 shadow-sm shadow-amber-500/20"
-                    : "border-slate-800/60 bg-black/25 opacity-70",
+                      ? "border-purple-400/60 bg-gradient-to-br from-purple-950/60 to-purple-900/20 shadow-sm shadow-purple-500/20 ring-1 ring-purple-500/40 hover:ring-purple-400/70"
+                      : "border-amber-500/70 bg-gradient-to-br from-amber-950/60 to-amber-900/20 shadow-sm shadow-amber-500/20 hover:ring-amber-400/70"
+                    : "border-slate-800/60 bg-black/25 opacity-70 hover:opacity-90",
+                  a.earned && "ring-1 ring-transparent",
                 )}
+                title={achievementTooltip(a.key, a.iconKey)}
               >
                 {isRarity && (
-                  <span className="absolute -top-1.5 right-2 z-10 group relative cursor-help rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white hover:bg-purple-400">
+                  <span className="absolute -top-1.5 right-2 z-10 rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                     Raridade
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute right-0 top-full z-20 mt-1 hidden w-56 rounded-md border border-purple-400/60 bg-[oklch(0.15_0.03_300)] px-3 py-2 text-[11px] font-normal normal-case tracking-normal leading-relaxed text-purple-100 shadow-lg shadow-black/50 group-hover:block"
-                    >
-                      <strong className="block text-purple-300">{a.description}</strong>
-                      Na página <span className="font-semibold">Codex</span>, registre cada item da raridade {rarityLabelFor(a.key)} marcando como coletado — quando TODOS os itens dessa raridade estiverem registrados, a conquista é desbloqueada automaticamente.
-                      <span className="absolute left-1/2 -top-1 h-0 w-0 -translate-x-1/2 border-b-[5px] border-l-[5px] border-r-[5px] border-b-purple-400/60 border-l-transparent border-r-transparent" />
-                    </span>
                   </span>
                 )}
                 <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", a.earned ? (isRarity ? "border-purple-400/70 bg-purple-900/40 text-purple-300" : "border-amber-500/70 bg-amber-900/40 text-amber-400") : "border-slate-700/60 bg-slate-900/40 text-slate-500")}>
                   <Icon className="h-4 w-4" />
+                </span>
+                <span className="absolute right-2 top-2 text-slate-500 group-hover:text-amber-400 transition-colors" aria-hidden="true">
+                  <IconInfo className="h-3 w-3" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className={cn("text-sm font-semibold", a.earned ? (isRarity ? "text-purple-200" : "text-amber-200") : "text-slate-300")}>{a.title}</p>

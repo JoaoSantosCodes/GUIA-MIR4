@@ -192,3 +192,10 @@
 - [x] Tooltip nas conquistas de raridade do perfil (selo Raridade group-hover): descrição + instruções de registro da raridade na página Codex
 - [x] Barra de progresso visual por categoria no Codex (grid com Progress e catPct% + contagem, abaixo dos filtros — já implementado e verificado em screenshot)
 - [x] Testes vitest (84 aprovados, incl. teste da marca d'água) + screenshots verificados + checkpoint
+
+## Nova funcionalidade: skill atualizada, tooltips gerais, selo 100% e barras verdes
+- [x] Atualizar a skill reutilizável (game-guide-builder) com tooltips por conquista, selo 100%, marca d'água, filtros persistentes e unlock banner — validada com quick_validate.py
+- [x] Tooltips explicativos em todas as conquistas do perfil (achievementTooltip por key + title nativo em group cursor-help) + ícone Info no canto superior direito que fica âmbar no hover
+- [x] Selo visual "100% CONCLUÍDO" verde rotacionado 30° no exportCategoryCard quando collectedCount >= categoryTotal (teste vitest adicionado)
+- [x] Barras de progresso do Codex mudam para verde (emerald) em 100% de conclusão da categoria (catPct >= 100)
+- [x] Testes vitest (85 aprovados) + screenshots verificados + checkpoint

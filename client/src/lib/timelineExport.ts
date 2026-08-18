@@ -463,6 +463,27 @@ export async function exportCategoryCard({ data, style = DEFAULT_CARD_STYLE, onD
     ctx.fillText(`e mais ${data.items.length - maxItems} itens…`, MARGIN + 26, listY + maxItems * 34 + 14);
   }
 
+  // Selo "100% Concluído" quando todos os itens da categoria estiverem registrados
+  const isComplete = data.categoryTotal > 0 && data.collectedCount >= data.categoryTotal;
+  if (isComplete) {
+    ctx.save();
+    ctx.translate(WIDTH - 90, HEADER_H + 60);
+    ctx.rotate((30 * Math.PI) / 180);
+    ctx.fillStyle = "#16a34a";
+    ctx.beginPath();
+    ctx.roundRect(-96, -24, 192, 48, 24);
+    ctx.fill();
+    ctx.strokeStyle = "#bbf7d0";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("100% CONCLUÍDO", 0, 2);
+    ctx.restore();
+  }
+
   drawFooter(ctx, canvas);
   drawWatermark(ctx, canvas, userName);
 
