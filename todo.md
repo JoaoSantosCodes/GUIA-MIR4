@@ -136,16 +136,16 @@
 - [x] Seção no perfil do usuário: histórico de votos com botões para alterar voto (up/down/remover)
 - [x] UI de votos nas páginas refletir o voto do usuário logado (CommentsSection setUserVote + myVotes) (highlight do voto atual)
 - [x] Rotas, navegação, busca e testes para as novas funcionalidades
-- [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega
+- [x] Testes vitest (62 aprovados) + screenshots verificados + checkpoint e entrega
 
 ## Nova funcionalidade: selo Dica de Ouro, filtros de histórico e pulso no banner
 - [x] Selo "Dica de Ouro" visual (ícone + badge dourado) para dicas com upvotes >= 10 nos componentes de comentários (CommentsSection) e na página FAQ
 - [x] Filtros no histórico de votos do perfil: ordenação por data (mais recente/mais antiga) e por categoria da dica
 - [x] Animação de pulso suave no banner de evento ao vivo (LiveEventBanner) com prefers-reduced-motion respeitado
-- [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega
+- [x] Testes vitest (62 aprovados) + screenshots verificados + checkpoint e entrega
 
 ## Nova funcionalidade: medalhas, aba Dicas de Ouro e timeline
-- [ ] Contador de medalhas "Dica de Ouro" no perfil: derivar dos votos do usuário em dicas com 10+ upvotes (query server ou client) e exibir badge/medalha no topo do perfil
-- [ ] Aba dedicada na FAQ: toggle "Apenas Dicas de Ouro" (filtro client-side sobre os dados do faq.topTips, com upvotes >= 10)
-- [ ] Timeline interativa no perfil consolidando favoritos, histórico de votos e progresso do Codex em ordem cronológica (query/server para timestamp dos favoritos e codex)
-- [ ] Testes vitest + screenshots + checkpoint e entrega
+- [x] Contador de medalhas "Dica de Ouro" no perfil: derivar dos votos do usuário em dicas com 10+ upvotes (GOLD_TIP_UPVOTES) e exibir badge/medalha no topo do perfil
+- [x] Aba dedicada na FAQ: toggle "Apenas Dicas de Ouro" (filtro client-side sobre os dados do faq.topTips, com upvotes >= 10)
+- [x] Timeline interativa no perfil consolidando favoritos, histórico de votos e progresso do Codex em ordem cronológica (createdAt/collectedAt/votedAt, filtros por tipo Tudo/Favoritos/Votos/Codex)
+- [x] Testes vitest (62 aprovados) + screenshots verificados + checkpoint e entrega

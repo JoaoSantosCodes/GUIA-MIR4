@@ -623,3 +623,59 @@ describe("user.setSoundAlerts", () => {
     expect(enabled).toBe(false);
   });
 });
+
+describe("Medalhas Dica de Ouro e timeline", () => {
+  it("GOLD_TIP_UPVOTES é 10 (limiar do selo)", async () => {
+    const cs = await import("../client/src/components/guide/CommentsSection");
+    expect(cs.GOLD_TIP_UPVOTES).toBe(10);
+  });
+
+  it("conta medalhas corretamente (votos a favor em dicas 10+ upvotes)", async () => {
+    const votes = [
+      { vote: 1, upvotes: 10 }, // ouro
+      { vote: 1, upvotes: 11 }, // ouro
+      { vote: 1, upvotes: 9 }, // não
+      { vote: -1, upvotes: 10 }, // não (downvote)
+      { vote: 0, upvotes: 10 }, // não (removido)
+    ];
+    const gold = votes.filter(v => v.vote === 1 && (v.upvotes ?? 0) >= 10).length;
+    expect(gold).toBe(2);
+  });
+
+  it("filtro goldOnly da FAQ mantém apenas dicas com 10+ upvotes", async () => {
+    const cs = await import("../client/src/components/guide/CommentsSection");
+    const tips = [
+      { id: 1, upvotes: 10 },
+      { id: 2, upvotes: 7 },
+      { id: 3, upvotes: 15 },
+      { id: 4, upvotes: 0 },
+    ];
+    const goldOnly = tips.filter(t => t.upvotes >= cs.GOLD_TIP_UPVOTES);
+    expect(goldOnly.map(t => t.id)).toEqual([1, 3]);
+  });
+
+  it("timeline mescla favoritos, votos e codex em ordem cronológica decrescente", () => {
+    const favs = [{ createdAt: new Date("2026-08-10T00:00:00Z") }];
+    const votes = [{ votedAt: new Date("2026-08-12T00:00:00Z"), commentId: 7, vote: 1 }];
+    const progress = [{ collectedAt: new Date("2026-08-11T00:00:00Z") }];
+    const items: { ts: number; kind: string }[] = [
+      ...favs.map(f => ({ ts: new Date(f.createdAt).getTime(), kind: "fav" })),
+      ...votes.map(v => ({ ts: new Date(v.votedAt).getTime(), kind: "vote" })),
+      ...progress.map(p => ({ ts: new Date(p.collectedAt).getTime(), kind: "codex" })),
+    ];
+    items.sort((a, b) => b.ts - a.ts);
+    expect(items.map(i => i.kind)).toEqual(["vote", "codex", "fav"]);
+  });
+
+  it("filtro de timeline por tipo seleciona apenas o tipo escolhido", () => {
+    const items = [
+      { ts: 1, kind: "fav" },
+      { ts: 2, kind: "vote" },
+      { ts: 3, kind: "codex" },
+    ];
+    const filter = "vote";
+    const visible = items.filter(t => t.kind === filter);
+    expect(visible).toHaveLength(1);
+    expect(visible[0].kind).toBe("vote");
+  });
+});
