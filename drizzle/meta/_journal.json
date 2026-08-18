@@ -64,6 +64,13 @@
       "when": 1787084051120,
       "tag": "0008_woozy_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787085524539,
+      "tag": "0009_fuzzy_the_captain",
+      "breakpoints": true
     }
   ]
 }

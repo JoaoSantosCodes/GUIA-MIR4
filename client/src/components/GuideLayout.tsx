@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers, Package } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import EventNotificationsBell from "@/components/EventNotificationsBell";
+import LiveEventBanner from "@/components/LiveEventBanner";
 import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
@@ -350,6 +351,7 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
             )}
 
             <EventNotificationsBell />
+            <LiveEventBanner />
 
             <Button variant="ghost" size="icon" className="md:hidden text-amber-200" onClick={() => setMobileOpen(v => !v)}>
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

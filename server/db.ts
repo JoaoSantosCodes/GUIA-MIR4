@@ -1,7 +1,7 @@
 import { eq, and, inArray, desc, isNotNull } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -261,4 +261,91 @@ export async function fetchTopTips() {
     .leftJoin(users, eq(farmComments.userId, users.id))
     .where(isNotNull(farmComments.pageKey))
     .orderBy(desc(sql`(upvotes - downvotes)`));
+}
+
+// ---------- Comment votes ----------
+
+/**
+ * Registra/altera o voto do usuário em um comentário. Ajusta os contadores
+ * contábeis (upvotes/downvotes) conforme a troca de voto anterior.
+ * vote: 1 = upvote, -1 = downvote, 0 = removido.
+ */
+export async function setUserCommentVote(
+  userId: number,
+  commentId: number,
+  vote: 1 | -1 | 0,
+): Promise<{ success: true; upvotes: number; downvotes: number; userVote: number }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await db
+    .select()
+    .from(commentVotes)
+    .where(and(eq(commentVotes.userId, userId), eq(commentVotes.commentId, commentId)))
+    .limit(1);
+  const prev = existing[0]?.vote ?? 0;
+
+  if (prev === vote) return { success: true, upvotes: 0, downvotes: 0, userVote: vote };
+
+  const cRows = await db.select().from(farmComments).where(eq(farmComments.id, commentId)).limit(1);
+  const cRow = cRows[0];
+  if (!cRow) throw new Error("Comentário não encontrado");
+
+  // Ajustes contábeis: remove o efeito do voto anterior e aplica o novo.
+  let up = cRow.upvotes;
+  let down = cRow.downvotes;
+  if (prev === 1) up = Math.max(0, up - 1);
+  if (prev === -1) down = Math.max(0, down - 1);
+  if (vote === 1) up += 1;
+  if (vote === -1) down += 1;
+
+  if (existing[0]) {
+    await db
+      .update(commentVotes)
+      .set({ vote })
+      .where(and(eq(commentVotes.userId, userId), eq(commentVotes.commentId, commentId)));
+  } else {
+    await db.insert(commentVotes).values({ userId, commentId, vote });
+  }
+
+  await db.update(farmComments).set({ upvotes: up, downvotes: down }).where(eq(farmComments.id, commentId));
+
+  return { success: true, upvotes: up, downvotes: down, userVote: vote };
+}
+
+/** Histórico de votos do usuário com o conteúdo do comentário. */
+export async function listVoteHistory(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      vote: commentVotes.vote,
+      commentId: commentVotes.commentId,
+      votedAt: commentVotes.updatedAt,
+      pageKey: farmComments.pageKey,
+      farmKey: farmComments.farmKey,
+      content: farmComments.content,
+      upvotes: farmComments.upvotes,
+      downvotes: farmComments.downvotes,
+    })
+    .from(commentVotes)
+    .innerJoin(farmComments, eq(commentVotes.commentId, farmComments.id))
+    .where(eq(commentVotes.userId, userId))
+    .orderBy(desc(commentVotes.updatedAt));
+  return rows;
+}
+
+/** Preferência de alerta sonoro do usuário. */
+export async function setSoundAlerts(userId: number, enabled: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ soundAlerts: enabled ? 1 : 0 }).where(eq(users.id, userId));
+  return { success: true, enabled };
+}
+
+export async function getSoundAlerts(userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const rows = await db.select({ soundAlerts: users.soundAlerts }).from(users).where(eq(users.id, userId)).limit(1);
+  return rows[0]?.soundAlerts === 1;
 }

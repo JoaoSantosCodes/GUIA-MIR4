@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
-import { Bell } from "lucide-react";
+import { Bell, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -15,6 +16,36 @@ const POLL_INTERVAL_MS = 30_000;
 const SOON_THRESHOLD_MIN = 15;
 const ACTIVE_THRESHOLD_MIN = 5;
 const NOTIFICATION_COOLDOWN_KEY = "eventNotificationCooldown";
+const SOUND_ENABLED_KEY = "eventSoundAlerts";
+
+/** Toca dois tons curtos via Web Audio API (sem arquivo externo). */
+export function playAlertBeep() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    [0, 0.22].forEach((start, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = i === 0 ? 880 : 1175;
+      gain.gain.setValueAtTime(0.0001, now + start);
+      gain.gain.exponentialRampToValueAtTime(0.15, now + start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + 0.2);
+    });
+  } catch {
+    // Falha silenciosa: áudio não suportado
+  }
+}
+
+function soundEnabled(): boolean {
+  return localStorage.getItem(SOUND_ENABLED_KEY) === "1";
+}
 
 export interface UpcomingEvent {
   key: string;
@@ -31,6 +62,7 @@ export interface UpcomingEvent {
  * - popover listing upcoming events
  */
 export default function EventNotificationsBell() {
+  const { isAuthenticated } = useAuth();
   const region = localStorage.getItem("serverRegion") ?? "sa";
   const { data: alerts, isSuccess } = trpc.events.upcoming.useQuery(
     { regionKey: region },
@@ -60,7 +92,28 @@ export default function EventNotificationsBell() {
 
   const lastNotified = useRef<string>(localStorage.getItem(NOTIFICATION_COOLDOWN_KEY) ?? "");
 
-  // Toast whenever a soon event first appears (cooldown prevents spam across tabs)
+  /** Preferência salva no servidor para usuários logados; localStorage é o fallback. */
+  const { data: dbSound } = trpc.user.getSoundAlerts.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const setDbSound = trpc.user.setSoundAlerts.useMutation({
+    onSuccess: () => utils.user.getSoundAlerts.invalidate(),
+  });
+  const utils = trpc.useUtils();
+
+  const [soundOn, setSoundOn] = useState(soundEnabled);
+
+  useEffect(() => {
+    // Sincroniza com a preferência do servidor ao logar; só escreve localStorage se ainda não configurado
+    if (dbSound !== undefined) {
+      setSoundOn(dbSound);
+      if (localStorage.getItem(SOUND_ENABLED_KEY) === null) {
+        localStorage.setItem(SOUND_ENABLED_KEY, dbSound ? "1" : "0");
+      }
+    }
+  }, [dbSound]);
+
+  // Toast + som sempre que um evento entra na janela "próximo" (cooldown evita spam)
   useEffect(() => {
     if (soonEvents.length === 0) return;
     const top = soonEvents[0];
@@ -72,7 +125,8 @@ export default function EventNotificationsBell() {
       action: { label: "Ver calendário", onClick: () => (window.location.href = "/calendario") },
       duration: 20000,
     });
-  }, [soonEvents]);
+    if (soundOn) playAlertBeep();
+  }, [soonEvents, soundOn]);
 
   const badgeCount = soonEvents.length + activeEvents.length;
 
@@ -137,9 +191,27 @@ export default function EventNotificationsBell() {
           ))}
         </div>
 
-        <Link href="/calendario" className="mt-3 block rounded-md bg-red-800 px-3 py-1.5 text-center text-xs font-medium text-amber-100 transition-colors hover:bg-red-700">
-          Abrir calendário completo
-        </Link>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-amber-800/40 pt-2.5">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 text-xs text-amber-200 transition-colors hover:text-amber-100"
+            onClick={() => {
+              const next = !soundOn;
+              setSoundOn(next);
+              localStorage.setItem(SOUND_ENABLED_KEY, next ? "1" : "0");
+              if (isAuthenticated) {
+                setDbSound.mutate({ enabled: next });
+              }
+              toast.success(next ? "Alerta sonoro ativado" : "Alerta sonoro desativado", { duration: 2500 });
+            }}
+          >
+            {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
+            <span>Alerta sonoro</span>
+          </button>
+          <Link href="/calendario" className="rounded-md bg-red-800 px-3 py-1.5 text-center text-xs font-medium text-amber-100 transition-colors hover:bg-red-700">
+            Abrir calendário completo
+          </Link>
+        </div>
       </PopoverContent>
     </Popover>
   );

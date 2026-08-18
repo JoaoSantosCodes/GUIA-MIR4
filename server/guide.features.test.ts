@@ -16,6 +16,11 @@ vi.mock("./db", () => ({
   removeFarmComment: vi.fn(async () => undefined),
   voteComment: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0 })),
   fetchTopTips: vi.fn(async () => []),
+  setUserCommentVote: vi.fn(async () => ({ success: true, upvotes: 0, downvotes: 0, userVote: 0 })),
+  listVoteHistory: vi.fn(async () => []),
+  setSoundAlerts: vi.fn(async () => ({ success: true, enabled: false })),
+  getSoundAlerts: vi.fn(async () => false),
+  listVotesByUserAndComments: vi.fn(async () => []),
   getDb: vi.fn(async () => ({
     select: () => ({ from: () => ({ leftJoin: () => ({ where: async () => [] }) }) }),
   })),
@@ -51,6 +56,11 @@ beforeEach(() => {
   vi.mocked(db.listCodexProgress).mockResolvedValue([]);
   vi.mocked(db.listFarmComments).mockResolvedValue([]);
   vi.mocked(db.listPageComments).mockResolvedValue([]);
+  vi.mocked(db.setUserCommentVote).mockResolvedValue({ success: true, upvotes: 0, downvotes: 0, userVote: 0 });
+  vi.mocked(db.listVoteHistory).mockResolvedValue([]);
+  vi.mocked(db.setSoundAlerts).mockResolvedValue({ success: true, enabled: false });
+  vi.mocked(db.getSoundAlerts).mockResolvedValue(false);
+  vi.mocked(db.listVotesByUserAndComments).mockResolvedValue([]);
 });
 
 describe("favorites.toggle", () => {
@@ -496,7 +506,7 @@ describe("faq.topTips", () => {
       { id: 2, pageKey: "farm", farmKey: "geral", content: "dica 2", upvotes: 5, downvotes: 1, createdAt: new Date(), userName: "u2" },
       { id: 3, pageKey: "raids", farmKey: "geral", content: "dica 3", upvotes: 20, downvotes: 10, createdAt: new Date(), userName: "u3" },
     ];
-    vi.mocked(db.fetchTopTips).mockResolvedValue(rows as never);
+    vi.mocked(db.fetchTopTips).mockResolvedValue(rows);
     const caller = appRouter.createCaller(createContext(null));
     const pages = await caller.faq.topTips({ minUpvotes: 5 });
     const farmPage = pages.find(p => p.pageKey === "farm");
@@ -512,7 +522,7 @@ describe("faq.topTips", () => {
       { id: 1, pageKey: "farm", farmKey: "geral", content: "dica ruim", upvotes: 20, downvotes: 18, createdAt: new Date(), userName: "u1" },
       { id: 2, pageKey: "farm", farmKey: "geral", content: "dica boa", upvotes: 12, downvotes: 0, createdAt: new Date(), userName: "u2" },
     ];
-    vi.mocked(db.fetchTopTips).mockResolvedValue(rows as never);
+    vi.mocked(db.fetchTopTips).mockResolvedValue(rows);
     const caller = appRouter.createCaller(createContext(null));
     const pages = await caller.faq.topTips({});
     const farmPage = pages.find(p => p.pageKey === "farm");
@@ -551,5 +561,65 @@ describe("buildCodec (export/import de builds)", () => {
     const decoded = decodeBuild("MIR4-SKILLS:classe-falsa|pvp|Skill+X|rot|notas");
     expect(decoded?.importedClassKnown).toBe(false);
     expect(decoded?.skills).toEqual(["Skill", "X"]);
+  });
+});
+
+describe("comments.setUserVote", () => {
+  it("registra um upvote novo e ajusta o contador", async () => {
+    vi.mocked(db.setUserCommentVote).mockResolvedValue({ success: true, upvotes: 1, downvotes: 0, userVote: 1 });
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.comments.setUserVote({ commentId: 7, vote: 1 });
+    expect(result.userVote).toBe(1);
+    expect(db.setUserCommentVote).toHaveBeenCalledWith(42, 7, 1);
+  });
+
+  it("remove o voto ao receber 0", async () => {
+    vi.mocked(db.setUserCommentVote).mockResolvedValue({ success: true, upvotes: 0, downvotes: 0, userVote: 0 });
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.comments.setUserVote({ commentId: 7, vote: 0 });
+    expect(result.userVote).toBe(0);
+    expect(db.setUserCommentVote).toHaveBeenCalledWith(42, 7, 0);
+  });
+
+  it("rejeita acesso anônimo", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.comments.setUserVote({ commentId: 7, vote: 1 })).rejects.toThrow();
+  });
+});
+
+describe("user.voteHistory", () => {
+  it("lista os votos do usuário logado", async () => {
+    const rows = [
+      { vote: 1, commentId: 1, votedAt: new Date(), pageKey: "farm", farmKey: "darksteel-mine", content: "Farm de darksteel", upvotes: 3, downvotes: 0 },
+      { vote: -1, commentId: 2, votedAt: new Date(), pageKey: "sabuk", farmKey: "geral", content: "Ruinosa", upvotes: 1, downvotes: 4 },
+    ];
+    vi.mocked(db.listVoteHistory).mockResolvedValue(rows);
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.user.voteHistory();
+    expect(result).toHaveLength(2);
+    expect(result[0].vote).toBe(1);
+    expect(result[1].vote).toBe(-1);
+  });
+
+  it("rejeita acesso anônimo", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.user.voteHistory()).rejects.toThrow();
+  });
+});
+
+describe("user.setSoundAlerts", () => {
+  it("salva a preferência de alerta sonoro", async () => {
+    vi.mocked(db.setSoundAlerts).mockResolvedValue({ success: true, enabled: true } as never);
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const result = await caller.user.setSoundAlerts({ enabled: true });
+    expect(result.enabled).toBe(true);
+    expect(db.setSoundAlerts).toHaveBeenCalledWith(42, true);
+  });
+
+  it("consulta a preferência salva", async () => {
+    vi.mocked(db.getSoundAlerts).mockResolvedValue(false);
+    const caller = appRouter.createCaller(createContext(authenticatedUser));
+    const enabled = await caller.user.getSoundAlerts();
+    expect(enabled).toBe(false);
   });
 });

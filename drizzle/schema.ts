@@ -13,6 +13,7 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  soundAlerts: int("soundAlerts").default(0).notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -74,3 +75,23 @@ export const codexProgress = mysqlTable(
 
 export type CodexProgress = typeof codexProgress.$inferSelect;
 export type InsertCodexProgress = typeof codexProgress.$inferInsert;
+
+/**
+ * Vote per user per comment: prevents double voting and allows changing votes.
+ * vote = 1 (upvote) | -1 (downvote) | 0 (removed).
+ */
+export const commentVotes = mysqlTable(
+  "comment_votes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    commentId: int("commentId").notNull(),
+    vote: int("vote").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_commentId").on(t.userId, t.commentId), index("commentId_idx").on(t.commentId)],
+);
+
+export type CommentVote = typeof commentVotes.$inferSelect;
+export type InsertCommentVote = typeof commentVotes.$inferInsert;

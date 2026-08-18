@@ -126,3 +126,14 @@
 - [x] Importar/exportar builds de skills em formato de texto (shared/buildCodec.ts formato MIR4-SKILLS:..., componente BuildShare na página Subclasses)
 - [x] Rotas, navegação, busca indexada e link na Home para as novas páginas (rota /faq registrada, entrada em GUIDE_SECTIONS e índice de busca)
 - [x] Testes vitest (47 aprovados, incl. events.upcoming, faq.topTips e buildCodec) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: alerta sonoro, banner ao vivo e histórico de votos
+- [x] Preferência de usuário "alerta sonoro" (ativar/desativar som quando evento estiver a <= 15 min) persistente (localStorage + coluna na tabela user)
+- [x] Som de alerta no EventNotificationsBell quando alerta sonoro ativo (usar Web Audio API / beep, sem arquivo externo)
+- [x] Banner "evento em andamento" no topo do site quando um evento estiver ativo, com tempo restante (LiveBanner)
+- [x] Router comments.vote: registrar voto por usuário (tabela comment_votes) para permitir alterar votos; endpoint user.voteHistory
+- [x] Migração: tabela comment_votes (migração 0009 aplicada) (userId, commentId, vote +1/-1, createdAt, unique userId+commentId)
+- [x] Seção no perfil do usuário: histórico de votos com botões para alterar voto (up/down/remover)
+- [x] UI de votos nas páginas refletir o voto do usuário logado (CommentsSection setUserVote + myVotes) (highlight do voto atual)
+- [x] Rotas, navegação, busca e testes para as novas funcionalidades
+- [x] Testes vitest (57 aprovados) + screenshots verificados + checkpoint e entrega

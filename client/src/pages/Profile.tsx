@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
-import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package } from "lucide-react";
+import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -28,9 +28,14 @@ export default function Profile() {
 
   const { data: favorites, isLoading: favLoading } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const { data: progress, isLoading: progLoading } = trpc.codexProgress.list.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: voteHistory, isLoading: voteLoading } = trpc.user.voteHistory.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 30_000 });
 
   const toggleFav = trpc.favorites.toggle.useMutation({
     onSuccess: () => utils.favorites.list.invalidate(),
+  });
+
+  const changeVote = trpc.comments.setUserVote.useMutation({
+    onSuccess: () => utils.user.voteHistory.invalidate(),
   });
   const toggleCodex = trpc.codexProgress.toggle.useMutation({
     onSuccess: () => utils.codexProgress.list.invalidate(),
@@ -156,6 +161,62 @@ export default function Profile() {
               </div>
             )}
           </>
+        )}
+      </section>
+
+      {/* Histórico de votos */}
+      <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
+        <h2 className="font-bold text-amber-300">Histórico de votos nas dicas</h2>
+        {voteLoading ? (
+          <Loader2 className="mt-3 h-5 w-5 animate-spin text-amber-500" />
+        ) : voteHistory && voteHistory.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {voteHistory.map(v => (
+              <div key={`${v.commentId}-${v.pageKey}`} className="flex items-start gap-3 rounded-md border border-slate-800/60 bg-black/25 px-3 py-2">
+                {v.vote === 1 ? (
+                  <ThumbsUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                ) : (
+                  <ThumbsDown className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-400" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-300 line-clamp-2">{v.content}</p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    {new Date(v.votedAt).toLocaleDateString("pt-BR")} · score atual: {(v.upvotes ?? 0) - (v.downvotes ?? 0)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    type="button"
+                    aria-label="Alterar para voto a favor"
+                    onClick={() => changeVote.mutate({ commentId: v.commentId, vote: 1 })}
+                    className="rounded border border-slate-700/60 px-2 py-1 text-[11px] text-slate-400 transition-colors hover:border-emerald-700/60 hover:text-emerald-400"
+                  >
+                    Votar +
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Alterar para voto contra"
+                    onClick={() => changeVote.mutate({ commentId: v.commentId, vote: -1 })}
+                    className="rounded border border-slate-700/60 px-2 py-1 text-[11px] text-slate-400 transition-colors hover:border-red-700/60 hover:text-red-400"
+                  >
+                    Votar −
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Remover meu voto"
+                    onClick={() => changeVote.mutate({ commentId: v.commentId, vote: 0 })}
+                    className="rounded border border-slate-700/60 px-2 py-1 text-[11px] text-slate-400 transition-colors hover:text-amber-300"
+                  >
+                    <RotateCcw className="inline h-3 w-3" /> Remover
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-slate-400">
+            Você ainda não votou em nenhuma dica. Os votos que registrar aparecerão aqui e poderão ser alterados.
+          </p>
         )}
       </section>
 

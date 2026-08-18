@@ -9,6 +9,7 @@ import { PAGE_COMMENT_KEYS } from "./_core/pageComments";
 import { getPublicProfile } from "./share";
 import { computeUpcomingAlerts } from "./events";
 import { topTipsByPage } from "./faq";
+import { listVotesByUserAndComments } from "./votes";
 
 const favoritesItemType = z.enum(["spirit", "codex", "farm", "class", "economy", "boss", "sabuk", "mystery", "seal", "gear", "materials"]);
 
@@ -117,7 +118,22 @@ export const appRouter = router({
         delta: z.union([z.literal(1), z.literal(-1)]),
       }))
       .mutation(async ({ input }) => db.voteComment(input.id, input.kind, input.delta)),
-        remove: protectedProcedure
+    /** Voto registrado por usuário: previne voto duplo e permite alterar o voto. */
+    setUserVote: protectedProcedure
+      .input(z.object({
+        commentId: z.number().int().positive(),
+        vote: z.union([z.literal(1), z.literal(-1), z.literal(0)]),
+      }))
+      .mutation(async ({ ctx, input }) => db.setUserCommentVote(ctx.user.id, input.commentId, input.vote)),
+    /** Voto atual do usuário em um lote de comentários (para destacar na UI). */
+    myVotes: protectedProcedure
+      .input(z.object({ commentIds: z.array(z.number().int().positive()).max(200) }))
+      .query(async ({ ctx, input }) => {
+        if (input.commentIds.length === 0) return [];
+        const rows = await listVotesByUserAndComments(ctx.user.id, input.commentIds);
+        return rows.map(r => ({ commentId: r.commentId, vote: r.vote }));
+      }),
+    remove: protectedProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         await db.removeFarmComment(ctx.user.id, input.id);
@@ -136,6 +152,18 @@ export const appRouter = router({
     topTips: publicProcedure
       .input(z.object({ minUpvotes: z.number().int().min(0).optional() }))
       .query(({ input }) => topTipsByPage(input.minUpvotes ?? 0)),
+  }),
+
+  /** Histórico de votos do usuário, com edição de voto (alterar/remover). */
+  user: router({
+    voteHistory: protectedProcedure.query(({ ctx }) => db.listVoteHistory(ctx.user.id)),
+    setSoundAlerts: protectedProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.setSoundAlerts(ctx.user.id, input.enabled);
+        return { success: true, enabled: input.enabled } as const;
+      }),
+    getSoundAlerts: protectedProcedure.query(({ ctx }) => db.getSoundAlerts(ctx.user.id)),
   }),
 
   /** Public shareable profile (favorites + codex progress) — no auth required. */

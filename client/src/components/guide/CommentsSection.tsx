@@ -33,6 +33,17 @@ export default function CommentsSection({
   );
   const { data: myFavs } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
 
+  /** Voto atual do usuário em cada comentário desta seção. */
+  const commentIds = useMemo(() => (comments ?? []).map(c => c.id).slice(0, 200), [comments]);
+  const { data: myVotes } = trpc.comments.myVotes.useQuery(
+    { commentIds },
+    { enabled: isAuthenticated && commentIds.length > 0 },
+  );
+  const myVoteMap = useMemo(
+    () => new Map((myVotes ?? []).map(v => [v.commentId, v.vote])),
+    [myVotes],
+  );
+
   const commentsWithNames = useMemo(() => {
     const list = (comments ?? []).map(c => ({
       ...c,
@@ -42,24 +53,34 @@ export default function CommentsSection({
     return list.sort((a, b) => b.score - a.score || b.id - a.id);
   }, [comments]);
 
-  const vote = trpc.comments.vote.useMutation({
-    onMutate: async ({ id, kind, delta }) => {
+  /** Voto registrado por usuário: previne voto duplo e permite alterar/remover o voto. */
+  const setUserVote = trpc.comments.setUserVote.useMutation({
+    onMutate: async ({ commentId, vote: nextVote }) => {
       await utils.comments.list.cancel(queryInput);
       const prev = utils.comments.list.getData(queryInput);
+      const prevVote = myVoteMap.get(commentId) ?? 0;
       utils.comments.list.setData(queryInput, old =>
-        old?.map(c =>
-          c.id === id
-            ? { ...c, upvotes: kind === "up" ? Math.max(0, (c.upvotes ?? 0) + delta) : (c.upvotes ?? 0), downvotes: kind === "down" ? Math.max(0, (c.downvotes ?? 0) + delta) : (c.downvotes ?? 0) }
-            : c,
-        ) ?? old,
+        old?.map(c => {
+          if (c.id !== commentId) return c;
+          let up = c.upvotes ?? 0;
+          let down = c.downvotes ?? 0;
+          if (prevVote === 1) up = Math.max(0, up - 1);
+          if (prevVote === -1) down = Math.max(0, down - 1);
+          if (nextVote === 1) up += 1;
+          if (nextVote === -1) down += 1;
+          return { ...c, upvotes: up, downvotes: down };
+        }) ?? old,
       );
-      return { prev };
+      return { prev, prevVote };
     },
     onError: (_err, _input, ctx) => {
       utils.comments.list.setData(queryInput, ctx?.prev);
       toast.error("Falha ao registrar o voto");
     },
-    onSettled: () => invalidate(),
+    onSettled: () => {
+      invalidate();
+      utils.comments.myVotes.invalidate();
+    },
   });
 
   const invalidate = () => utils.comments.list.invalidate(queryInput);
@@ -115,6 +136,7 @@ export default function CommentsSection({
             <p className="text-xs text-slate-600 mb-2">Ordenadas pelas dicas mais votadas pela comunidade.</p>
             {commentsWithNames.map(c => {
               const isMine = isAuthenticated && (c as { userId?: number }).userId === user?.id;
+              const myVote = myVoteMap.get(c.id) ?? 0;
               return (
                 <div
                   key={c.id}
@@ -136,9 +158,9 @@ export default function CommentsSection({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 text-slate-500 hover:text-emerald-400"
+                        className={cn("h-6 w-6", myVote === 1 ? "text-emerald-400" : "text-slate-500 hover:text-emerald-400")}
                         aria-label="Votar a favor"
-                        onClick={() => vote.mutate({ id: c.id, kind: "up", delta: 1 })}
+                        onClick={() => setUserVote.mutate({ commentId: c.id, vote: myVote === 1 ? 0 : 1 })}
                       >
                         <ThumbsUp className="h-3.5 w-3.5" />
                       </Button>
@@ -148,9 +170,9 @@ export default function CommentsSection({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 text-slate-500 hover:text-red-400"
-                        aria-label="Votar contra"
-                        onClick={() => vote.mutate({ id: c.id, kind: "down", delta: 1 })}
+                        className={cn("h-6 w-6", myVote === -1 ? "text-red-400" : "text-slate-500 hover:text-red-400")}
+                        aria-label={myVote === -1 ? "Remover voto contra" : "Votar contra"}
+                        onClick={() => setUserVote.mutate({ commentId: c.id, vote: myVote === -1 ? 0 : -1 })}
                       >
                         <ThumbsDown className="h-3.5 w-3.5" />
                       </Button>
