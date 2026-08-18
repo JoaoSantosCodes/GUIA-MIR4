@@ -187,6 +187,7 @@ export async function exportTimelineCard({ userName, goldBadges, items, style = 
 interface RankingExportOptions {
   userName: string;
   goldBadges: number;
+  rarityBadges?: number;
   position: number;
   total: number;
   style?: CardStyle;
@@ -198,7 +199,7 @@ interface RankingExportOptions {
 /**
  * Exporta um card do placar com a posição do usuário no ranking.
  */
-export async function exportRankingCard({ userName, goldBadges, position, total, style = DEFAULT_CARD_STYLE, onDone, drawTo }: RankingExportOptions): Promise<void> {
+export async function exportRankingCard({ userName, goldBadges, rarityBadges, position, total, style = DEFAULT_CARD_STYLE, onDone, drawTo }: RankingExportOptions): Promise<void> {
   const canvas = drawTo ?? document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEADER_H + 360 + FOOTER_H;
@@ -209,7 +210,14 @@ export async function exportRankingCard({ userName, goldBadges, position, total,
   drawHeader(ctx, style, {
     userName,
     subtitle: "— Placar da Comunidade",
-    badgeText: goldBadges > 0 ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro` : undefined,
+    badgeText:
+      goldBadges > 0 && rarityBadges && rarityBadges > 0
+        ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro · ◆ ${rarityBadges} raridade`
+        : goldBadges > 0
+          ? `★ ${goldBadges} Dica${goldBadges !== 1 ? "s" : ""} de Ouro`
+          : rarityBadges && rarityBadges > 0
+            ? `◆ ${rarityBadges} conquista${rarityBadges !== 1 ? "s" : ""} de raridade`
+            : undefined,
   });
 
   // Posição central
@@ -231,6 +239,12 @@ export async function exportRankingCard({ userName, goldBadges, position, total,
     ctx.fillStyle = "#f59e0b";
     ctx.font = "bold 30px 'Segoe UI', Arial, sans-serif";
     ctx.fillText(position === 1 ? "🏆 Top 1 da comunidade!" : position === 2 ? "🥈 Pódio do ranking!" : "🥉 Pódio do ranking!", MARGIN, midY + 296);
+  }
+
+  if (rarityBadges && rarityBadges > 0) {
+    ctx.fillStyle = "#a78bfa";
+    ctx.font = "bold 24px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`◆ ${rarityBadges} conquista${rarityBadges !== 1 ? "s" : ""} de raridade do Codex`, MARGIN, midY + 340);
   }
 
   drawFooter(ctx, canvas);
@@ -372,6 +386,72 @@ export async function exportItemCard({ item, style = DEFAULT_CARD_STYLE, onDone,
   drawFooter(ctx, canvas);
 
   if (!drawTo) await downloadCanvas(canvas, "codex-item");
+  onDone?.();
+}
+
+export interface CategoryCardData {
+  category: string;
+  items: { name: string; rarity: string; tier: number; collected: boolean }[];
+  collectedCount: number;
+  categoryTotal: number;
+}
+
+/**
+ * Exporta um card em lote resumindo todos os itens de uma categoria do Codex
+ * (ou o Codex completo quando category for vazia).
+ */
+export async function exportCategoryCard({ data, style = DEFAULT_CARD_STYLE, onDone, drawTo }: { data: CategoryCardData; style?: CardStyle; onDone?: () => void; drawTo?: HTMLCanvasElement }): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const header = `— ${data.category || "Codex Completo"}`;
+  const ratio = data.categoryTotal > 0 ? data.collectedCount / data.categoryTotal : 0;
+  const summaryText = `${data.collectedCount}/${data.categoryTotal} itens registrados`;
+
+  // altura estimada: cabeçalho + resumo + 6 linhas de itens + rodapé
+  const canvasH = HEADER_H + 330 + FOOTER_H;
+  canvas.width = WIDTH;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, { userName: "Codex", subtitle: header, badgeText: `${summaryText} (${Math.round(ratio * 100)}%)` });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const midY = HEADER_H + 24;
+
+  // Barra de progresso da categoria
+  const barW = 480;
+  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.fillRect(MARGIN, midY + 6, barW, 14);
+  ctx.fillStyle = "#b8860b";
+  ctx.fillRect(MARGIN, midY + 6, barW * ratio, 14);
+
+  // Lista de itens (máximo 6 visíveis)
+  const maxItems = Math.min(data.items.length, 6);
+  const listY = midY + 60;
+  for (let i = 0; i < maxItems; i++) {
+    const it = data.items[i];
+    const rarColor = it.rarity === "Mítico" ? "#a78bfa" : it.rarity === "Lendário" ? "#f59e0b" : it.rarity === "Épico" ? "#f87171" : it.rarity === "Raro" ? "#60a5fa" : "#94a3b8";
+    ctx.beginPath();
+    ctx.arc(MARGIN + 8, listY + i * 34 + 8, 6, 0, Math.PI * 2);
+    ctx.fillStyle = it.collected ? "#34d399" : "rgba(255,255,255,0.25)";
+    ctx.fill();
+    ctx.fillStyle = palette.sub;
+    ctx.font = "22px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(truncate(it.name, 52), MARGIN + 26, listY + i * 34);
+    ctx.fillStyle = rarColor;
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`${it.rarity} · T${it.tier}`, MARGIN + barW - 90, listY + i * 34 + 2);
+  }
+  if (data.items.length > maxItems) {
+    ctx.fillStyle = palette.faded;
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`e mais ${data.items.length - maxItems} itens…`, MARGIN + 26, listY + maxItems * 34 + 14);
+  }
+
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "codex-categoria");
   onDone?.();
 }
 

@@ -1,4 +1,5 @@
 import { eq, and, gte, inArray, desc, isNotNull } from "drizzle-orm";
+import { CODEX_ITEMS } from "../shared/guideData";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes } from "../drizzle/schema";
@@ -352,8 +353,9 @@ export async function getSoundAlerts(userId: number): Promise<boolean> {
 }
 
 /**
- * Placar da comunidade: usuários com mais medalhas "Dica de Ouro".
- * Conta votos a favor do usuário em dicas que atualmente possuem 10+ upvotes.
+ * Placar da comunidade: usuários com mais medalhas "Dica de Ouro",
+ * incluindo o número de conquistas de raridade do Codex (faixa-t2..t5)
+ * que cada usuário desbloqueou.
  */
 export async function goldLeaderboard() {
   const db = await getDb();
@@ -371,5 +373,30 @@ export async function goldLeaderboard() {
     .groupBy(commentVotes.userId, users.name)
     .orderBy(desc(sql<number>`count(*)`))
     .limit(50);
-  return rows;
+
+  // Conquistas de raridade (faixa-t2..t5): usuário precisa ter registrado
+  // TODOS os itens de uma raridade para contar a medalha.
+  const itemsByRarity = new Map<string, string[]>();
+  for (const item of CODEX_ITEMS) {
+    const list = itemsByRarity.get(item.rarity) ?? [];
+    list.push(item.key);
+    itemsByRarity.set(item.rarity, list);
+  }
+
+  const out: { userId: number; userName: string | null; goldBadges: number; rarityBadges: number }[] = [];
+  for (const row of rows) {
+    let rarityBadges = 0;
+    for (const entry of Array.from(itemsByRarity)) {
+      const rarity = entry[0];
+      const keys = entry[1];
+      if (rarity === "UC" || keys.length === 0) continue;
+      const counts = await db
+        .select({ n: sql<number>`count(distinct ${codexProgress.itemId})` })
+        .from(codexProgress)
+        .where(and(eq(codexProgress.userId, row.userId), inArray(codexProgress.itemId, keys)));
+      if ((counts[0]?.n ?? 0) >= keys.length) rarityBadges += 1;
+    }
+    out.push({ ...row, rarityBadges });
+  }
+  return out;
 }

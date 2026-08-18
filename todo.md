@@ -179,3 +179,10 @@
 - [x] Conquistas por faixa de raridade completa: faixa-t2..t5 (Ascensão Rara, Mestre Épico, Lenda da Arena, Ascensão Mítica)
 - [x] Card individual por item do Codex: ItemCardDialog com preview (nome, raridade, dica de farm, tier, progresso da categoria) e exportação PNG
 - [x] Testes vitest para novas conquistas de faixa (83 aprovados) + screenshots verificados + checkpoint e entrega
+
+## Nova funcionalidade: persistência de filtros, export em lote e badges de raridade
+- [ ] Persistir preferências de filtro do Codex (busca, categoria, raridade, faixa) em localStorage e restaurar na reabertura da página
+- [ ] Exportação em lote: botão para gerar um único card PNG resumindo todos os itens de uma categoria (com botão por categoria no Codex)
+- [ ] Exibir conquistas de raridade (faixa-t2..t5) no perfil e na página de placar (/placar)
+- [ ] Testes vitest + screenshots + checkpoint
+- [ ] Documentação do projeto: Implementation Plan, SFPS Specification, Manifesto & Coding Standards, Manual de Uso, Walkthrough — arquivos prontos para a pasta GuiaMir4 do Obsidian

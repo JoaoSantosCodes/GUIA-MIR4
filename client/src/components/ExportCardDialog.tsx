@@ -42,27 +42,29 @@ export function ExportActivityCardDialog({ userName, goldBadges, items, trigger 
 interface RankingDialogProps {
   userName: string;
   goldBadges: number;
+  rarityBadges: number;
   position: number;
   total: number;
   trigger?: React.ReactNode;
 }
 
 /** Botão/dialog de exportação do card do placar com personalização. */
-export function ExportRankingCardDialog({ userName, goldBadges, position, total, trigger }: RankingDialogProps) {
-  return <ExportCardDialogInner mode="ranking" userName={userName} goldBadges={goldBadges} position={position} total={total} trigger={trigger} />;
+export function ExportRankingCardDialog({ userName, goldBadges, rarityBadges, position, total, trigger }: RankingDialogProps) {
+  return <ExportCardDialogInner mode="ranking" userName={userName} goldBadges={goldBadges} rarityBadges={rarityBadges} position={position} total={total} trigger={trigger} />;
 }
 
 interface InnerProps {
   mode: "activity" | "ranking";
   userName: string;
   goldBadges: number;
+  rarityBadges?: number;
   items?: TimelineItemLike[];
   position?: number;
   total?: number;
   trigger?: React.ReactNode;
 }
 
-function ExportCardDialogInner({ mode, userName, goldBadges, items = [], position, total, trigger }: InnerProps) {
+function ExportCardDialogInner({ mode, userName, goldBadges, rarityBadges, items = [], position, total, trigger }: InnerProps) {
   const [style, setStyle] = useState<CardStyle>(DEFAULT_CARD_STYLE);
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -86,7 +88,7 @@ function ExportCardDialogInner({ mode, userName, goldBadges, items = [], positio
         }
         await exportTimelineCard({ userName, goldBadges, items: maxItems, style, onDone: () => {}, drawTo: canvas });
       } else {
-        await exportRankingCard({ userName, goldBadges, position: position ?? 0, total: total ?? 0, style, onDone: () => {}, drawTo: canvas });
+        await exportRankingCard({ userName, goldBadges, rarityBadges: rarityBadges ?? 0, position: position ?? 0, total: total ?? 0, style, onDone: () => {}, drawTo: canvas });
       }
       await exportCardShared(canvas, userName, {
         onShared: () => toast.success("Card compartilhado pelo menu do dispositivo!"),

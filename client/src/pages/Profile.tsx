@@ -142,6 +142,7 @@ export default function Profile() {
     [progress],
   );
   const earnedCount = codexAchievements.filter(a => a.earned).length;
+  const rarityBadges = codexAchievements.filter(a => /^faixa-t[2-5]$/.test(a.key) && a.earned).length;
 
   /** Notificação de conquista recém-desbloqueada: compara conquistas entre revalidações do progresso. */
   const prevEarnedRef = useRef<Set<string>>(new Set());
@@ -276,6 +277,13 @@ export default function Profile() {
               <span className="text-[10px] text-slate-500">— votos a favor em dicas premiadas</span>
             </div>
           )}
+          {rarityBadges > 0 && (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-purple-500/60 bg-gradient-to-r from-purple-950/60 to-purple-900/40 px-3 py-1.5 shadow-sm shadow-purple-500/20">
+              <Gem className="h-4 w-4 text-purple-300" />
+              <span className="text-xs font-bold uppercase tracking-wide text-purple-200">{rarityBadges} conquista{rarityBadges !== 1 ? "s" : ""} de raridade</span>
+              <span className="text-[10px] text-slate-500">— raridades completas no Codex</span>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
@@ -343,25 +351,33 @@ export default function Profile() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {codexAchievements.map(a => {
             const Icon = ACHIEVEMENT_ICONS[a.iconKey];
+            const isRarity = /^faixa-t[2-5]$/.test(a.key);
             return (
               <div
                 key={a.key}
                 className={cn(
-                  "flex items-start gap-3 rounded-md border px-3 py-3",
+                  "relative flex items-start gap-3 rounded-md border px-3 py-3",
                   a.earned
-                    ? "border-amber-500/70 bg-gradient-to-br from-amber-950/60 to-amber-900/20 shadow-sm shadow-amber-500/20"
+                    ? isRarity
+                      ? "border-purple-400/60 bg-gradient-to-br from-purple-950/60 to-purple-900/20 shadow-sm shadow-purple-500/20 ring-1 ring-purple-500/40"
+                      : "border-amber-500/70 bg-gradient-to-br from-amber-950/60 to-amber-900/20 shadow-sm shadow-amber-500/20"
                     : "border-slate-800/60 bg-black/25 opacity-70",
                 )}
               >
-                <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", a.earned ? "border-amber-500/70 bg-amber-900/40 text-amber-400" : "border-slate-700/60 bg-slate-900/40 text-slate-500")}>
+                {isRarity && (
+                  <span className="absolute -top-1.5 right-2 rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                    Raridade
+                  </span>
+                )}
+                <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border", a.earned ? (isRarity ? "border-purple-400/70 bg-purple-900/40 text-purple-300" : "border-amber-500/70 bg-amber-900/40 text-amber-400") : "border-slate-700/60 bg-slate-900/40 text-slate-500")}>
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={cn("text-sm font-semibold", a.earned ? "text-amber-200" : "text-slate-300")}>{a.title}</p>
+                  <p className={cn("text-sm font-semibold", a.earned ? (isRarity ? "text-purple-200" : "text-amber-200") : "text-slate-300")}>{a.title}</p>
                   <p className="mt-0.5 text-[11px] text-slate-400">{a.description}</p>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
                     <div
-                      className={cn("h-full rounded-full transition-all", a.earned ? "bg-gradient-to-r from-amber-600 to-amber-400" : "bg-amber-800/60")}
+                      className={cn("h-full rounded-full transition-all", a.earned ? (isRarity ? "bg-gradient-to-r from-purple-600 to-purple-400" : "bg-gradient-to-r from-amber-600 to-amber-400") : "bg-amber-800/60")}
                       style={{ width: `${Math.round((a.progress / a.goal) * 100)}%` }}
                     />
                   </div>

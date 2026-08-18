@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
-import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown } from "lucide-react";
+import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import PageBanner from "@/components/guide/PageBanner";
@@ -57,6 +57,7 @@ export default function Leaderboard() {
             <ExportRankingCardDialog
               userName={auth.user?.name ?? "Aventureiro"}
               goldBadges={Number(myBadges) || 0}
+              rarityBadges={Number(myEntry?.rarityBadges) || 0}
               position={myPosition ?? 0}
               total={entries?.length ?? 0}
             />
@@ -113,6 +114,12 @@ export default function Leaderboard() {
                     <Crown className="h-4 w-4" />
                     <span className="text-2xl font-bold">{Number(e.goldBadges)}</span>
                   </div>
+                  {Number(e.rarityBadges) > 0 && (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-purple-400/40 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
+                      <Gem className="h-3 w-3" />
+                      {Number(e.rarityBadges)} conquista{Number(e.rarityBadges) === 1 ? "" : "s"} de raridade
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>
@@ -136,10 +143,15 @@ export default function Leaderboard() {
                       <Crown className="h-3.5 w-3.5" />
                       {Number(e.goldBadges)}
                     </span>
+                    <span className="flex items-center gap-1 text-sm font-semibold text-purple-300" title="Conquistas de raridade do Codex">
+                      <Gem className="h-3.5 w-3.5" />
+                      {Number(e.rarityBadges)}
+                    </span>
                     {auth.user?.id && myEntry?.userId === e.userId && myPosition > 0 && (
                       <ExportRankingCardDialog
                         userName={e.userName ?? "Aventureiro"}
                         goldBadges={Number(e.goldBadges)}
+                        rarityBadges={Number(e.rarityBadges)}
                         position={myPosition}
                         total={entries?.length ?? 0}
                         trigger={

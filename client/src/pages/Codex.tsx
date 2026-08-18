@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast as sonnerToast } from "sonner";
-import { BookOpen, Image, LogIn, Search, X } from "lucide-react";
+import { BookOpen, FileDown, Image, LogIn, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import CategoryCardDialog from "@/components/CategoryCardDialog";
 
 export default function Codex() {
   const { isAuthenticated, loading } = useAuth();
@@ -21,7 +22,37 @@ export default function Codex() {
   const [rarity, setRarity] = useState<string | "Todas">("Todas");
   const [tier, setTier] = useState<string | "Todas">("Todas");
   const [exportingItem, setExportingItem] = useState<CodexItem | null>(null);
+  const [exportingCategory, setExportingCategory] = useState<string | null>(null);
   const [pending, setPending] = useState<Record<string, boolean>>({});
+
+  // Persistência das preferências de filtro em localStorage
+  const [restored, setRestored] = useState(false);
+  useMemo(() => {
+    try {
+      const raw = window.localStorage.getItem("mir4-codex-filters");
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.category) setCategory(saved.category);
+      if (saved.query) setQuery(saved.query);
+      if (saved.rarity) setRarity(saved.rarity);
+      if (saved.tier) setTier(saved.tier);
+    } catch {
+      // preferência corrompida — ignorar e começar do zero
+    }
+    setRestored(true);
+  }, []);
+
+  useMemo(() => {
+    if (!restored) return;
+    try {
+      window.localStorage.setItem(
+        "mir4-codex-filters",
+        JSON.stringify({ category, query, rarity, tier }),
+      );
+    } catch {
+      // localStorage indisponível — sem ação
+    }
+  }, [restored, category, query, rarity, tier]);
 
   const collected = useMemo(() => new Set(progress?.map(p => p.itemId) ?? []), [progress]);
   const filtered = useMemo(() => {
@@ -178,6 +209,24 @@ export default function Codex() {
             Marque os itens que você já registrou. Filtre por categoria para focar no que falta.
           </p>
           <div className="mt-4 flex flex-col gap-3">
+            {/* Exportação em lote por categoria */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setExportingCategory("__todas__")}
+                className="rounded-md border border-amber-800/40 bg-black/30 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-amber-600 hover:text-amber-200 active:scale-[0.97]"
+              >
+                <FileDown className="mr-1 inline h-3 w-3" /> Exportar card do Codex completo
+              </button>
+              {CODEX_CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setExportingCategory(cat)}
+                  className="rounded-md border border-amber-800/40 bg-black/30 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-amber-600 hover:text-amber-200 active:scale-[0.97]"
+                >
+                  <FileDown className="mr-1 inline h-3 w-3" /> Card {cat}
+                </button>
+              ))}
+            </div>
             {/* Busca por nome */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1 max-w-md">
@@ -341,6 +390,16 @@ export default function Codex() {
               }}
               collected={collected.has(exportingItem.key)}
               onClose={() => setExportingItem(null)}
+            />
+          )}
+          {exportingCategory && (
+            <CategoryCardDialog
+              category={exportingCategory}
+              items={exportingCategory === "__todas__" ? CODEX_ITEMS : CODEX_ITEMS.filter(c => c.category === exportingCategory)}
+              collected={collected}
+              catDone={catDone}
+              catTotal={catTotal}
+              onClose={() => setExportingCategory(null)}
             />
           )}
         </section>
