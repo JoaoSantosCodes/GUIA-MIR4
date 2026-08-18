@@ -1951,6 +1951,29 @@ export const GEMMING_TIPS = [
 /** Chave da página de equipamentos para comentários. */
 export const EQUIPMENT_PAGE_KEY = "gear" as const;
 
+/**
+ * Preços de mercado estimados dos materiais de fortalecimento, em Gold.
+ * Valores indicativos de comunidade (2022–2026) — o mercado do MIR4 flutua
+ * por servidor e patch; os jogadores ajustam na calculadora conforme a cotação local.
+ * Base: 1 Darksteel ≈ 1.000 Gold, 10.000 Copper ≈ 1 Gold, 1 Jade ≈ 40.000 Gold,
+ * 1 Dragonsteel ≈ 25.000 Gold (não negociável — estimado pelo custo de oportunidade).
+ */
+export interface MaterialGoldPrice {
+  key: string;
+  name: string;
+  /** Preço em Gold de 1 unidade do material (0 = não negociável/irrelevante). */
+  goldPerUnit: number;
+  note: string;
+}
+export const MATERIAL_GOLD_PRICES: MaterialGoldPrice[] = [
+  { key: "darksteel", name: "Darksteel", goldPerUnit: 1000, note: "Negociável no Mercado — base de referência da calculadora" },
+  { key: "copper", name: "Copper", goldPerUnit: 0.0001, note: "≈ 10.000 Copper por 1 Gold; custo marginal desprezível" },
+  { key: "jade", name: "Jade (Eternal)", goldPerUnit: 40000, note: "Custado via Eternal crafted (Darksteel + Dragonsteel) — 1 por tentativa" },
+  { key: "dragonsteel", name: "Dragonsteel", goldPerUnit: 25000, note: "Não negociável — custo estimado de oportunidade (≈ 2.500 Dragonsteel × 25.000 Gold por Dragon Artifact lendário)" },
+];
+export const MATERIAL_GOLD_PRICES_NOTE =
+  "Preços indicativos de comunidade (2022–2026): o mercado do MIR4 flutua por servidor, fuso e patch. Ajuste o valor do Darksteel na calculadora conforme a cotação do seu Mercado — os totais em Gold são recalculados na hora.";
+
 /** Materiais e crafting: fontes de farm por material. */
 export interface MaterialInfo {
   key: string;

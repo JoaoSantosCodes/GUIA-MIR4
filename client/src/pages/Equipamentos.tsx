@@ -21,6 +21,9 @@ import {
   GEMMING_TIPS,
   EQUIPMENT_PAGE_KEY,
 } from "@shared/guideData";
+import { ENHANCE_RATES, BREAK_RISK_LABELS, ENHANCE_RATES_NOTE } from "@/lib/enhanceRates";
+import { Progress } from "@/components/ui/progress";
+import { ShieldAlert } from "lucide-react";
 
 const fmt = (n: number) =>
   n.toLocaleString("pt-BR");
@@ -131,6 +134,73 @@ export default function Equipamentos() {
               Referência indicativa por estágio inicial — o custo real varia com o grau do item (graus maiores pagam mais por nível).
             </p>
           </Card>
+        </section>
+
+        {/* Taxas de sucesso e quebra */}
+        <section>
+          <h2 className="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+            <ShieldAlert className="h-6 w-6" />
+            Taxas de sucesso e quebra por nível
+          </h2>
+          <Card className="p-4 bg-black/30 border-amber-800/40">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-red-950/50 hover:bg-red-950/50">
+                    <TableHead className="text-amber-300">Transição</TableHead>
+                    <TableHead className="text-amber-300 min-w-36">Taxa de sucesso</TableHead>
+                    <TableHead className="text-amber-300 min-w-36">Taxa de quebra</TableHead>
+                    <TableHead className="text-amber-300">Risco</TableHead>
+                    <TableHead className="text-amber-300">Observação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ENHANCE_RATES.map(r => (
+                    <TableRow key={r.from} className="border-slate-800/60">
+                      <TableCell className="font-bold text-amber-200 whitespace-nowrap">+{r.from} → +{r.to}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-32">
+                          <Progress value={r.successRate} className={r.successRate >= 70 ? "bg-green-900/40" : r.successRate >= 40 ? "bg-amber-900/40" : "bg-red-900/40"} />
+                          <span className="text-xs font-semibold text-slate-200 whitespace-nowrap w-10 text-right">{r.successRate}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-32">
+                          <Progress value={Math.max(r.breakRate, 2)} className={r.breakRate === 0 ? "bg-slate-800/40" : "bg-red-900/40"} />
+                          <span className={`text-xs font-semibold whitespace-nowrap w-10 text-right ${r.breakRate === 0 ? "text-slate-500" : "text-red-300"}`}>
+                            {r.breakRate === 0 ? "0%" : `~${r.breakRate}%`}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`shrink-0 ${
+                            r.breakRisk === "none"
+                              ? "border-green-800/50 text-green-400"
+                              : r.breakRisk === "low"
+                                ? "border-lime-800/50 text-lime-400"
+                                : r.breakRisk === "moderate"
+                                  ? "border-amber-800/50 text-amber-400"
+                                  : r.breakRisk === "high"
+                                    ? "border-orange-800/50 text-orange-400"
+                                    : "border-red-700/50 text-red-400"
+                          }`}
+                        >
+                          {BREAK_RISK_LABELS[r.breakRisk]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-400">{r.note}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="mt-3 text-xs text-slate-500 leading-relaxed">{ENHANCE_RATES_NOTE}</p>
+          </Card>
+          <p className="mt-2 text-xs text-slate-400">
+            Use a <a href="/calculadora" className="text-amber-400 underline-offset-2 hover:underline">Calculadora de Fortalecimento</a> para estimar o custo total em Darksteel, Copper e Gold até o estágio desejado.
+          </p>
         </section>
 
         {/* Graus e materiais */}

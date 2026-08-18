@@ -62,6 +62,26 @@ describe("estimateEnhance", () => {
     const est = estimateEnhance({ current: 0, target: 3, jadePriceUnit: 0 });
     expect(est.totalJade).toBe(0);
   });
+
+  it("estima o custo total em Gold com os preços de mercado (Darksteel, Copper, Jade)", () => {
+    const est = estimateEnhance({ current: 0, target: 3, slotKey: "weapon" });
+    // Darksteel 1.000 Gold/unid + Copper 0,0001 Gold/unid + Jade 0 (não informado)
+    const goldDs = est.totalDarksteel * 1000;
+    const goldCu = est.totalCopper * 0.0001;
+    expect(est.totalGold).toBeCloseTo(goldDs + goldCu, 0);
+    expect(est.goldBreakdown.map(b => b.key)).toEqual(["darksteel", "copper", "jade"]);
+    expect(est.goldBreakdown[0].gold).toBe(goldDs);
+    expect(est.goldBreakdown[2].gold).toBe(0);
+  });
+
+  it("inclui o custo em Gold do Jade quando informado", () => {
+    const est = estimateEnhance({ current: 0, target: 3, jadePriceUnit: 500 });
+    expect(est.totalGold).toBeCloseTo(
+      est.totalDarksteel * 1000 + est.totalCopper * 0.0001 + est.totalJade * 40000,
+      0,
+    );
+    expect(est.goldBreakdown[2].gold).toBeGreaterThan(0);
+  });
 });
 
 describe("fmtNumber", () => {

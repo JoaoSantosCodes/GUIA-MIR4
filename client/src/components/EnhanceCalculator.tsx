@@ -4,13 +4,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Swords, RotateCcw } from "lucide-react";
+import { AlertTriangle, Swords, RotateCcw, Coins } from "lucide-react";
 import {
   estimateEnhance,
   fmtNumber,
   enhanceSlotOptions,
   ENHANCE_MAX_LEVEL,
 } from "@/lib/enhanceCalc";
+import { MATERIAL_GOLD_PRICES, MATERIAL_GOLD_PRICES_NOTE } from "@shared/guideData";
 
 const ENHANCE_PREF = "enhance-prefs";
 const SLOT_HINTS: Record<string, string> = {
@@ -39,15 +40,24 @@ export default function EnhanceCalculator() {
   const [current, setCurrent] = useState<number>((stored.current as number) ?? 0);
   const [target, setTarget] = useState<number>((stored.target as number) ?? 5);
   const [jadePrice, setJadePrice] = useState<number>((stored.jadePrice as number) ?? 0);
+  /** Preço de mercado de 1 Darksteel em Gold (ajustável pelo jogador conforme a cotação local). */
+  const [dsGoldPrice, setDsGoldPrice] = useState<number>((stored.dsGoldPrice as number) ?? 1000);
 
-  const estimate = useMemo(
-    () => estimateEnhance({ current, target, slotKey, jadePriceUnit: jadePrice }),
-    [current, target, slotKey, jadePrice],
-  );
+  const estimate = useMemo(() => {
+    const e = estimateEnhance({ current, target, slotKey, jadePriceUnit: jadePrice });
+    // Recalcula o total em Gold com a cotação ajustada do Darksteel
+    const dsPrice = MATERIAL_GOLD_PRICES.find(p => p.key === "darksteel")?.goldPerUnit ?? 1000;
+    const jadePriceGold = MATERIAL_GOLD_PRICES.find(p => p.key === "jade")?.goldPerUnit ?? 40000;
+    const ratio = dsPrice > 0 ? dsGoldPrice / dsPrice : 1;
+    return {
+      ...e,
+      totalGold: e.goldBreakdown[0].gold * ratio + e.goldBreakdown[1].gold + e.goldBreakdown[2].gold * jadePriceGold / 40000,
+    };
+  }, [current, target, slotKey, jadePrice, dsGoldPrice]);
 
   const persist = (next: Record<string, unknown>) => {
     try {
-      localStorage.setItem(ENHANCE_PREF, JSON.stringify(next));
+      localStorage.setItem(ENHANCE_PREF, JSON.stringify({ ...next, dsGoldPrice }));
     } catch {
       /* storage indisponível */
     }
@@ -151,9 +161,31 @@ export default function EnhanceCalculator() {
                 }}
                 className="mt-2 w-full rounded-md border border-amber-800/50 bg-black/40 px-3 py-2 text-sm text-amber-100"
               />
-              <p className="mt-1 text-xs text-slate-500">
-                Jade protege contra a perda de nível: 1 Jade por tentativa. Informe o preço em Darksteel/Gold para estimar o custo total.
-              </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Jade protege contra a perda de nível: 1 Jade por tentativa. Informe o preço em Darksteel/Gold para estimar o custo total.
+            </p>
+            </div>
+          </div>
+
+          {/* Cotação do Darksteel em Gold */}
+          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+              <Label htmlFor="ds-gold-price" className="text-amber-400 flex items-center gap-1.5">
+                <Coins className="h-4 w-4" /> Cotação do Darksteel no Mercado (Gold por unidade)
+              </Label>
+              <input
+                id="ds-gold-price"
+                type="number"
+                min={1}
+                value={dsGoldPrice || ""}
+                onChange={e => {
+                  const v = Number(e.target.value);
+                  setDsGoldPrice(v);
+                  persist({ slot: slotKey, current, target, jadePrice });
+                }}
+                className="mt-2 w-full rounded-md border border-amber-800/50 bg-black/40 px-3 py-2 text-sm text-amber-100"
+              />
+              <p className="mt-1 text-xs text-slate-500">{MATERIAL_GOLD_PRICES_NOTE}</p>
             </div>
             <div className="flex items-end">
               <Button
@@ -163,6 +195,7 @@ export default function EnhanceCalculator() {
                   setCurrent(0);
                   setTarget(0);
                   setJadePrice(0);
+                  setDsGoldPrice(1000);
                   localStorage.removeItem(ENHANCE_PREF);
                 }}
               >
@@ -174,7 +207,7 @@ export default function EnhanceCalculator() {
       </Card>
 
       {/* Totais */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-amber-900/40 bg-gradient-to-br from-black/50 to-amber-950/20">
           <CardContent className="p-5">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -198,6 +231,20 @@ export default function EnhanceCalculator() {
               {jadePrice > 0
                 ? `${estimate.jadeAttempts} tentativa(s) × ${fmtNumber(jadePrice)}`
                 : "Informe o preço do Jade para estimar"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-900/40 bg-gradient-to-br from-black/50 to-yellow-950/25">
+          <CardContent className="p-5">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <Coins className="h-4 w-4" /> Custo estimado em Gold
+            </p>
+            <p className="mt-2 font-serif text-3xl font-bold text-yellow-400">
+              {fmtNumber(Math.round(estimate.totalGold))}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Darksteel × {fmtNumber(dsGoldPrice)} Gold{estimate.jadeAttempts > 0 ? " + Jade (1 por tentativa)" : ""} —
+              ajuste a cotação acima conforme o seu Mercado
             </p>
           </CardContent>
         </Card>

@@ -1,15 +1,18 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Swords, Trophy, Minus } from "lucide-react";
 import { compareBuilds, COMPARE_CLASSES, SCENARIO_LABELS, ATTR_LABELS, type CompareResult } from "@/lib/pvpCompare";
+import PvPCompareCardDialog from "@/components/PvPCompareCardDialog";
+import { ImageDown } from "lucide-react";
 
 export default function PvPCompareDialog() {
   const [open, setOpen] = useState(false);
   const [classA, setClassA] = useState<string>("warrior");
   const [classB, setClassB] = useState<string>("sorcerer");
+  const [cardOpen, setCardOpen] = useState(false);
 
   const result: CompareResult | null = useMemo(() => compareBuilds(classA, classB), [classA, classB]);
 
@@ -31,6 +34,7 @@ export default function PvPCompareDialog() {
         : "text-red-400";
 
   return (
+    <Fragment>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
@@ -173,13 +177,26 @@ export default function PvPCompareDialog() {
               })}
             </div>
 
-            <p className="rounded-md border border-slate-800 bg-black/25 px-3 py-2 text-[10px] text-slate-500">
-              Scores indicativos de comunidade (0–100) baseados na tier list deste guia — o meta real varia por
-              patch, servidor e gear. Use como ponto de partida para testar as duas builds em combate.
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="rounded-md border border-slate-800 bg-black/25 px-3 py-2 text-[10px] text-slate-500">
+                Scores indicativos de comunidade (0–100) baseados na tier list deste guia — o meta real varia por
+                patch, servidor e gear. Use como ponto de partida para testar as duas builds em combate.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-amber-700/50 text-amber-300 hover:bg-amber-950/40 shrink-0"
+                onClick={() => setCardOpen(true)}
+              >
+                <ImageDown className="mr-1.5 h-4 w-4" /> Exportar card
+              </Button>
+            </div>
           </>
         )}
       </DialogContent>
     </Dialog>
+
+    <PvPCompareCardDialog classA={classA} classB={classB} open={cardOpen} onOpenChange={setCardOpen} />
+    </Fragment>
   );
 }

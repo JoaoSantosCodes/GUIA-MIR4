@@ -238,3 +238,10 @@
 - [x] Vídeos embutidos do YouTube nas páginas de Classes e Subclasses (ClassVideoPlayer: youtube-nocookie, lazy, carregado ao clicar em Assistir; CLASS_VIDEOS no guideData com IDs reais verificados da comunidade — 1 vídeo por classe: warrior=Q82PZqjxPz4, sorcerer=Zj9QMzxzt1Y, taoist=GTmrnnEUDtQ, lancer=yx3S_QYnEBo, arbalist=hMmHk7OBTr0; nota "pausado por padrão" no player)
 - [x] Comparador lado a lado de builds PvP (PvPCompareDialog no cabeçalho do seletor de classe em Subclasses: seletor de 2 classes, scores 0–100 de dano/defesa/utilidade em 3 cenários — PvP 1×1, grupo, Bosses; barras comparativas, deltas com vencedor, placar por cenário e vencedor geral; pvpCompare.ts puro com 8 testes aprovados)
 - [x] Testes vitest (130 aprovados, incl. 10 de enhanceCalc e 8 de pvpCompare) + screenshots verificados (/classes e /subclasses com player de vídeo, /calculadora com abas) + TSC limpo — checkpoint e entrega
+
+## Nova funcionalidade: tabelas de fortalecimento, export PvP e preços em Gold
+
+- [x] Tabelas de taxa de sucesso/quebra de fortalecimento por nível na página de Equipamentos (/equipamentos, nova seção "Taxas de sucesso e quebra por nível": ENHANCE_RATES +0→+10 com barras de progresso, taxas de quebra, badge de risco colorido e observações; enhanceRates.ts pura com effectiveRate e nota indicativa; 7 testes aprovados; link para a calculadora)
+- [x] Exportação do comparador PvP como card PNG (exportPvPCompareCard no timelineExport: placar geral, vitória por cenário e deltas; botão "Exportar card" dentro do PvPCompareDialog abrindo PvPCompareCardDialog com Compartilhar/Copiar/Baixar PNG; marca d'água com nome e data)
+- [x] Preços de mercado em Gold integrados à aba Fortalecimento: MATERIAL_GOLD_PRICES no guideData (Darksteel 1.000 Gold/unid, Copper 0,0001, Jade 40.000, Dragonsteel 25.000), novo card "Custo estimado em Gold" na calculadora, campo de cotação do Darksteel ajustável pelo jogador (persistido em localStorage) com nota de flutuação do mercado, goldBreakdown na enhanceCalc; ?tab=enhance abre direto na aba; 2 testes novos aprovados
+- [ ] Testes vitest + screenshots + checkpoint e entrega

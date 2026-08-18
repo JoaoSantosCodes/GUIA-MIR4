@@ -24,8 +24,19 @@ function fmt(n: number) {
 
 const CALC_TAB = "calc-tab";
 
+/** Inicia na aba indicada por ?tab=enhance, senão pela preferência salva. */
+function initialTab(): string {
+  try {
+    const p = new URLSearchParams(window.location.search).get("tab");
+    if (p === "enhance" || p === "mining") return p;
+  } catch {
+    /* window indisponível no SSR */
+  }
+  return localStorage.getItem(CALC_TAB) ?? "mining";
+}
+
 export default function Calculadora() {
-  const [tab, setTab] = useState<string>(() => localStorage.getItem(CALC_TAB) ?? "mining");
+  const [tab, setTab] = useState<string>(initialTab);
   const [sealLevel, setSealLevel] = useState<0 | 1 | 2 | 3>(1);
   const [areaKey, setAreaKey] = useState("byeoksan");
   const [hours, setHours] = useState("8");

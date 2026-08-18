@@ -687,3 +687,120 @@ export async function exportHistoryCard({
   if (!drawTo) await downloadCanvas(canvas, "historico-conquistas");
   onDone?.();
 }
+
+export interface PvPCompareCardData {
+  nameA: string;
+  nameB: string;
+  totals: { a: number; b: number };
+  overallWinner: "a" | "b" | "draw";
+  scenarios: {
+    scenario: string;
+    scenarioLabel: string;
+    rows: { attribute: string; attrLabel: string; valueA: number; valueB: number; delta: number; winner: "a" | "b" | "draw" }[];
+    winner: "a" | "b" | "draw";
+    winsA: number;
+    winsB: number;
+  }[];
+}
+
+/**
+ * Exporta o comparador PvP lado a lado como card PNG: placar geral,
+ * vitória por cenário e deltas de dano/defesa/utilidade de cada um.
+ */
+export async function exportPvPCompareCard({
+  data,
+  userName,
+  style = DEFAULT_CARD_STYLE,
+  onDone,
+  drawTo,
+}: {
+  data: PvPCompareCardData;
+  userName: string;
+  style?: CardStyle;
+  onDone?: () => void;
+  drawTo?: HTMLCanvasElement;
+}): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const scenarioH = 330;
+  const totalH = HEADER_H + 90 + data.scenarios.length * (scenarioH + 24) + FOOTER_H + 24;
+  canvas.width = WIDTH;
+  canvas.height = totalH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, {
+    userName: truncate(userName, 34),
+    subtitle: "— Comparador de Builds PvP",
+    badgeText: data.overallWinner === "draw"
+      ? "Empate geral"
+      : `${data.overallWinner === "a" ? data.nameA : data.nameB} leva a vantagem`,
+  });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const gold = "#f59e0b";
+  const red = "#ef4444";
+
+  // Placar agregado
+  let y = HEADER_H;
+  ctx.fillStyle = palette.title;
+  ctx.font = "bold 44px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.fillText(truncate(data.nameA, 22), WIDTH / 2 - 180, y + 4);
+  ctx.fillText(truncate(data.nameB, 22), WIDTH / 2 + 180, y + 4);
+  ctx.fillStyle = gold;
+  ctx.font = "bold 44px Georgia, serif";
+  ctx.fillText(String(data.totals.a), WIDTH / 2 - 60, y + 4);
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = "30px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("×", WIDTH / 2, y + 6);
+  ctx.fillStyle = red;
+  ctx.fillText(String(data.totals.b), WIDTH / 2 + 60, y + 4);
+  ctx.textAlign = "left";
+  y += 74;
+
+  // Cenários
+  for (const sc of data.scenarios) {
+    ctx.fillStyle = palette.title;
+    ctx.font = "bold 26px Georgia, serif";
+    ctx.fillText(sc.scenarioLabel, MARGIN, y + 28);
+    ctx.fillStyle = palette.faded;
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    const scWinnerLabel =
+      sc.winner === "draw"
+        ? "Empate"
+        : sc.winner === "a"
+          ? `${sc.winsA}×${sc.winsB} — ${data.nameA} vence`
+          : `${sc.winsB}×${sc.winsA} — ${data.nameB} vence`;
+    ctx.fillText(scWinnerLabel, WIDTH - MARGIN - ctx.measureText(scWinnerLabel).width - 10, y + 32);
+
+    let rowY = y + 58;
+    for (const row of sc.rows) {
+      ctx.fillStyle = palette.sub;
+      ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+      const deltaTxt =
+        row.winner === "draw"
+          ? `${row.valueA} × ${row.valueB} — empate`
+          : `${row.valueA} × ${row.valueB} — ${row.winner === "a" ? `+${Math.abs(row.delta)} ${data.nameA}` : `+${Math.abs(row.delta)} ${data.nameB}`}`;
+      ctx.fillText(`${row.attrLabel}: ${truncate(deltaTxt, 58)}`, MARGIN, rowY + 4);
+      // barras 2 colunas
+      const barY = rowY + 16;
+      const barW = (WIDTH - MARGIN * 2 - 24) / 2;
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(MARGIN, barY, barW, 10);
+      ctx.fillRect(MARGIN + barW + 24, barY, barW, 10);
+      ctx.fillStyle = gold;
+      ctx.fillRect(MARGIN, barY, barW * Math.min(row.valueA / 100, 1), 10);
+      ctx.fillStyle = red;
+      ctx.fillRect(MARGIN + barW + 24, barY, barW * Math.min(row.valueB / 100, 1), 10);
+      rowY += 52;
+    }
+    y += scenarioH + 24;
+  }
+
+  drawWatermark(ctx, canvas, userName);
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "comparador-pvp");
+  onDone?.();
+}

@@ -10,7 +10,7 @@
  *
  * Todos os cálculos são determinísticos — sem acesso a DOM/API.
  */
-import { ENHANCE_COSTS, EQUIPMENT_TYPES } from "@shared/guideData";
+import { ENHANCE_COSTS, EQUIPMENT_TYPES, MATERIAL_GOLD_PRICES } from "@shared/guideData";
 
 /** Multiplicador de custo Darksteel por slot em relação à base do estágio. */
 export const SLOT_DARKSTEEL_MULTIPLIER: Record<string, number> = {
@@ -53,6 +53,10 @@ export interface EnhanceEstimate {
   jadeValue: number;
   /** Tentativas estimadas usando Jade protetor (1 por estágio tentado). */
   jadeAttempts: number;
+  /** Custo total estimado em Gold: Darksteel, Copper e Jade pelo preço de mercado. */
+  totalGold: number;
+  /** Detalhe do custo em Gold por material. */
+  goldBreakdown: { key: string; name: string; gold: number }[];
 }
 
 /**
@@ -88,6 +92,16 @@ export function estimateEnhance({
   }
 
   const totalJade = jadePriceUnit > 0 ? jadeAttempts * jadePriceUnit : 0;
+
+  // Preços de mercado em Gold (MaterialGoldPrice do guideData)
+  const dsPrice = MATERIAL_GOLD_PRICES.find(p => p.key === "darksteel")?.goldPerUnit ?? 1000;
+  const cuPrice = MATERIAL_GOLD_PRICES.find(p => p.key === "copper")?.goldPerUnit ?? 0.0001;
+  const jadePrice = MATERIAL_GOLD_PRICES.find(p => p.key === "jade")?.goldPerUnit ?? 40000;
+
+  const goldDarksteel = totalDarksteel * dsPrice;
+  const goldCopper = totalCopper * cuPrice;
+  const goldJade = totalJade * jadePrice;
+
   return {
     steps,
     totalDarksteel,
@@ -95,6 +109,12 @@ export function estimateEnhance({
     totalJade,
     jadeValue: jadePriceUnit,
     jadeAttempts,
+    totalGold: goldDarksteel + goldCopper + goldJade,
+    goldBreakdown: [
+      { key: "darksteel", name: "Darksteel", gold: goldDarksteel },
+      { key: "copper", name: "Copper", gold: goldCopper },
+      { key: "jade", name: "Jade", gold: goldJade },
+    ],
   };
 }
 
