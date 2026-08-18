@@ -122,14 +122,52 @@ export const CODEX_ITEMS: CodexItem[] = [
   { key: "uc-dragon-leather", name: "Dragon Leather", category: "Materiais", rarity: "UC", tier: 1, tip: "Crystalline Forest — usado para craftar armadura UC." },
   { key: "uc-greater-yang", name: "Greater Yang Pill", category: "Materiais", rarity: "UC", tier: 1, tip: "Demon Bull Labyrinth — usado em Inner Force." },
   { key: "uc-unihorn", name: "Unihorn Slice", category: "Materiais", rarity: "UC", tier: 1, tip: "Demon Bull Labyrinth — boost de Constitution." },
-  // Consumíveis
+  // Consumíveis — faixa 1–20
   { key: "uc-heal-potion", name: "Poção de Cura UC", category: "Consumíveis", rarity: "UC", tier: 1, tip: "Craft e drops básicos; registre sempre." },
+  { key: "r-heal-potion", name: "Poção de Cura Rara", category: "Consumíveis", rarity: "Raro", tier: 2, tip: "Faixa 1–20: drops em Bicheon e crafting básico — priorize poções +15% HP." },
+  // Consumíveis — faixa 20–40
   { key: "uc-energy-box", name: "Caixa de Energia 100K", category: "Consumíveis", rarity: "UC", tier: 1, tip: "Craft com Red Energy — também vendável no Mercado." },
-  // Colecionáveis
+  { key: "r-energy-box", name: "Caixa de Energia 300K", category: "Consumíveis", rarity: "Raro", tier: 2, tip: "Faixa 20–40: Red Energy + crafting — renda passiva via Mercado." },
+  { key: "e-mp-potion", name: "Poção de MP Épica", category: "Consumíveis", rarity: "Épico", tier: 3, tip: "Faixa 20–40: sustenta skill spam em Boss Raids iniciantes." },
+  // Consumíveis — faixa 40–60
+  { key: "e-heal-potion", name: "Poção de Cura Épica", category: "Consumíveis", rarity: "Épico", tier: 3, tip: "Faixa 40–60: essencial para Sabuk early e Magic Square 3F+." },
+  { key: "e-greater-energy", name: "Caixa de Energia Maior", category: "Consumíveis", rarity: "Épico", tier: 3, tip: "Faixa 40–60: craft com energia superior — venda no Mercado." },
+  // Consumíveis — faixa 60–80
+  { key: "l-heal-potion", name: "Poção de Cura Lendária", category: "Consumíveis", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: drops de boss elite; necessária para raids de clã." },
+  { key: "l-energy-box", name: "Caixa de Energia Lendária", category: "Consumíveis", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: fonte de renda endgame inicial — Mercado valoriza." },
+  // Consumíveis — faixa 80–100+
+  { key: "m-heal-potion", name: "Poção de Cura Mítica", category: "Consumíveis", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: drops raros de Magic Square 5F e bosses de Sabuk." },
+  { key: "m-elixir", name: "Elixir de Vitalidade Mítico", category: "Consumíveis", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: usado em Inner Force de nível alto — raro e valioso." },
+  // Colecionáveis — faixa 1–20
   { key: "soul-orb", name: "Magical Soul Orb", category: "Colecionáveis", rarity: "UC", tier: 1, tip: "Primeiro item do Collection Codex (2024) — coletado automaticamente." },
-  // Badges
+  { key: "r-styx-figurine", name: "Estatueta Styx", category: "Colecionáveis", rarity: "Raro", tier: 2, tip: "Faixa 1–20: drop de boss raro em Bicheon Labyrinth." },
+  // Colecionáveis — faixa 20–40
+  { key: "r-ancient-map", name: "Mapa Antigo de Bicheon", category: "Colecionáveis", rarity: "Raro", tier: 2, tip: "Faixa 20–40: encontrado em baús de missão e Secret Passage." },
+  { key: "e-fire-jade", name: "Fire Jade", category: "Colecionáveis", rarity: "Épico", tier: 3, tip: "Faixa 20–40: drops de mini-bosses no Crystalline Mountain." },
+  // Colecionáveis — faixa 40–60
+  { key: "e-boss-trophy", name: "Troféu de Boss de Sabuk", category: "Colecionáveis", rarity: "Épico", tier: 3, tip: "Faixa 40–60: recompensa de participação na primeira Sabuk War." },
+  { key: "e-dragon-token", name: "Dragon Token Épico", category: "Colecionáveis", rarity: "Épico", tier: 3, tip: "Faixa 40–60: Clan Boss semanais — trocável em lojas de clã." },
+  // Colecionáveis — faixa 60–80
+  { key: "l-emperor-banner", name: "Estandarte do Imperador", category: "Colecionáveis", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: guild vencedor de Sabuk — cada membro guarda o item." },
+  { key: "l-gold-dragon", name: "Dragão Dourado de Ouro", category: "Colecionáveis", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: drops de Sabuk Clash e eventos premium." },
+  // Colecionáveis — faixa 80–100+
+  { key: "m-abyssal-relic", name: "Relíquia do Abismo", category: "Colecionáveis", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: Magic Square 5F — um dos itens mais raros do jogo." },
+  { key: "m-phoenix-feather", name: "Pena da Fênix", category: "Colecionáveis", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: evento Phoenix — colecionável de edição limitada." },
+  // Badges de Reputação — faixa 1–20
   { key: "uc-rep-badge", name: "Badge de Reputação UC", category: "Badges de Reputação", rarity: "UC", tier: 1, tip: "Missões de reputação; combine badges que você não usa." },
+  { key: "uc-rep-badge-silver", name: "Badge de Reputação Prateado", category: "Badges de Reputação", rarity: "UC", tier: 1, tip: "Faixa 1–20: reputação inicial com missões diárias de Bicheon." },
+  // Badges de Reputação — faixa 20–40
   { key: "r-rep-badge", name: "Badge de Reputação Rara", category: "Badges de Reputação", rarity: "Raro", tier: 2, tip: "Missões de reputação avançadas; priorize completar." },
+  { key: "r-rep-badge-knight", name: "Badge do Cavaleiro de Bicheon", category: "Badges de Reputação", rarity: "Raro", tier: 2, tip: "Faixa 20–40: complete a linha de missões do Cavaleiro para obter." },
+  // Badges de Reputação — faixa 40–60
+  { key: "e-rep-badge", name: "Badge de Reputação Épico", category: "Badges de Reputação", rarity: "Épico", tier: 3, tip: "Faixa 40–60: reputação com facções de Snake Pit — combine com cuidado." },
+  { key: "e-rep-badge-warden", name: "Badge do Guardião do Vale", category: "Badges de Reputação", rarity: "Épico", tier: 3, tip: "Faixa 40–60: recompensa de missões de Bicheon Valley secretas." },
+  // Badges de Reputação — faixa 60–80
+  { key: "l-rep-badge", name: "Badge de Reputação Lendário", category: "Badges de Reputação", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: missões de guild de alto nível; não combine sem checar o bônus." },
+  { key: "l-rep-badge-warlord", name: "Badge do Senhor da Guerra", category: "Badges de Reputação", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: obtido em Sabuk Clash e missões de Warlord." },
+  // Badges de Reputação — faixa 80–100+
+  { key: "m-rep-badge", name: "Badge de Reputação Mítico", category: "Badges de Reputação", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: eventos sazonais e reputação máxima — item de colecionador." },
+  { key: "m-rep-badge-legend", name: "Badge da Lenda do MIR4", category: "Badges de Reputação", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: raro badge de eventos de aniversário do jogo." },
 ];
 
 export interface CodexBonus {

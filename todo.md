@@ -166,3 +166,10 @@
 - [x] Atualizar skill game-guide-builder com o processo de conquistas/cards personalizados e validar (quick_validate.py passou)
 - [x] Rotas, navegação e busca: novas funcionalidades são seções de páginas existentes (Profile e /placar), sem novas rotas necessárias
 - [x] Testes vitest para evaluateCodexAchievements (8) e timelineExport (3) — 75 testes aprovados + screenshots desktop/mobile verificados
+
+## Nova funcionalidade: conquista recém-desbloqueada, compartilhamento do card e expansão do Codex
+- [x] Notificação visual animada no topo do perfil quando uma nova conquista do Codex for desbloqueada (banner dourado com entrada animada, auto-dismiss após alguns segundos, respeitando prefers-reduced-motion)
+- [x] Botão de compartilhamento direto no card exportado: copiar imagem para a área de transferência (Clipboard API, com fallback) e/ou abrir menu nativo de compartilhamento (navigator.share)
+- [x] Expandir itens do Codex: adicionar Consumíveis e Colecionáveis por faixa de nível (1-20, 20-40, 40-60, 60-80, 80-100+) e Badges de Reputação por faixa, em shared/guideData.ts (46 itens no total)
+- [x] Revisar conquistas (metas de total, categorias e raridade) para o novo dataset ampliado (13 conquistas: novas consumiveis-6, colecionaveis-6, rep-6, faixa-t1; equipamentos-5 ajustado)
+- [x] Testes vitest atualizados para os novos itens/categorias (78 aprovados) + screenshots verificados + checkpoint e entrega

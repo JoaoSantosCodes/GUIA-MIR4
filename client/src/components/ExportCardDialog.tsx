@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 import {
   AVATAR_OPTIONS,
   DEFAULT_CARD_STYLE,
-  exportTimelineCard,
+  exportCardShared,
   exportRankingCard,
+  exportTimelineCard,
   type CardStyle,
   type CardTheme,
 } from "@/lib/timelineExport";
@@ -64,35 +65,38 @@ interface InnerProps {
 function ExportCardDialogInner({ mode, userName, goldBadges, items = [], position, total, trigger }: InnerProps) {
   const [style, setStyle] = useState<CardStyle>(DEFAULT_CARD_STYLE);
   const [open, setOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const maxItems = useMemo(() => items.slice(0, 8), [items]);
 
+  /**
+   * Desenha o card em um canvas oculto (mesma arte do PNG) e dispara o fluxo de
+   * compartilhamento direto: menu nativo (mobile) → copiar imagem → download manual.
+   */
   const exportCard = async () => {
     try {
+      setExporting(true);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas não suportado");
       if (mode === "activity") {
         if (maxItems.length === 0) {
           toast.info("Nenhuma atividade para exportar ainda.");
           return;
         }
-        await exportTimelineCard({
-          userName,
-          goldBadges,
-          items: maxItems,
-          style,
-          onDone: () => toast.success("Card exportado! Imagem salva na pasta de downloads."),
-        });
+        await exportTimelineCard({ userName, goldBadges, items: maxItems, style, onDone: () => {}, drawTo: canvas });
       } else {
-        await exportRankingCard({
-          userName,
-          goldBadges,
-          position: position ?? 0,
-          total: total ?? 0,
-          style,
-          onDone: () => toast.success("Card exportado! Imagem salva na pasta de downloads."),
-        });
+        await exportRankingCard({ userName, goldBadges, position: position ?? 0, total: total ?? 0, style, onDone: () => {}, drawTo: canvas });
       }
+      await exportCardShared(canvas, userName, {
+        onShared: () => toast.success("Card compartilhado pelo menu do dispositivo!"),
+        onCopied: () => toast.success("Imagem copiada! Cole onde quiser (Ctrl+V)."),
+        onFallback: () => toast.success("Seu navegador não permite compartilhar direto — a imagem foi salva na pasta de downloads."),
+      });
     } catch {
       toast.error("Não foi possível gerar o card.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -174,13 +178,19 @@ function ExportCardDialogInner({ mode, userName, goldBadges, items = [], positio
             </div>
           </div>
 
-          <Button
-            onClick={exportCard}
-            className="w-full bg-red-800 text-amber-100 hover:bg-red-700"
-          >
-            <ImageDown className="h-4 w-4" />
-            Exportar PNG
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={exportCard}
+              disabled={exporting}
+              className="w-full bg-red-800 text-amber-100 hover:bg-red-700 disabled:opacity-60"
+            >
+              <ImageDown className="h-4 w-4" />
+              {exporting ? "Gerando…" : "Compartilhar card"}
+            </Button>
+            <p className="text-center text-[11px] text-slate-500">
+              Abre o menu nativo do dispositivo, copia a imagem ou salva o PNG.
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

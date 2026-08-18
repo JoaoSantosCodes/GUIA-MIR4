@@ -63,6 +63,8 @@ interface ExportOptions {
   items: TimelineExportItem[];
   style?: CardStyle;
   onDone?: () => void;
+  /** Canvas pré-criado para receber o desenho (compartilhamento direto, sem download). */
+  drawTo?: HTMLCanvasElement;
 }
 
 const KIND_LABEL: Record<TimelineExportItem["kind"], string> = {
@@ -159,8 +161,8 @@ function drawTimelineList(ctx: CanvasRenderingContext2D, items: TimelineExportIt
   return y;
 }
 
-export async function exportTimelineCard({ userName, goldBadges, items, style = DEFAULT_CARD_STYLE, onDone }: ExportOptions): Promise<void> {
-  const canvas = document.createElement("canvas");
+export async function exportTimelineCard({ userName, goldBadges, items, style = DEFAULT_CARD_STYLE, onDone, drawTo }: ExportOptions): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
   const maxItems = Math.min(items.length, 8);
   const listH = Math.max(maxItems, 1) * ITEM_H + (Math.max(maxItems, 1) - 1) * GAP;
   canvas.width = WIDTH;
@@ -178,7 +180,7 @@ export async function exportTimelineCard({ userName, goldBadges, items, style = 
   drawTimelineList(ctx, items, HEADER_H);
   drawFooter(ctx, canvas);
 
-  await downloadCanvas(canvas, userName);
+  if (!drawTo) await downloadCanvas(canvas, userName);
   onDone?.();
 }
 
@@ -189,13 +191,15 @@ interface RankingExportOptions {
   total: number;
   style?: CardStyle;
   onDone?: () => void;
+  /** Canvas pré-criado para receber o desenho (compartilhamento direto, sem download). */
+  drawTo?: HTMLCanvasElement;
 }
 
 /**
  * Exporta um card do placar com a posição do usuário no ranking.
  */
-export async function exportRankingCard({ userName, goldBadges, position, total, style = DEFAULT_CARD_STYLE, onDone }: RankingExportOptions): Promise<void> {
-  const canvas = document.createElement("canvas");
+export async function exportRankingCard({ userName, goldBadges, position, total, style = DEFAULT_CARD_STYLE, onDone, drawTo }: RankingExportOptions): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEADER_H + 360 + FOOTER_H;
   const ctx = canvas.getContext("2d");
@@ -231,8 +235,73 @@ export async function exportRankingCard({ userName, goldBadges, position, total,
 
   drawFooter(ctx, canvas);
 
-  await downloadCanvas(canvas, userName);
+  if (!drawTo) await downloadCanvas(canvas, userName);
   onDone?.();
+}
+
+/**
+ * Disponibiliza o canvas como Blob PNG para compartilhamento/cópia.
+ */
+async function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      blob => (blob ? resolve(blob) : reject(new Error("Não foi possível gerar a imagem"))),
+      "image/png",
+      1,
+    );
+  });
+}
+
+export async function shareCardWithBlob(blob: Blob, title: string): Promise<boolean> {
+  if (!window.isSecureContext || !navigator.share) return false;
+  const file = new File([blob], `${title}.png`, { type: "image/png" });
+  try {
+    await navigator.share({ title: "Meu card do Guia MIR4", files: [file] });
+    return true;
+  } catch {
+    // usuário cancelou ou share não suportado — sem ação
+    return false;
+  }
+}
+
+/**
+ * Copia o card PNG para a área de transferência (Clipboard API, Chrome/Edge/Chrome Android em HTTPS).
+ * @returns true se copiado
+ */
+export async function copyCardToClipboard(blob: Blob): Promise<boolean> {
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.write) return false;
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob }),
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Exporta um card desenhado em canvas pelo caminho completo de compartilhamento:
+ * primeiro tenta o menu nativo; se falhar/não existir, tenta a área de transferência;
+ * por fim, retorna a blob para download manual.
+ */
+export async function exportCardShared(
+  canvas: HTMLCanvasElement,
+  userName: string,
+  handlers: { onCopied?: () => void; onShared?: () => void; onFallback?: () => void },
+): Promise<void> {
+  const blob = await canvasToBlob(canvas);
+  const title = `mir4-card-${userName.replace(/\s+/g, "-").toLowerCase()}`;
+  if (await shareCardWithBlob(blob, title)) {
+    handlers.onShared?.();
+    return;
+  }
+  if (await copyCardToClipboard(blob)) {
+    handlers.onCopied?.();
+    return;
+  }
+  handlers.onFallback?.();
+  await downloadCanvas(canvas, userName);
 }
 
 async function downloadCanvas(canvas: HTMLCanvasElement, userName: string) {

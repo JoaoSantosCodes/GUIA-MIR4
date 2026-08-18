@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CODEX_ITEMS, CLASSES, FARM_SPOTS, RAIDS, SPIRITS, SABUK_CONTENT, MYSTERIES, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
-import { useMemo, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, Sparkles, Gem, Shield, Package, ThumbsUp, ThumbsDown, RotateCcw, ArrowUpDown, Medal, Heart, StarOff, History, BookmarkPlus, ImageDown, Crown, Zap } from "lucide-react";
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
@@ -143,6 +143,37 @@ export default function Profile() {
   );
   const earnedCount = codexAchievements.filter(a => a.earned).length;
 
+  /** Notificação de conquista recém-desbloqueada: compara conquistas entre revalidações do progresso. */
+  const prevEarnedRef = useRef<Set<string>>(new Set());
+  const [justUnlocked, setJustUnlocked] = useState<string | null>(null);
+  const [unlockedDesc, setUnlockedDesc] = useState<string>("");
+  const unlockedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
+  const reducedMotion = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  useEffect(() => {
+    if (!initializedRef.current) {
+      // carga inicial: apenas registra as conquistas já existentes (sem notificação)
+      prevEarnedRef.current = new Set(codexAchievements.filter(a => a.earned).map(a => a.key));
+      initializedRef.current = true;
+      return;
+    }
+    const newly = codexAchievements.filter(a => a.earned && !prevEarnedRef.current.has(a.key));
+    prevEarnedRef.current = new Set(codexAchievements.filter(a => a.earned).map(a => a.key));
+    // notifica apenas conquistas desbloqueadas durante a sessão (após a carga inicial)
+    if (newly.length > 0) {
+      const latest = newly[newly.length - 1];
+      setJustUnlocked(latest.title);
+      setUnlockedDesc(latest.description);
+      if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
+      unlockedTimerRef.current = setTimeout(() => setJustUnlocked(null), 6000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [earnedCount, codexAchievements]);
+  useEffect(() => () => (unlockedTimerRef.current ? clearTimeout(unlockedTimerRef.current) : undefined), []);
+
   const resolveTitle = (fav: { itemId: string; itemType: string }) => {
     const [type, key] = fav.itemId.split(":");
     switch (fav.itemType) {
@@ -202,6 +233,35 @@ export default function Profile() {
 
   return (
     <div className="container py-10">
+      {/* Notificação animada de conquista recém-desbloqueada */}
+      {justUnlocked && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "fixed left-1/2 top-20 z-50 w-[min(92vw,480px)] -translate-x-1/2 rounded-lg border border-amber-400/70 bg-gradient-to-r from-amber-950/95 to-red-950/90 px-4 py-3 shadow-xl shadow-amber-500/25 backdrop-blur",
+            reducedMotion ? "" : "animate-in slide-in-from-top-4 fade-in duration-300",
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-amber-400/70 bg-amber-900/60 text-amber-300" style={{ boxShadow: "0 0 18px rgba(245,208,110,0.35)" }}>
+              <Medal className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400">Conquista desbloqueada!</p>
+              <p className="text-sm font-semibold text-amber-100">{justUnlocked}</p>
+              {unlockedDesc && <p className="mt-0.5 text-[11px] text-amber-200/70">{unlockedDesc}</p>}
+            </div>
+            <button
+              aria-label="Fechar notificação"
+              onClick={() => setJustUnlocked(null)}
+              className="ml-auto shrink-0 text-xs text-amber-300/70 hover:text-amber-200 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="gold-text text-3xl font-bold">Meu Perfil</h1>
