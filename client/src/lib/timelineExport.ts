@@ -904,3 +904,197 @@ export async function exportPvPCompareCard({
   if (!drawTo) await downloadCanvas(canvas, "comparador-pvp");
   onDone?.();
 }
+
+/**
+ * Gráfico de radar genérico canvas puro (labels/valores arbitrários) para o card de espíritos.
+ */
+function drawGenericRadarExport(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  valuesA: number[],
+  valuesB: number[],
+  labels: string[],
+): void {
+  const n = labels.length;
+  if (n === 0 || (valuesA.length === 0 && valuesB.length === 0)) return;
+  const angle = (i: number) => -Math.PI / 2 + (i * Math.PI * 2) / n;
+  const gridColor = "rgba(217, 119, 6, 0.25)";
+  const axisColor = "rgba(217, 119, 6, 0.4)";
+  const labelColor = "rgba(251, 191, 36, 0.95)";
+
+  for (let ring = 1; ring <= 4; ring++) {
+    const r = (radius * ring) / 4;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = angle(i % n);
+      const x = cx + r * Math.cos(a);
+      const y = cy + r * Math.sin(a);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  ctx.font = "600 20px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < n; i++) {
+    const a = angle(i);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + radius * Math.cos(a), cy + radius * Math.sin(a));
+    ctx.strokeStyle = axisColor;
+    ctx.stroke();
+    ctx.fillStyle = labelColor;
+    ctx.fillText(labels[i], cx + (radius + 24) * Math.cos(a), cy + (radius + 24) * Math.sin(a));
+  }
+
+  const polygon = (vals: number[], stroke: string, fill: string) => {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const idx = i % n;
+      const v = Math.min(100, Math.max(0, vals[idx])) / 100;
+      const a = angle(idx);
+      const x = cx + radius * v * Math.cos(a);
+      const y = cy + radius * v * Math.sin(a);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  };
+
+  polygon(valuesA, "#f59e0b", "rgba(245, 158, 11, 0.16)");
+  polygon(valuesB, "#ef4444", "rgba(239, 68, 68, 0.16)");
+}
+
+export interface SpiritCompareCardData {
+  nameA: string;
+  nameB: string;
+  rarityA?: string;
+  rarityB?: string;
+  totals: { a: number; b: number };
+  overallWinner: "a" | "b" | "draw";
+  /** Rótulos dos eixos do radar (ex.: Dano, Suporte, Defesa, Farm, Versatilidade). */
+  radarLabels: string[];
+  valuesA: number[];
+  valuesB: number[];
+  rows: { label: string; valueA: number; valueB: number; delta: number; winner: "a" | "b" | "draw" }[];
+}
+
+/**
+ * Exporta o comparador de espíritos lado a lado como card PNG: placar geral com
+ * raridades, radar de 5 dimensões e deltas por atributo.
+ */
+export async function exportSpiritCompareCard({
+  data,
+  userName,
+  style = DEFAULT_CARD_STYLE,
+  onDone,
+  drawTo,
+}: {
+  data: SpiritCompareCardData;
+  userName: string;
+  style?: CardStyle;
+  onDone?: () => void;
+  drawTo?: HTMLCanvasElement;
+}): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const totalH = HEADER_H + 96 + 250 + data.rows.length * 56 + 48 + FOOTER_H + 24;
+  canvas.width = WIDTH;
+  canvas.height = totalH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, {
+    userName: truncate(userName, 34),
+    subtitle: "— Comparador de Espíritos",
+    badgeText:
+      data.overallWinner === "draw"
+        ? "Equilibrados"
+        : `${data.overallWinner === "a" ? data.nameA : data.nameB} leva a vantagem`,
+  });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const gold = "#f59e0b";
+  const red = "#ef4444";
+
+  // Placar agregado
+  let y = HEADER_H;
+  ctx.textAlign = "center";
+  ctx.font = "bold 40px Georgia, serif";
+  ctx.fillStyle = palette.title;
+  ctx.fillText(truncate(data.nameA, 20), 240, y + 4);
+  ctx.fillText(truncate(data.nameB, 20), WIDTH - 240, y + 4);
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.fillStyle = gold;
+  ctx.fillText(String(data.totals.a), WIDTH / 2 - 80, y + 6);
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = "36px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("×", WIDTH / 2, y + 8);
+  ctx.fillStyle = red;
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.fillText(String(data.totals.b), WIDTH / 2 + 80, y + 6);
+  // Raridades
+  ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = palette.faded;
+  if (data.rarityA) ctx.fillText(data.rarityA, 240, y + 36);
+  if (data.rarityB) ctx.fillText(data.rarityB, WIDTH - 240, y + 36);
+  ctx.textAlign = "left";
+  y += 96;
+
+  // Radar
+  const radarCX = MARGIN + 180;
+  const radarCY = y + 118;
+  drawGenericRadarExport(ctx, radarCX, radarCY, 74, data.valuesA, data.valuesB, data.radarLabels);
+  ctx.font = "bold 20px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = gold;
+  ctx.fillText(truncate(data.nameA, 18), radarCX + 165, radarCY - 42);
+  ctx.fillStyle = red;
+  ctx.fillText(truncate(data.nameB, 18), radarCX + 165, radarCY - 12);
+  ctx.fillStyle = palette.faded;
+  ctx.font = "17px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(`radar: ${data.radarLabels.join(" · ")}`, radarCX + 165, radarCY + 42);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  y += 250;
+
+  // Atributos
+  for (const row of data.rows) {
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = palette.sub;
+    ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+    const deltaTxt =
+      row.winner === "draw"
+        ? `${row.valueA} × ${row.valueB} — empate`
+        : `${row.valueA} × ${row.valueB} — ${row.winner === "a" ? `+${Math.abs(row.delta)} ${data.nameA}` : `+${Math.abs(row.delta)} ${data.nameB}`}`;
+    ctx.fillText(`${row.label}: ${truncate(deltaTxt, 58)}`, MARGIN, y + 4);
+    const barY = y + 16;
+    const barW = (WIDTH - MARGIN * 2 - 24) / 2;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(MARGIN, barY, barW, 10);
+    ctx.fillRect(MARGIN + barW + 24, barY, barW, 10);
+    ctx.fillStyle = gold;
+    ctx.fillRect(MARGIN, barY, barW * Math.min(row.valueA / 100, 1), 10);
+    ctx.fillStyle = red;
+    ctx.fillRect(MARGIN + barW + 24, barY, barW * Math.min(row.valueB / 100, 1), 10);
+    y += 56;
+  }
+
+  drawWatermark(ctx, canvas, userName);
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, "comparador-espiritos");
+  onDone?.();
+}

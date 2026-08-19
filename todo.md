@@ -271,3 +271,11 @@
 - [x] Script automatizado de exportação em lote (scripts/export-pvp-cards.mjs: node-canvas + JSDOM, 28 pares das 8 classes em pvp-cards/ com placar, radar e barras por cenário) — exportPvPCompareCard corrigido (textAlign reset após radar)
 - [x] Relatório de validação móvel: screenshots 375×812 de /tier-list e /subclasses verificados (grid, abas de classes, cards de tier responsivos, sem overflow)
 - [x] Testes vitest (152 aprovados, incl. 3 novos do card PvP exportado: placar/legendas do radar e altura com/sem radar) + screenshots desktop/mobile verificados (/tier-list, /subclasses, /calculadora) + checkpoint e entrega
+
+## Nova funcionalidade: tier list de espíritos, histórico semanal e comparador de espíritos
+
+- [x] Tier list interativa de espíritos (/tier-list tab Espíritos): SpiritTierBoard com tiers S–C, votação comunitária (tabela tierlist_votes_spirit, min. 2 votos, router spiritTierlist.vote/results), overrides pessoais em localStorage, combos recomendados por cenário (4 slots), radar por card
+- [x] Gráfico de histórico semanal (TierHistoryChart.tsx, canvas puro): evolução dos tiers das classes por semana com base nos votos; tabela tierlist_history + snapshot semanal automático pós-voto em tierlist.vote (resolveClassTier server-side)
+- [x] Comparador de espíritos: SpiritCompareDialog + SpiritCompareCardDialog (radar de 5 eixos Dano/Suporte/Defesa/Farm/Versatilidade, placar geral, deltas), exportação PNG (exportSpiritCompareCard + drawGenericRadarExport com marca d'água); botão "Comparar espíritos" no SpiritTierBoard; bichon adicionado a SPIRITS
+- [x] Ajustes de layout: tabs Classes/Espíritos com visual dourado, header do SpiritTierBoard com cenário selecionado, grid responsivo; card PNG validado (1200×1088, placar+rada r+barras+marca d'água)
+- [x] Testes vitest: 155 aprovados (3 novos do card de espíritos: placar/empate/altura); screenshots desktop/mobile validados (/tier-list tab espíritos + comparador + export no browser)

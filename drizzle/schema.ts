@@ -115,3 +115,43 @@ export const tierlistVotes = mysqlTable(
 );
 export type TierlistVote = typeof tierlistVotes.$inferSelect;
 export type InsertTierlistVote = typeof tierlistVotes.$inferInsert;
+
+/**
+ * Votos comunitários na tier list de espíritos: um voto por usuário por cenário e espírito.
+ * vote = 1 (espírito merece tier maior) | -1 (espírito merece tier menor) | 0 (removido).
+ */
+export const tierlistVotesSpirit = mysqlTable(
+  "tierlist_votes_spirit",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    scenario: varchar("scenario", { length: 40 }).notNull(),
+    spiritKey: varchar("spiritKey", { length: 60 }).notNull(),
+    vote: int("vote").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_scenario_spirit").on(t.userId, t.scenario, t.spiritKey)],
+);
+export type TierlistVoteSpirit = typeof tierlistVotesSpirit.$inferSelect;
+export type InsertTierlistVoteSpirit = typeof tierlistVotesSpirit.$inferInsert;
+
+/**
+ * Histórico de tiers por classe e cenário, amostrado por semana.
+ * Um snapshot por (week, scenario, classKey): tier exibido para a comunidade naquela semana
+ * (computed a partir dos votos existentes na semana). Permite plotar a evolução semanal.
+ */
+export const tierlistHistory = mysqlTable(
+  "tierlist_history",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    week: varchar("week", { length: 10 }).notNull(), // formato YYYY-Www (ISO 8601)
+    scenario: varchar("scenario", { length: 40 }).notNull(),
+    classKey: varchar("classKey", { length: 40 }).notNull(),
+    tier: varchar("tier", { length: 2 }).notNull(), // S/A/B/C
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("week_scenario_class").on(t.week, t.scenario, t.classKey)],
+);
+export type TierlistHistory = typeof tierlistHistory.$inferSelect;
+export type InsertTierlistHistory = typeof tierlistHistory.$inferInsert;

@@ -459,3 +459,110 @@ describe("card do comparador PvP (exportPvPCompareCard)", () => {
     expect(value).toBe(1);
   });
 });
+
+describe("card do comparador de espíritos (exportSpiritCompareCard)", () => {
+  const baseData = (withRadar: boolean) => ({
+    nameA: "Styx",
+    nameB: "Goldking",
+    rarityA: "UC (Incomum)",
+    rarityB: "UC (Incomum)",
+    totals: { a: 315, b: 308 },
+    overallWinner: "a" as const,
+    radarLabels: withRadar ? ["Dano", "Suporte", "Defesa", "Farm", "Versatilidade"] : [],
+    valuesA: withRadar ? [92, 20, 25, 90, 88] : [],
+    valuesB: withRadar ? [78, 45, 30, 75, 80] : [],
+    rows: [
+      { label: "Dano", valueA: 92, valueB: 78, delta: 14, winner: "a" as const },
+      { label: "Suporte", valueA: 20, valueB: 45, delta: -25, winner: "b" as const },
+      { label: "Defesa", valueA: 25, valueB: 30, delta: -5, winner: "b" as const },
+      { label: "Farm", valueA: 90, valueB: 75, delta: 15, winner: "a" as const },
+      { label: "Versatilidade", valueA: 88, valueB: 80, delta: 8, winner: "a" as const },
+    ],
+  });
+  it("desenha o placar agregado com os nomes e as barras dos atributos", async () => {
+    const calls: string[] = [];
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        createLinearGradient: () => ({ addColorStop: () => {} }),
+        fillRect: () => {},
+        strokeRect: () => {},
+        fillText: (text: string) => calls.push(String(text)),
+        beginPath: () => {},
+        moveTo: () => {},
+        lineTo: () => {},
+        closePath: () => {},
+        stroke: () => {},
+        fill: () => {},
+        arc: () => {},
+        measureText: (text: string) => ({ width: text.length * 10 }),
+      }),
+    } as unknown as HTMLCanvasElement;
+    const { exportSpiritCompareCard } = await import("./timelineExport");
+    await exportSpiritCompareCard({ data: baseData(true) as never, userName: "Testador", drawTo: canvas as never });
+    expect(calls).toContain("Styx");
+    expect(calls).toContain("Goldking");
+    expect(calls).toContain("315");
+    expect(calls).toContain("308");
+    expect(calls).toContain("UC (Incomum)");
+    expect(calls).toContain("Styx leva a vantagem");
+    expect(calls.some(c => c.startsWith("Dano: 92 × 78"))).toBe(true);
+    expect(calls.some(c => c.includes("radar: Dano · Suporte · Defesa · Farm · Versatilidade"))).toBe(true);
+  });
+  it("desenha o empate quando os totais são iguais", async () => {
+    const calls: string[] = [];
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        createLinearGradient: () => ({ addColorStop: () => {} }),
+        fillRect: () => {},
+        strokeRect: () => {},
+        fillText: (text: string) => calls.push(String(text)),
+        beginPath: () => {},
+        moveTo: () => {},
+        lineTo: () => {},
+        closePath: () => {},
+        stroke: () => {},
+        fill: () => {},
+        arc: () => {},
+        measureText: (text: string) => ({ width: text.length * 10 }),
+      }),
+    } as unknown as HTMLCanvasElement;
+    const { exportSpiritCompareCard } = await import("./timelineExport");
+    await exportSpiritCompareCard({
+      data: { ...baseData(true), totals: { a: 300, b: 300 }, overallWinner: "draw" as const } as never,
+      userName: "Testador",
+      drawTo: canvas as never,
+    });
+    expect(calls).toContain("Equilibrados");
+    expect(calls.some(c => c.startsWith("Dano: 92 × 78"))).toBe(true);
+  });
+  it("aumenta a altura do card quando os valores do radar estão presentes", async () => {
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        createLinearGradient: () => ({ addColorStop: () => {} }),
+        fillRect: () => {},
+        strokeRect: () => {},
+        fillText: () => {},
+        beginPath: () => {},
+        moveTo: () => {},
+        lineTo: () => {},
+        closePath: () => {},
+        stroke: () => {},
+        fill: () => {},
+        arc: () => {},
+        measureText: (text: string) => ({ width: text.length * 10 }),
+      }),
+    } as unknown as HTMLCanvasElement;
+    const { exportSpiritCompareCard } = await import("./timelineExport");
+    await exportSpiritCompareCard({ data: baseData(true) as never, userName: "Testador", drawTo: canvas as never });
+    const heightWithRadar = canvas.height;
+    expect(heightWithRadar).toBeGreaterThan(900);
+    // altura = HEADER_H(300) + placar(96) + radar(250) + 5 linhas(280) + 48 + FOOTER_H(90) + 24
+    expect(heightWithRadar).toBe(300 + 96 + 250 + 5 * 56 + 48 + 90 + 24);
+  });
+});

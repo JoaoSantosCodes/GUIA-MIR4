@@ -74,6 +74,7 @@ export const SPIRITS: Spirit[] = [
   { key: "horyong", name: "Horyong", title: "Pequeno Dragão Azul", rarity: "UC", effects: ["Coleta de Energia −10%"], passive: "10% de chance de recuperar 3% do HP por 3s ao atacar", tip: "Coleta de energia; aparece em eventos de assistência mensal.", obtain: "Eventos de assistência mensal." },
   { key: "doggo", name: "Doggo", title: "Lobo Vermelho", rarity: "UC", effects: ["Bônus básicos de sobrevivência"], passive: "—", tip: "Espírito inicial comum.", obtain: "Concedido no início do jogo." },
   { key: "snowfox", name: "Snow Fox", title: "Raposa de Cauda Tripla", rarity: "UC", effects: ["CRIT DMG Reduction −10%", "Boss DMG Reduction −6%"], passive: "30% de chance de ativar Evade instantaneamente", tip: "Evasão defensiva para iniciantes.", obtain: "Drops de eventos iniciais." },
+  { key: "bichon", name: "Bichon", title: "Cão de Cura", rarity: "UC", effects: ["Max HP +2000", "Cura +20%", "PvP DMG Reduction −5%"], passive: "Ao receber cura: +10% de HP por 8s (CD 25s)", tip: "Espírito de cura acessível; reduz consumo de poções no grind e raids.", obtain: "Drops de áreas PvE e eventos rotativos; invocação UC." },
   // ---------- Raro ----------
   { key: "raro-placeholder", name: "Espíritos Raros", title: "Raridade Raro", rarity: "Raro", effects: ["Atributos superiores aos UC", "Habilidades passivas mais fortes", "Bônus de farm aprimorados"], passive: "Variam por espírito — consulte a tela de invocação", tip: "Obtidos em summons com tickets e eventos; base dos builds de meio de jogo.", obtain: "Invocação com tickets Raros; drops de raids de clã e eventos rotativos." },
   // ---------- Épico ----------
@@ -2408,3 +2409,121 @@ export const CLASS_VIDEOS: Record<string, { id: string; title: string }> = {
 
 export const CLASS_VIDEOS_NOTE =
   "Vídeos ilustrativos da comunidade no YouTube — pausados por padrão; ative o som conforme preferir.";
+
+/**
+ * Tier list de espíritos: rankings de referência por cenário (indicativo de comunidade).
+ * Aplica-se apenas a espíritos com identidade própria (sem placeholders de raridade).
+ */
+export const SPIRIT_TIER_RANKINGS: Record<string, Record<string, { tier: TierListTier; why: string }>> = {
+  massivo: {
+    "styx": { tier: "S", why: "DPS bruto massivo que soma ao combate de larga escala; slot 1 de qualquer build PvP." },
+    "goldking": { tier: "A", why: "Bônus de dano consistente que amplifica o time em Sabuk Wars." },
+    "biyoho": { tier: "A", why: "Dano em área com proc passivo que pune agrupamentos inimigos." },
+    "reaper": { tier: "B", why: "Execução forte em alvos abatidos, mas menos impacto em caos puro." },
+    "snowfox": { tier: "B", why: "Evasão ajuda a sobreviver em trocas, mas não soma dano ao grupo." },
+    "lulu": { tier: "S", why: "Habilidade definitiva lendária com dano de impacto em multidões." },
+    "wooska": { tier: "A", why: "Atributos lendários + definitiva poderosa dominam janelas de combate." },
+    "doggo": { tier: "C", why: "Espírito inicial comum; superado rapidamente no PvP de guilda." },
+    "solari": { tier: "C", why: "Drop e sustain de MP valiosos no farm, irrelevantes em Sabuk." },
+    "bichon": { tier: "B", why: "Cura de pet auxilia a sobrevivência individual no meio da guerra." },
+  },
+  farm: {
+    "styx": { tier: "S", why: "Clear em área mais rápido do jogo: mata mobs ao redor enquanto você move." },
+    "goldking": { tier: "A", why: "Dano passivo estável acelera o grind de Darksteel por hora." },
+    "solari": { tier: "S", why: "Drop +10% geral multiplica a renda de farm de qualquer build." },
+    "biyoho": { tier: "A", why: "Clear automático de mobs que se aproximam; ideal para farm AFK." },
+    "reaper": { tier: "B", why: "Bom contra elites, mas overkill para mobs comuns de farm." },
+    "snowfox": { tier: "B", why: "Evasão reduz consumo de poções em zonas agressivas." },
+    "lulu": { tier: "A", why: "Definitiva poderosa quebra packs inteiros em segundos." },
+    "wooska": { tier: "A", why: "Atributos lendários garantem clear sem gastar recursos." },
+    "doggo": { tier: "C", why: "Bônus básicos; insuficiente para zonas de farm eficientes." },
+    "bichon": { tier: "B", why: "Cura mantém o farm contínuo sem voltar à cidade." },
+  },
+  bosses: {
+    "styx": { tier: "S", why: "Maior contribuição de DPS sustentado contra alvos grandes e parados." },
+    "goldking": { tier: "A", why: "Bônus de dano multiplica o DPS do grupo em raids de longa duração." },
+    "biyoho": { tier: "B", why: "Procs de área não aproveitam alvos únicos; ainda soma DPS." },
+    "reaper": { tier: "S", why: "Execução forte em mobs de suporte e dano alto em janelas de Boss." },
+    "snowfox": { tier: "A", why: "CRIT DMG Reduction −10% protege contra ataques pesados de Boss." },
+    "lulu": { tier: "A", why: "Definitiva lendária em janelas de burst do grupo." },
+    "wooska": { tier: "A", why: "Atributos lendários + definitiva sustentam dano em raids longas." },
+    "doggo": { tier: "C", why: "Não acompanha a exigência de DPS das raids de alto nível." },
+    "solari": { tier: "C", why: "Drop não ajuda contra Bosses; MP sustain é marginal aqui." },
+    "bichon": { tier: "B", why: "Cura de pet reduz a pressão sobre o healer do grupo." },
+  },
+};
+
+/**
+ * Atributos numéricos (0–100) de cada espírito para o radar do comparador.
+ * Baseados em raridade, efeitos e papel (dps/suporte/defesa/farm/versatilidade).
+ */
+export const SPIRIT_ATTRIBUTES: Record<string, { dano: number; suporte: number; defesa: number; farm: number; versatilidade: number }> = {
+  "styx": { dano: 92, suporte: 20, defesa: 25, farm: 90, versatilidade: 88 },
+  "goldking": { dano: 78, suporte: 45, defesa: 30, farm: 75, versatilidade: 80 },
+  "biyoho": { dano: 80, suporte: 30, defesa: 35, farm: 82, versatilidade: 75 },
+  "reaper": { dano: 85, suporte: 15, defesa: 25, farm: 60, versatilidade: 70 },
+  "snowfox": { dano: 35, suporte: 30, defesa: 82, farm: 55, versatilidade: 68 },
+  "lulu": { dano: 88, suporte: 40, defesa: 40, farm: 70, versatilidade: 85 },
+  "wooska": { dano: 86, suporte: 38, defesa: 38, farm: 68, versatilidade: 84 },
+  "doggo": { dano: 30, suporte: 35, defesa: 35, farm: 30, versatilidade: 40 },
+  "solari": { dano: 35, suporte: 55, defesa: 30, farm: 88, versatilidade: 72 },
+  "bichon": { dano: 45, suporte: 70, defesa: 60, farm: 50, versatilidade: 65 },
+};
+export const SPIRIT_RADAR_LABELS = ["Dano", "Suporte", "Defesa", "Farm", "Versatilidade"] as const;
+
+/**
+ * Combos recomendados de espíritos por cenário (4 slots).
+ */
+export const SPIRIT_COMBO_RECOMMENDATIONS: Record<string, { title: string; slots: { spiritKey: string; role: string; note: string }[] }> = {
+  massivo: {
+    title: "PvP Massivo / Guerra de Sabuk",
+    slots: [
+      { spiritKey: "styx", role: "Slot 1 — DPS principal", note: "Máxima contribuição de dano em multidões." },
+      { spiritKey: "goldking", role: "Slot 2 — Amplificador", note: "Bônus de dano para o grupo inteiro." },
+      { spiritKey: "lulu", role: "Slot 3 — Janela de burst", note: "Definitiva lendária para aberturas de combo." },
+      { spiritKey: "snowfox", role: "Slot 4 — Sobrevivência", note: "Evasão e redução de dano crítico de Boss." },
+    ],
+  },
+  farm: {
+    title: "Farm de Darksteel / Mineração",
+    slots: [
+      { spiritKey: "styx", role: "Slot 1 — Clear rápido", note: "Mata mobs ao redor sem custo de skills." },
+      { spiritKey: "solari", role: "Slot 2 — Renda extra", note: "Drop +10% em tudo que você coleta." },
+      { spiritKey: "biyoho", role: "Slot 3 — Clear AFK", note: "Procs automáticos enquanto o personagem move." },
+      { spiritKey: "bichon", role: "Slot 4 — Sustentação", note: "Cura reduz consumo de poções no grind longo." },
+    ],
+  },
+  bosses: {
+    title: "Bosses e Raids",
+    slots: [
+      { spiritKey: "styx", role: "Slot 1 — DPS sustentado", note: "Maior dano contínuo contra alvos grandes." },
+      { spiritKey: "goldking", role: "Slot 2 — Multiplicador", note: "Amplifica o DPS de todo o grupo na raid." },
+      { spiritKey: "reaper", role: "Slot 3 — Execução", note: "Quebra mobs de suporte e janelas de burst." },
+      { spiritKey: "snowfox", role: "Slot 4 — Mitigação", note: "Reduz dano crítico e de Boss nas trocas." },
+    ],
+  },
+};
+
+/**
+ * Espíritos elegíveis para a tier list interativa (identidade própria, com dados completos).
+ */
+export const SPIRIT_TIER_LIST_KEYS = Object.keys(SPIRIT_TIER_RANKINGS.massivo);
+
+/**
+ * Mapa de nomes de espíritos para uso na tier list e comparador.
+ */
+export const SPIRIT_TIER_NAMES: Record<string, string> = {
+  "styx": "Styx",
+  "goldking": "Goldking",
+  "biyoho": "Biyoho",
+  "reaper": "Reaper",
+  "snowfox": "Snow Fox",
+  "lulu": "Lulu",
+  "wooska": "Wooska",
+  "doggo": "Doggo",
+  "solari": "Solari",
+  "bichon": "Bichon",
+};
+
+/** Nome de exibição de um espírito na tier list (fallback: key). */
+export const SPIRIT_TIER_FALLBACK_NAME = (key: string): string => SPIRIT_TIER_NAMES[key] ?? key;

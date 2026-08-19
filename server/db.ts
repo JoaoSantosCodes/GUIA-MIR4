@@ -1,9 +1,9 @@
-import { eq, and, gte, inArray, desc, isNotNull } from "drizzle-orm";
+import { eq, and, asc, gte, inArray, desc, isNotNull } from "drizzle-orm";
 import { CODEX_ITEMS } from "../shared/guideData";
 import { evaluateCodexAchievements } from "../client/src/lib/codexAchievements";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote, tierlistVotesSpirit, InsertTierlistVoteSpirit, tierlistHistory, InsertTierlistHistory } from "../drizzle/schema";
 import { GOLD_TIP_UPVOTES } from "../shared/const";
 import { ENV } from './_core/env';
 
@@ -550,4 +550,121 @@ export async function unifiedLeaderboard() {
   for (const r of nameRows) names.set(r.id, r.name);
 
   return ranked.map(r => ({ userId: r.userId, userName: names.get(r.userId) ?? null, goldBadges: r.gold, codexMedals: r.medals, totalScore: r.total }));
+}
+
+/**
+ * Registrar/alterar um voto comunitário de tier list de espíritos (um voto por usuário por cenário e espírito).
+ */
+export async function setSpiritTierlistVote(
+  userId: number,
+  scenario: string,
+  spiritKey: string,
+  vote: 1 | -1 | 0,
+): Promise<{ success: true; sums: number; count: number; userVote: 1 | -1 | 0 }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (!VALID_TIERLIST_VOTES.includes(vote)) throw new Error("Voto inválido");
+
+  const existing = await db
+    .select()
+    .from(tierlistVotesSpirit)
+    .where(and(eq(tierlistVotesSpirit.userId, userId), eq(tierlistVotesSpirit.scenario, scenario), eq(tierlistVotesSpirit.spiritKey, spiritKey)))
+    .limit(1);
+  const prev = existing[0]?.vote ?? 0;
+
+  if (prev === vote) {
+    const rows = await db
+      .select({ sums: sql<number>`SUM(${tierlistVotesSpirit.vote})`, count: sql<number>`COUNT(${tierlistVotesSpirit.id})` })
+      .from(tierlistVotesSpirit)
+      .where(and(eq(tierlistVotesSpirit.scenario, scenario), eq(tierlistVotesSpirit.spiritKey, spiritKey)));
+    return { success: true, sums: rows[0]?.sums ?? 0, count: rows[0]?.count ?? 0, userVote: vote as 1 | -1 | 0 };
+  }
+
+  if (existing[0]) {
+    await db
+      .update(tierlistVotesSpirit)
+      .set({ vote } as Partial<InsertTierlistVoteSpirit>)
+      .where(and(eq(tierlistVotesSpirit.userId, userId), eq(tierlistVotesSpirit.scenario, scenario), eq(tierlistVotesSpirit.spiritKey, spiritKey)));
+    if (vote === 0) {
+      await db
+        .delete(tierlistVotesSpirit)
+        .where(and(eq(tierlistVotesSpirit.userId, userId), eq(tierlistVotesSpirit.scenario, scenario), eq(tierlistVotesSpirit.spiritKey, spiritKey)));
+    }
+  } else {
+    if (vote !== 0) {
+      await db.insert(tierlistVotesSpirit).values({ userId, scenario, spiritKey, vote });
+    }
+  }
+
+  const rows = await db
+    .select({ sums: sql<number>`SUM(${tierlistVotesSpirit.vote})`, count: sql<number>`COUNT(${tierlistVotesSpirit.id})` })
+    .from(tierlistVotesSpirit)
+    .where(and(eq(tierlistVotesSpirit.scenario, scenario), eq(tierlistVotesSpirit.spiritKey, spiritKey)));
+  return { success: true, sums: rows[0]?.sums ?? 0, count: rows[0]?.count ?? 0, userVote: vote as 1 | -1 | 0 };
+}
+
+/** Agregado comunitário por cenário da tier list de espíritos. */
+export async function getSpiritTierlistVotes(
+  userId: number | undefined,
+  scenario: string,
+): Promise<{
+  community: Record<string, { sums: number; count: number }>;
+  userVotes: Record<string, 1 | -1 | 0>;
+}> {
+  const db = await getDb();
+  if (!db) return { community: {}, userVotes: {} };
+
+  const allRows = await db
+    .select({ spiritKey: tierlistVotesSpirit.spiritKey, vote: tierlistVotesSpirit.vote, userId: tierlistVotesSpirit.userId })
+    .from(tierlistVotesSpirit)
+    .where(eq(tierlistVotesSpirit.scenario, scenario));
+
+  const community: Record<string, { sums: number; count: number }> = {};
+  const userVotes: Record<string, 1 | -1 | 0> = {};
+  for (const r of allRows) {
+    const entry = (community[r.spiritKey] ??= { sums: 0, count: 0 });
+    entry.sums += r.vote;
+    entry.count += 1;
+    if (userId !== undefined && r.userId === userId) {
+      userVotes[r.spiritKey] = r.vote as 1 | -1 | 0;
+    }
+  }
+  return { community, userVotes };
+}
+
+/**
+ * Registrar o snapshot semanal de tiers da comunidade (upsert — semana + cenário + classe).
+ * Chamado automaticamente a cada voto para manter o histórico atualizado.
+ */
+export async function recordTierlistHistory(
+  week: string,
+  scenario: string,
+  classKey: string,
+  tier: string,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db
+    .select()
+    .from(tierlistHistory)
+    .where(and(eq(tierlistHistory.week, week), eq(tierlistHistory.scenario, scenario), eq(tierlistHistory.classKey, classKey)))
+    .limit(1);
+  if (existing[0]?.tier === tier) return;
+  if (existing[0]) {
+    await db.update(tierlistHistory).set({ tier }).where(and(eq(tierlistHistory.week, week), eq(tierlistHistory.scenario, scenario), eq(tierlistHistory.classKey, classKey)));
+  } else {
+    await db.insert(tierlistHistory).values({ week, scenario, classKey, tier });
+  }
+}
+
+/** Histórico de tiers por cenário, ordenado por semana (para o gráfico de evolução). */
+export async function getTierlistHistory(scenario: string): Promise<{ week: string; classKey: string; tier: string }[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ week: tierlistHistory.week, classKey: tierlistHistory.classKey, tier: tierlistHistory.tier })
+    .from(tierlistHistory)
+    .where(eq(tierlistHistory.scenario, scenario))
+    .orderBy(asc(tierlistHistory.week));
+  return rows;
 }
