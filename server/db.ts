@@ -3,7 +3,7 @@ import { CODEX_ITEMS } from "../shared/guideData";
 import { evaluateCodexAchievements } from "../client/src/lib/codexAchievements";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote } from "../drizzle/schema";
 import { GOLD_TIP_UPVOTES } from "../shared/const";
 import { ENV } from './_core/env';
 
@@ -314,6 +314,92 @@ export async function setUserCommentVote(
   await db.update(farmComments).set({ upvotes: up, downvotes: down }).where(eq(farmComments.id, commentId));
 
   return { success: true, upvotes: up, downvotes: down, userVote: vote };
+}
+
+const VALID_TIERLIST_VOTES: number[] = [1, -1, 0];
+
+/**
+ * Registrar/alterar um voto comunitário de tier list (um voto por usuário por cenário e classe).
+ * Retorna o agregado atualizado da classe votada (soma e contagem de votos ativos).
+ */
+export async function setTierlistVote(
+  userId: number,
+  scenario: string,
+  classKey: string,
+  vote: 1 | -1 | 0,
+): Promise<{ success: true; sums: number; count: number; userVote: 1 | -1 | 0 }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (!VALID_TIERLIST_VOTES.includes(vote)) throw new Error("Voto inválido");
+
+  const existing = await db
+    .select()
+    .from(tierlistVotes)
+    .where(and(eq(tierlistVotes.userId, userId), eq(tierlistVotes.scenario, scenario), eq(tierlistVotes.classKey, classKey)))
+    .limit(1);
+  const prev = existing[0]?.vote ?? 0;
+
+  if (prev === vote) {
+    const rows = await db
+      .select({ sums: sql<number>`SUM(${tierlistVotes.vote})`, count: sql<number>`COUNT(${tierlistVotes.id})` })
+      .from(tierlistVotes)
+      .where(and(eq(tierlistVotes.scenario, scenario), eq(tierlistVotes.classKey, classKey)));
+    return { success: true, sums: rows[0]?.sums ?? 0, count: rows[0]?.count ?? 0, userVote: vote as 1 | -1 | 0 };
+  }
+
+  if (existing[0]) {
+    await db
+      .update(tierlistVotes)
+      .set({ vote } as Partial<InsertTierlistVote>)
+      .where(and(eq(tierlistVotes.userId, userId), eq(tierlistVotes.scenario, scenario), eq(tierlistVotes.classKey, classKey)));
+    if (vote === 0) {
+      await db
+        .delete(tierlistVotes)
+        .where(and(eq(tierlistVotes.userId, userId), eq(tierlistVotes.scenario, scenario), eq(tierlistVotes.classKey, classKey)));
+    }
+  } else {
+    if (vote !== 0) {
+      await db.insert(tierlistVotes).values({ userId, scenario, classKey, vote });
+    }
+  }
+
+  const rows = await db
+    .select({ sums: sql<number>`SUM(${tierlistVotes.vote})`, count: sql<number>`COUNT(${tierlistVotes.id})` })
+    .from(tierlistVotes)
+    .where(and(eq(tierlistVotes.scenario, scenario), eq(tierlistVotes.classKey, classKey)));
+  return { success: true, sums: rows[0]?.sums ?? 0, count: rows[0]?.count ?? 0, userVote: vote as 1 | -1 | 0 };
+}
+
+/**
+ * Agregado comunitário por cenário: soma de votos e quantidade por classe,
+ * além dos votos do próprio usuário (userVotes).
+ */
+export async function getTierlistVotes(
+  userId: number | undefined,
+  scenario: string,
+): Promise<{
+  community: Record<string, { sums: number; count: number }>;
+  userVotes: Record<string, 1 | -1 | 0>;
+}> {
+  const db = await getDb();
+  if (!db) return { community: {}, userVotes: {} };
+
+  const allRows = await db
+    .select({ classKey: tierlistVotes.classKey, vote: tierlistVotes.vote, userId: tierlistVotes.userId })
+    .from(tierlistVotes)
+    .where(eq(tierlistVotes.scenario, scenario));
+
+  const community: Record<string, { sums: number; count: number }> = {};
+  const userVotes: Record<string, 1 | -1 | 0> = {};
+  for (const r of allRows) {
+    const entry = (community[r.classKey] ??= { sums: 0, count: 0 });
+    entry.sums += r.vote;
+    entry.count += 1;
+    if (userId !== undefined && r.userId === userId) {
+      userVotes[r.classKey] = r.vote as 1 | -1 | 0;
+    }
+  }
+  return { community, userVotes };
 }
 
 /** Histórico de votos do usuário com o conteúdo do comentário. */

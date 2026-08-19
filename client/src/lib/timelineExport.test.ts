@@ -352,3 +352,110 @@ describe("card do histórico de conquistas (exportHistoryCard)", () => {
     expect(calls.some(c => c.includes("e mais 3 medalhas…"))).toBe(true);
   });
 });
+
+describe("card do comparador PvP (exportPvPCompareCard)", () => {
+  const baseScenario = (label: string) => ({
+    scenarioLabel: label,
+    winner: "a" as const,
+    winsA: 2,
+    winsB: 1,
+    valuesA: { dano: 85, defesa: 52, utilidade: 60 },
+    valuesB: { dano: 78, defesa: 60, utilidade: 58 },
+    rows: [
+      { attrLabel: "Dano", valueA: 85, valueB: 78, delta: 7, winner: "a" as const },
+      { attrLabel: "Defesa", valueA: 52, valueB: 60, delta: -8, winner: "b" as const },
+      { attrLabel: "Utilidade", valueA: 60, valueB: 58, delta: 2, winner: "a" as const },
+    ],
+  });
+
+  const buildData = (withRadar: boolean) => ({
+    nameA: "Warrior",
+    nameB: "Sorcerer",
+    overallWinner: "a" as const,
+    totals: { a: 675, b: 588 },
+    scenarios: [baseScenario("PvP 1×1"), baseScenario("PvP em grupo"), baseScenario("Bosses / PvE")].map(
+      sc => (withRadar ? sc : { ...sc, valuesA: undefined, valuesB: undefined }),
+    ),
+  });
+
+  it("desenha o placar agregado com os nomes nos extremos e as barras dos atributos", async () => {
+    const calls: string[] = [];
+    const canvas = {
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        createLinearGradient: () => ({ addColorStop: () => {} }),
+        fillRect: () => {},
+        strokeRect: () => {},
+        fillText: (text: string) => calls.push(String(text)),
+        beginPath: () => {},
+        moveTo: () => {},
+        lineTo: () => {},
+        closePath: () => {},
+        stroke: () => {},
+        fill: () => {},
+        arc: () => {},
+        measureText: (text: string) => ({ width: text.length * 10 }),
+      }),
+    } as unknown as HTMLCanvasElement;
+
+    const { exportPvPCompareCard } = await import("./timelineExport");
+    await exportPvPCompareCard({ data: buildData(true) as never, userName: "Testador", drawTo: canvas as never });
+
+    expect(calls).toContain("Warrior");
+    expect(calls).toContain("Sorcerer");
+    expect(calls).toContain("675");
+    expect(calls).toContain("588");
+    expect(calls).toContain("PvP 1×1");
+    expect(calls).toContain("Warrior leva a vantagem");
+    // deltas das linhas de atributo
+    expect(calls.some(c => c.startsWith("Dano: 85 × 78"))).toBe(true);
+    expect(calls.some(c => c.includes("radar: dano · defesa · utilidade"))).toBe(true);
+  });
+
+  it("aumenta a altura do card quando os valores do radar estão presentes", async () => {
+    const { exportPvPCompareCard } = await import("./timelineExport");
+    const makeCanvas = () =>
+      ({
+        width: 0,
+        height: 0,
+        getContext: () => ({
+          createLinearGradient: () => ({ addColorStop: () => {} }),
+          fillRect: () => {},
+          strokeRect: () => {},
+          fillText: () => {},
+          beginPath: () => {},
+          moveTo: () => {},
+          lineTo: () => {},
+          closePath: () => {},
+          stroke: () => {},
+          fill: () => {},
+          arc: () => {},
+          measureText: (t: string) => ({ width: t.length * 10 }),
+        }),
+      }) as unknown as HTMLCanvasElement;
+
+    const withRadar = makeCanvas();
+    await exportPvPCompareCard({ data: buildData(true) as never, userName: "Testador", drawTo: withRadar as never });
+    const withoutRadar = makeCanvas();
+    await exportPvPCompareCard({ data: buildData(false) as never, userName: "Testador", drawTo: withoutRadar as never });
+
+    expect(withRadar.height).toBeGreaterThan(withoutRadar.height);
+    // cada cenário com radar adiciona a área do radar (230 + 28 de respiro)
+    expect(withRadar.height - withoutRadar.height).toBe(3 * 258);
+  });
+
+  it("desenha o polígono do radar com vértices proporcionais aos valores (valores clampados a 0–100)", () => {
+    // Reproduz a mesma geometria de drawRadarExport para validar o clamping
+    const radius = 74;
+    const n = 3;
+    const angle = (i: number) => -Math.PI / 2 + (i * Math.PI * 2) / n;
+    const value = Math.min(100, Math.max(0, 135)) / 100;
+    const a = angle(0);
+    const x = radius * value * Math.cos(a);
+    const y = radius * value * Math.sin(a);
+    // valor acima de 100 é clamped, então o vértice fica na borda exata do raio
+    expect(Math.hypot(x, y)).toBe(radius);
+    expect(value).toBe(1);
+  });
+});

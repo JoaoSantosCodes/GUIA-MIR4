@@ -1,14 +1,14 @@
 import { useState } from "react";
 import PageBanner from "@/components/guide/PageBanner";
 import CommentsSection from "@/components/guide/CommentsSection";
-import { CLASS_SKILLS, SUBCLASS_TIPS, CLASS_VIDEOS, type SkillBuild } from "@shared/guideData";
+import { CLASS_SKILLS, SUBCLASS_TIPS, CLASS_VIDEOS, DARKIST_SPECIAL_BUILDS, SUMMONER_ELEMENTALS, type SkillBuild } from "@shared/guideData";
 import ClassVideoPlayer from "@/components/ClassVideoPlayer";
 import PvPCompareDialog from "@/components/PvPCompareDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { Sparkles, Target, Swords, Moon, Star, ChevronRight } from "lucide-react";
+import { Sparkles, Target, Swords, Moon, Star, ChevronRight, ShieldCheck, Zap } from "lucide-react";
 import BuildShare from "@/components/BuildShare";
 
 const SCENARIO_META: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -144,6 +144,106 @@ export default function Subclasses() {
             ))}
           </Tabs>
         </section>
+
+        {/* Build especializada: Darkist Sustain vs. Burst */}
+        {cls.key === "darkist" && (
+          <section>
+            <h3 className="text-lg font-bold text-amber-400 mb-3">Estilos especializados — Sustain vs. Burst</h3>
+            <Tabs defaultValue="sustain">
+              <TabsList className="bg-slate-900/60 border border-amber-800/40">
+                <TabsTrigger value="sustain" className="data-[state=active]:text-amber-300">
+                  <ShieldCheck className="mr-1.5 h-3.5 w-3.5" /> Sustain
+                </TabsTrigger>
+                <TabsTrigger value="burst" className="data-[state=active]:text-amber-300">
+                  <Zap className="mr-1.5 h-3.5 w-3.5" /> Burst
+                </TabsTrigger>
+              </TabsList>
+              {DARKIST_SPECIAL_BUILDS.map(b => (
+                <TabsContent key={b.key} value={b.key}>
+                  <Card className="p-5 bg-slate-900/60 border-amber-700/30">
+                    <div className="flex items-start gap-3">
+                      <span className="text-3xl" aria-hidden>
+                        {b.icon}
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-amber-300">{b.label}</h4>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{b.style}</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-300 leading-relaxed">{b.desc}</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <Card className="p-3.5 bg-black/25 border-slate-800">
+                        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Foco de atributos</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {b.focus.map(f => (
+                            <Badge key={f} variant="outline" className="border-red-800/50 text-red-300 text-[10px]">
+                              {f}
+                            </Badge>
+                          ))}
+                        </div>
+                      </Card>
+                      <Card className="p-3.5 bg-black/25 border-slate-800">
+                        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Skills do estilo</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {b.skills.map(s => (
+                            <Badge key={s} variant="outline" className="border-amber-800/50 text-amber-300 text-[10px]">
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
+                      </Card>
+                      <Card className="p-3.5 bg-black/25 border-slate-800">
+                        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Rotação</p>
+                        <p className="text-xs text-slate-300 leading-relaxed">{b.rotation}</p>
+                      </Card>
+                      <Card className="p-3.5 bg-black/25 border-slate-800">
+                        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Equipamento</p>
+                        <p className="text-xs text-slate-300 leading-relaxed">{b.gear}</p>
+                      </Card>
+                    </div>
+                    <p className="mt-3 text-xs text-slate-400">
+                      <span className="font-semibold text-amber-400">Melhor para:</span> {b.bestFor}
+                    </p>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </section>
+        )}
+
+        {/* Espíritos elementais da Spirit Summoner */}
+        {cls.key === "spiritsummoner" && (
+          <section>
+            <h3 className="text-lg font-bold text-amber-400 mb-3">Espíritos elementais — qual invocar em cada situação</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {SUMMONER_ELEMENTALS.map(e => (
+                <Card key={e.element} className="p-4 bg-slate-900/60 border-amber-700/30">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl" aria-hidden>
+                      {e.icon}
+                    </span>
+                    <div>
+                      <h4 className="font-semibold text-amber-300 text-sm">
+                        {e.spirit}
+                      </h4>
+                      <Badge variant="outline" className="border-slate-700/60 text-slate-400 text-[10px] mt-0.5">
+                        Elemento: {e.element}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400 leading-relaxed">{e.effect}</p>
+                  <p className="mt-1.5 text-[11px] text-slate-500">
+                    <span className="font-semibold text-amber-400/80">Ideal para:</span> {e.bestFor}
+                  </p>
+                </Card>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              Combine o espírito com a situação de combate: em grupo use Terra ou Água para controle, enquanto Fogo
+              domina o farm AFK. O Spirit Shield continua protegendo você independentemente do elemento ativo.
+            </p>
+          </section>
+        )}
 
         {/* Árvore recomendada */}
         <section>

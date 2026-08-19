@@ -700,7 +700,82 @@ export interface PvPCompareCardData {
     winner: "a" | "b" | "draw";
     winsA: number;
     winsB: number;
+    /** Valores dano/defesa/utilidade (0–100) para o gráfico de radar do cenário. */
+    valuesA?: { dano: number; defesa: number; utilidade: number };
+    valuesB?: { dano: number; defesa: number; utilidade: number };
   }[];
+}
+
+/**
+ * Gráfico de radar canvas puro (Dano/Defesa/Utilidade) reutilizado no card exportado.
+ */
+function drawRadarExport(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  valuesA: { dano: number; defesa: number; utilidade: number },
+  valuesB: { dano: number; defesa: number; utilidade: number },
+): void {
+  const labels = ["Dano", "Defesa", "Utilidade"];
+  const n = 3;
+  const angle = (i: number) => -Math.PI / 2 + (i * Math.PI * 2) / n;
+  const gridColor = "rgba(217, 119, 6, 0.25)";
+  const axisColor = "rgba(217, 119, 6, 0.4)";
+  const labelColor = "rgba(251, 191, 36, 0.95)";
+
+  for (let ring = 1; ring <= 4; ring++) {
+    const r = (radius * ring) / 4;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = angle(i % n);
+      const x = cx + r * Math.cos(a);
+      const y = cy + r * Math.sin(a);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  ctx.font = "600 22px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < n; i++) {
+    const a = angle(i);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + radius * Math.cos(a), cy + radius * Math.sin(a));
+    ctx.strokeStyle = axisColor;
+    ctx.stroke();
+    ctx.fillStyle = labelColor;
+    ctx.fillText(labels[i], cx + (radius + 26) * Math.cos(a), cy + (radius + 26) * Math.sin(a));
+  }
+
+  const polygon = (vals: typeof valuesA, stroke: string, fill: string) => {
+    const arr = [vals.dano, vals.defesa, vals.utilidade];
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const idx = i % n;
+      const v = Math.min(100, Math.max(0, arr[idx])) / 100;
+      const a = angle(idx);
+      const x = cx + radius * v * Math.cos(a);
+      const y = cy + radius * v * Math.sin(a);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  };
+
+  polygon(valuesA, "#f59e0b", "rgba(245, 158, 11, 0.16)");
+  polygon(valuesB, "#ef4444", "rgba(239, 68, 68, 0.16)");
 }
 
 /**
@@ -722,7 +797,9 @@ export async function exportPvPCompareCard({
 }): Promise<void> {
   const canvas = drawTo ?? document.createElement("canvas");
   const scenarioH = 330;
-  const totalH = HEADER_H + 90 + data.scenarios.length * (scenarioH + 24) + FOOTER_H + 24;
+  const radarH = 230;
+  const hasRadar = data.scenarios.every(s => s.valuesA && s.valuesB);
+  const totalH = HEADER_H + 96 + data.scenarios.length * (scenarioH + (hasRadar ? radarH + 28 : 0) + 24) + FOOTER_H + 24;
   canvas.width = WIDTH;
   canvas.height = totalH;
   const ctx = canvas.getContext("2d");
@@ -741,29 +818,31 @@ export async function exportPvPCompareCard({
   const gold = "#f59e0b";
   const red = "#ef4444";
 
-  // Placar agregado
+  // Placar agregado — nomes nos extremos, placar ao centro
   let y = HEADER_H;
-  ctx.fillStyle = palette.title;
-  ctx.font = "bold 44px Georgia, serif";
   ctx.textAlign = "center";
-  ctx.fillText(truncate(data.nameA, 22), WIDTH / 2 - 180, y + 4);
-  ctx.fillText(truncate(data.nameB, 22), WIDTH / 2 + 180, y + 4);
+  ctx.font = "bold 40px Georgia, serif";
+  ctx.fillStyle = palette.title;
+  ctx.fillText(truncate(data.nameA, 20), 240, y + 4);
+  ctx.fillText(truncate(data.nameB, 20), WIDTH - 240, y + 4);
+  ctx.font = "bold 52px Georgia, serif";
   ctx.fillStyle = gold;
-  ctx.font = "bold 44px Georgia, serif";
-  ctx.fillText(String(data.totals.a), WIDTH / 2 - 60, y + 4);
+  ctx.fillText(String(data.totals.a), WIDTH / 2 - 80, y + 6);
   ctx.fillStyle = "#9ca3af";
-  ctx.font = "30px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText("×", WIDTH / 2, y + 6);
+  ctx.font = "36px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText("×", WIDTH / 2, y + 8);
   ctx.fillStyle = red;
-  ctx.fillText(String(data.totals.b), WIDTH / 2 + 60, y + 4);
+  ctx.font = "bold 52px Georgia, serif";
+  ctx.fillText(String(data.totals.b), WIDTH / 2 + 80, y + 6);
   ctx.textAlign = "left";
-  y += 74;
+  y += 96;
 
   // Cenários
   for (const sc of data.scenarios) {
+    ctx.textBaseline = "top";
     ctx.fillStyle = palette.title;
-    ctx.font = "bold 26px Georgia, serif";
-    ctx.fillText(sc.scenarioLabel, MARGIN, y + 28);
+    ctx.font = "bold 24px Georgia, serif";
+    ctx.fillText(sc.scenarioLabel, MARGIN + 8, y + 28);
     ctx.fillStyle = palette.faded;
     ctx.font = "18px 'Segoe UI', Arial, sans-serif";
     const scWinnerLabel =
@@ -774,8 +853,29 @@ export async function exportPvPCompareCard({
           : `${sc.winsB}×${sc.winsA} — ${data.nameB} vence`;
     ctx.fillText(scWinnerLabel, WIDTH - MARGIN - ctx.measureText(scWinnerLabel).width - 10, y + 32);
 
+    // Gráfico de radar dano/defesa/utilidade (se os valores estiverem presentes)
     let rowY = y + 58;
+    if (sc.valuesA && sc.valuesB) {
+      const radarCX = MARGIN + 180;
+      const radarCY = rowY + 118;
+      drawRadarExport(ctx, radarCX, radarCY, 74, sc.valuesA, sc.valuesB);
+      ctx.textBaseline = "alphabetic";
+      // Legenda ao lado do radar
+      ctx.font = "bold 20px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = gold;
+      ctx.fillText(truncate(data.nameA, 18), radarCX + 165, radarCY - 42);
+      ctx.fillStyle = red;
+      ctx.fillText(truncate(data.nameB, 18), radarCX + 165, radarCY - 12);
+      ctx.fillStyle = palette.faded;
+      ctx.font = "17px 'Segoe UI', Arial, sans-serif";
+      ctx.fillText("radar: dano · defesa · utilidade", radarCX + 165, radarCY + 42);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      rowY += 242;
+    }
     for (const row of sc.rows) {
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
       ctx.fillStyle = palette.sub;
       ctx.font = "18px 'Segoe UI', Arial, sans-serif";
       const deltaTxt =
@@ -795,7 +895,7 @@ export async function exportPvPCompareCard({
       ctx.fillRect(MARGIN + barW + 24, barY, barW * Math.min(row.valueB / 100, 1), 10);
       rowY += 52;
     }
-    y += scenarioH + 24;
+    y = rowY + 24;
   }
 
   drawWatermark(ctx, canvas, userName);

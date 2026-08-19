@@ -223,7 +223,7 @@ export default function Home() {
           <aside className="space-y-4">
             <h2 className="gold-text text-2xl font-bold">Sistemas principais</h2>
             {[
-              ["Classes", "5 classes com subclasse intercambiável"],
+              ["Classes", "8 classes com subclasse intercambiável"],
               ["Espíritos", "Pets com bônus passivos e ativos"],
               ["Codex", "Coleção permanente com bônus de atributos"],
               ["Mineração / Coleta", "Darksteel, ervas e energia — motor da economia"],

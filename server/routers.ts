@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
-import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, CLASS_SKILLS, EQUIPMENT_TYPES, MATERIALS } from "@shared/guideData";
+import { CODEX_ITEMS, SPIRITS, FARM_SPOTS, CLASSES, RAIDS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, CLASS_SKILLS, EQUIPMENT_TYPES, MATERIALS, CLASS_TIER_RANKINGS, TIERLIST_SCENARIOS } from "@shared/guideData";
 import { PAGE_COMMENT_KEYS } from "./_core/pageComments";
 import { getPublicProfile } from "./share";
 import { computeUpcomingAlerts } from "./events";
@@ -166,6 +166,28 @@ export const appRouter = router({
     getSoundAlerts: protectedProcedure.query(({ ctx }) => db.getSoundAlerts(ctx.user.id)),
   }),
 
+  /** Tier list comunitária de classes: votação por cenário + agregados. */
+  tierlist: router({
+    vote: protectedProcedure
+      .input(z.object({ scenario: z.string().min(1).max(40), classKey: z.string().min(1).max(40), vote: z.number().int().min(-1).max(1) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!TIERLIST_SCENARIOS.some(s => s.key === input.scenario)) throw new Error("Cenário inválido");
+        if (!CLASS_TIER_RANKINGS[input.scenario]?.[input.classKey]) throw new Error("Classe inválida para este cenário");
+        const result = await db.setTierlistVote(ctx.user.id, input.scenario, input.classKey, input.vote as 1 | -1 | 0);
+        return result;
+      }),
+    results: publicProcedure
+      .input(z.object({ scenario: z.string().min(1).max(40) }))
+      .query(async ({ ctx, input }) => {
+        if (!TIERLIST_SCENARIOS.some(s => s.key === input.scenario)) throw new Error("Cenário inválido");
+        const userId = ctx.user?.id;
+        const [aggregated, rankings] = await Promise.all([
+          db.getTierlistVotes(userId, input.scenario),
+          Promise.resolve(CLASS_TIER_RANKINGS[input.scenario] ?? {}),
+        ]);
+        return { community: aggregated.community, userVotes: aggregated.userVotes, rankings };
+      }),
+  }),
   /** Placar da comunidade: usuários com mais medalhas "Dica de Ouro". */
   community: router({
     goldLeaderboard: publicProcedure.query(() => db.goldLeaderboard()),

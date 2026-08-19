@@ -248,7 +248,26 @@
 
 ## Nova funcionalidade: expansão para 8 classes
 
-- [ ] Identificar as 8 classes oficiais do MIR4 (site oficial mostra 8 personagens: Warrior, Sorcerer, Taoist, Lancer, Arbalist + 3 extras — provavelmente Musah, Gunslinger(?), Musketeer, Ronin/Maestro)
-- [ ] Pesquisar conteúdo das classes faltantes: skills, combos, builds e subclasses recomendadas
-- [ ] Adicionar classes faltantes ao dataset CLASSES/CLASS_IMAGES/CLASS_SKILLS/CLASS_VIDEOS e às páginas Classes e Subclasses (seletor, vídeos, comparador PvP, tier list)
+- [x] Identificar as 8 classes oficiais do MIR4 (confirmado: Warrior, Sorcerer, Taoist, Lancer, Arbalist + Darkist, Lionheart, Spirit Summoner — via site oficial/fórum MIR4 Global)
+- [x] Pesquisar conteúdo das classes faltantes: skills, combos, builds e subclasses recomendadas (Darkist: veneno/maldições/Blood Chain/Asura; Lionheart: cargas/Roaring Fist/War Heal/Lion's Impact; Spirit Summoner: Spirit Control/Wand Arts/Spirit Shield/Spirit Cascade)
+- [x] Adicionar as 3 classes faltantes ao CLASSES (retratos gerados no tema dark/gold/red no storage), CLASS_SKILLS (builds PvE/PvP/AFK completas), CLASS_VIDEOS (IDs reais: darkist=8IW8-NW1opY, lionheart=zhaGosHGsUk, spiritsummoner=KBxPdi4gyWE) e CLASS_IMAGES/COMPARES_CLASSES (scores PvP); referências "5 classes" corrigidas para 8 na Home e notas do Warrior
+- [x] Testes vitest (139 aprovados: asserções CLASS_SKILLS e COMPARE_CLASSES atualizadas para 8) + screenshots verificados (/classes com 8 seções, /subclasses com 8 abas e retratos) + TSC limpo — checkpoint 890acb30 entregue (auto-publish ativo)
+
+## Nova funcionalidade: skill atualizada, tier list, radar PvP e builds específicas
+
+- [ ] Atualizar a skill game-guide-builder via /skill-creator com o processo completo (8 classes, tier list, radar, builds específicas) e validar
+- [ ] Página de Tier List interativa (/tierlist): 8 classes ranqueadas por cenário (PvP massivo/Sabuk, farm de Darksteel, Bosses) com tiers S–C editáveis, ordenação e filtros
+- [ ] Gráfico de radar no comparador PvP (dano/defesa/utilidade/CC/sustain, Canvas puro)
+- [ ] Abas de builds específicas para Darkist (sustain vs. burst) e Spirit Summoner (espíritos) em Subclasses
 - [ ] Testes vitest + screenshots + checkpoint e entrega
+
+## Nova funcionalidade: tier list interativa com votação, radar PvP, builds específicas, export em lote e validação móvel
+
+- [x] Skill game-guide-builder atualizada e entregue (description atualizado, nova seção 11 "Class content completeness": modelagem de todas as classes, sweep de contagens hardcoded, builds específicas, tier list interativa com localStorage, radar canvas puro; seções 12–15 renumeradas; quick_validate "Skill is valid")
+- [x] Página Tier List interativa (/tier-list): 8 classes ranqueadas por cenário (PvP massivo, farm Darksteel, Bosses) com tiers S–C, tiers pessoais editáveis e persistidas em localStorage (resolveClassTier em tierlistLogic), contador de votos, limpar overrides
+- [x] Votação comunitária na Tier List: tabela tierlist_votes criada e migration aplicada, router tRPC tierlist.vote/tierlist.results, logado vota por cenário/classe (mín. 2 votos p/ mover tier, média decide direção), prevalece voto pessoal quando presente
+- [x] Gráfico de radar no comparador PvP (RadarChart.tsx canvas puro, dano/defesa/utilidade, legenda gold/red, seletor de cenário duel/group/boss) e no card exportado (drawRadarExport em timelineExport.ts com valuesA/valuesB por cenário)
+- [x] Abas de builds específicas em Subclasses: Darkist (Tabs Sustain vs. Burst com foco/skills/rotação/equipamento) e Spirit Summoner (grid de 4 espíritos elementais: Água/Fogo/Vento/Terra com efeitos e uso ideal)
+- [x] Script automatizado de exportação em lote (scripts/export-pvp-cards.mjs: node-canvas + JSDOM, 28 pares das 8 classes em pvp-cards/ com placar, radar e barras por cenário) — exportPvPCompareCard corrigido (textAlign reset após radar)
+- [x] Relatório de validação móvel: screenshots 375×812 de /tier-list e /subclasses verificados (grid, abas de classes, cards de tier responsivos, sem overflow)
+- [x] Testes vitest (152 aprovados, incl. 3 novos do card PvP exportado: placar/legendas do radar e altura com/sem radar) + screenshots desktop/mobile verificados (/tier-list, /subclasses, /calculadora) + checkpoint e entrega

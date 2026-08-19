@@ -61,6 +61,8 @@ export default function PvPCompareCardDialog({ classA, classB, open, onOpenChang
             };
           })
           .filter((r): r is NonNullable<typeof r> => r !== null);
+        const clsA = COMPARE_CLASSES.find(c => c.key === classA);
+        const clsB = COMPARE_CLASSES.find(c => c.key === classB);
         return {
           scenario,
           scenarioLabel: SCENARIO_LABELS[scenario],
@@ -68,6 +70,8 @@ export default function PvPCompareCardDialog({ classA, classB, open, onOpenChang
           winner: wins.a > wins.b ? "a" : wins.b > wins.a ? "b" : "draw",
           winsA: wins.a,
           winsB: wins.b,
+          valuesA: clsA?.scores[scenario],
+          valuesB: clsB?.scores[scenario],
         };
       }),
     };

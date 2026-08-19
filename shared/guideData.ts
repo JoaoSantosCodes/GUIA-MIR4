@@ -2079,6 +2079,49 @@ export const CLASS_SKILLS: ClassSkillsInfo[] = [
     orderNote: "Maximize primeiro a invocação sustentada (Spirit Control + Wand Arts), depois o controle (bind) e a defesa (Shield); o Spirit Cascade fecha a árvore por depender de spirits fortes.",
   },
 ];
+
+/**
+ * Builds especializadas do Darkist: Sustain vs. Burst.
+ * O Darkist pode focar em sustentação (Blood Chain + veneno em área) ou em
+ * burst puro (Asura + Forbidden Arts) conforme o papel no grupo.
+ */
+export const DARKIST_SPECIAL_BUILDS = [
+  {
+    key: "sustain",
+    label: "Sustain — Correntes de Sangue",
+    style: "Tanque mágico de segunda linha",
+    icon: "🩸",
+    focus: ["Max HP", "HP Recovery", "Skill ATK", "Veneno em área"],
+    skills: ["Blood Chain", "Poison Curse", "Slow passivo", "Defesa mágica", "AOE contínuo", "Asura (escape)"],
+    rotation: "Blood Chain no cooldown (curar) → veneno sempre ativo → Asura só para escapar",
+    desc: "Build para quem joga de segunda linha em raids e Sabuk: as correntes de sangue curam continuamente e os venenos mantêm o DPS mesmo sem gastar cooldowns. O Asura vira ferramenta de escape, não de burst.",
+    gear: "Set com HP Recovery e MP Recovery; pedras focadas em Max HP + Skill ATK",
+    bestFor: "Raids longas, farm AFK e Sabuk Wars como suporte de dano",
+  },
+  {
+    key: "burst",
+    label: "Burst — Transformação Asura",
+    style: "DPS mágico de janela",
+    icon: "🔥",
+    focus: ["Skill ATK", "CRIT DMG", "Debuff Success", "CD reduction"],
+    skills: ["Poison Curse", "Forbidden Arts", "Asura (Ultimate)", "Blood Chain", "Debuffs de área", "Slow"],
+    rotation: "Aplicar todos os debuffs → ativar Asura na janela decisiva → Forbidden Arts até o boost acabar",
+    desc: "Build de janela de burst: acumula todos os debuffs primeiro e só então transforma em Asura, multiplicando o dano das magias proibidas. Requer gerenciamento rigoroso de cooldowns e posicionamento recuado.",
+    gear: "Set com Skill ATK e CRIT; pedras focadas em Skill DMG + Debuff Success",
+    bestFor: "PvP 1×1, raids de dano e foco em boss com grupo de suporte",
+  },
+];
+
+/**
+ * Espíritos elementais da Spirit Summoner: qual elemento usar em cada situação.
+ */
+export const SUMMONER_ELEMENTALS = [
+  { element: "Água", icon: "🌊", spirit: "Invocador aquático", effect: "Slow e redução de velocidade de ataque; controle de zona", bestFor: "Kiting em PvP e mobs rápidos" },
+  { element: "Fogo", icon: "🔥", spirit: "Invocador flamejante", effect: "Dano contínuo em área e debuff de queimadura", bestFor: "Mobs densos e farm AFK" },
+  { element: "Vento", icon: "🌬️", spirit: "Invocador do vento", effect: "Empurrão (knockback) e chance de desviar de ataques", bestFor: "Defesa pessoal e recuo em PvP" },
+  { element: "Terra", icon: "⛰️", spirit: "Invocador telúrico", effect: "Prisão (root) e escudo de pedra; redução de dano físico", bestFor: "Tanquear em grupo e raids" },
+];
+
 /** Tabela de referência de subclasse recomendada por situação. */
 export const SUBCLASS_TIPS = {
   intro:
@@ -2277,6 +2320,56 @@ export const SERVER_REGIONS: ServerRegion[] = [
  * Cada classe tem um vídeo de gameplay em destaque usado nas páginas de Classes
  * e Subclasses (iframe responsivo). IDs do YouTube verificados.
  */
+export const TIERLIST_SCENARIOS = [
+  { key: "massivo", label: "PvP Massivo (Sabuk)", icon: "⚔️" },
+  { key: "farm", label: "Farm de Darksteel", icon: "⛏️" },
+  { key: "bosses", label: "Bosses e Raids", icon: "👹" },
+] as const;
+
+export type TierListTier = "S" | "A" | "B" | "C";
+export const TIERLIST_TIERS: TierListTier[] = ["S", "A", "B", "C"];
+
+export const TIERLIST_TIER_STYLE: Record<TierListTier, { bg: string; text: string; ring: string }> = {
+  S: { bg: "bg-gradient-to-br from-amber-400 to-yellow-600", text: "text-yellow-950", ring: "ring-amber-400/50" },
+  A: { bg: "bg-gradient-to-br from-red-500 to-red-700", text: "text-red-50", ring: "ring-red-500/50" },
+  B: { bg: "bg-gradient-to-br from-neutral-600 to-neutral-700", text: "text-neutral-100", ring: "ring-neutral-500/50" },
+  C: { bg: "bg-gradient-to-br from-neutral-800 to-neutral-900", text: "text-neutral-300", ring: "ring-neutral-700/50" },
+};
+
+// Rankings de tier list por cenário — 8 classes oficiais do MIR4 (indicativo de comunidade)
+export const CLASS_TIER_RANKINGS: Record<string, Record<string, { tier: TierListTier; why: string }>> = {
+  massivo: {
+    warrior: { tier: "S", why: "Tanque de linha de frente com alto HP e controle de área em Sabuk Wars; segura objetivos sob pressão." },
+    sorcerer: { tier: "A", why: "Dano em área devastador em multidões, mas exige posicionamento para sobreviver." },
+    taoist: { tier: "A", why: "Suporte essencial em guerras de guilda: cura e buff para o time inteiro." },
+    lancer: { tier: "A", why: "Cargas e imobilizações quebram formações inimigas em larga escala." },
+    darkist: { tier: "B", why: "Maldições enfraquecem o time adversário, mas depende de manter venenos ativos." },
+    lionheart: { tier: "S", why: "Cura em área + debuff em área: a peça central de sobrevivência do grupo." },
+    arbalist: { tier: "B", why: "Dano consistente de longa distância, porém menos impacto em caos puro." },
+    spiritsummoner: { tier: "A", why: "Espíritos controlam zonas e pressionam áreas de combate coletivo." },
+  },
+  farm: {
+    warrior: { tier: "B", why: "Resistente, mas dano por segundo modesto para clear rápido." },
+    sorcerer: { tier: "S", why: "Clear em área mais rápido do jogo: ideal para grind de Darksteel." },
+    taoist: { tier: "A", why: "Sustentação sem gastar poções e dano mágico sólido em mobs agrupados." },
+    lancer: { tier: "B", why: "Bom clear, mas depende de cooldowns de carga." },
+    darkist: { tier: "A", why: "Veneno mata mobs passivamente enquanto você se move entre zonas." },
+    lionheart: { tier: "A", why: "Quase imortal no farm: clear estável sem custo de cura." },
+    arbalist: { tier: "B", why: "Dano estável, clear eficiente em mobs parados." },
+    spiritsummoner: { tier: "S", why: "Espíritos farmam sozinhos: ideal para farm AFK e multitarefa." },
+  },
+  bosses: {
+    warrior: { tier: "A", why: "Tanque de Boss sem custo: sustenta hits pesados enquanto o DPS trabalha." },
+    sorcerer: { tier: "S", why: "Maior DPS sustentado de longa distância contra alvos grandes." },
+    taoist: { tier: "S", why: "Redução de dano + cura tornam qualquer grupo de Boss muito mais seguro." },
+    lancer: { tier: "B", why: "Crowd control útil, mas dano limitado contra um único alvo grande." },
+    darkist: { tier: "A", why: "Debuffs de defesa e veneno acumulam dano relevante em lutas longas." },
+    lionheart: { tier: "A", why: "Cura de grupo + debuff de ataque do Boss aumentam a vida útil do raid." },
+    arbalist: { tier: "B", why: "Dano constante de longe, sem ferramentas de sobrevivência extras." },
+    spiritsummoner: { tier: "A", why: "Spirit Shield protege o time e espíritos somam DPS contra Bosses." },
+  },
+};
+
 export const CLASS_VIDEOS: Record<string, { id: string; title: string }> = {
   warrior: {
     id: "Q82PZqjxPz4",

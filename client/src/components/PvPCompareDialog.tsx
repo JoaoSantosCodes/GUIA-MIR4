@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Swords, Trophy, Minus } from "lucide-react";
-import { compareBuilds, COMPARE_CLASSES, SCENARIO_LABELS, ATTR_LABELS, type CompareResult } from "@/lib/pvpCompare";
+import { compareBuilds, COMPARE_CLASSES, SCENARIO_LABELS, ATTR_LABELS, ATTRIBUTES, SCENARIOS, type CompareResult } from "@/lib/pvpCompare";
+import RadarChart from "@/components/RadarChart";
 import PvPCompareCardDialog from "@/components/PvPCompareCardDialog";
 import { ImageDown } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function PvPCompareDialog() {
   const [open, setOpen] = useState(false);
   const [classA, setClassA] = useState<string>("warrior");
   const [classB, setClassB] = useState<string>("sorcerer");
+  const [scenario, setScenario] = useState<(typeof SCENARIOS)[number]>("duel");
   const [cardOpen, setCardOpen] = useState(false);
 
   const result: CompareResult | null = useMemo(() => compareBuilds(classA, classB), [classA, classB]);
@@ -108,16 +110,50 @@ export default function PvPCompareDialog() {
               <span className={`text-xs font-semibold ${overallColor}`}>{overallLabel}</span>
             </div>
 
+            {/* Seletor de cenário para o radar */}
+            <div className="flex flex-wrap items-center gap-2">
+              {SCENARIOS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setScenario(s)}
+                  className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-all active:scale-[0.97] ${
+                    scenario === s
+                      ? "border-amber-500 bg-amber-950/40 text-amber-300"
+                      : "border-slate-700/60 bg-slate-900/50 text-slate-400 hover:border-amber-800/60 hover:text-slate-200"
+                  }`}
+                >
+                  {SCENARIO_LABELS[s]}
+                </button>
+              ))}
+              <div className="ml-auto flex items-center gap-3 text-[11px] font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" /> {nameA}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" /> {nameB}
+                </span>
+              </div>
+            </div>
+
+            {/* Gráfico de radar */}
+            <div className="flex justify-center rounded-md border border-slate-800 bg-black/25 py-3">
+              <RadarChart
+                seriesA={{ key: classA, name: nameA, values: COMPARE_CLASSES.find(c => c.key === classA)!.scores[scenario] }}
+                seriesB={{ key: classB, name: nameB, values: COMPARE_CLASSES.find(c => c.key === classB)!.scores[scenario] }}
+                scenario={scenario}
+              />
+            </div>
+
             {/* Cenas */}
             <div className="space-y-5">
-              {(["duel", "group", "boss"] as const).map(scenario => {
+              {SCENARIOS.map(scenarioItem => {
                 const wins = result.scenarioWins[scenario];
                 const scenarioWinner =
                   wins.a > wins.b ? "a" : wins.b > wins.a ? "b" : "draw";
                 return (
-                  <div key={scenario}>
+                  <div key={scenarioItem}>
                     <div className="mb-2 flex items-center justify-between">
-                      <p className="text-sm font-bold text-amber-300">{SCENARIO_LABELS[scenario]}</p>
+                      <p className="text-sm font-bold text-amber-300">{SCENARIO_LABELS[scenarioItem]}</p>
                       <Badge
                         variant="outline"
                         className={`border-slate-700/60 text-[10px] ${
@@ -141,8 +177,8 @@ export default function PvPCompareDialog() {
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      {(["dano", "defesa", "utilidade"] as const).map(attr => {
-                        const row = result.rows.find(r => r.scenario === scenario && r.attribute === attr);
+                      {ATTRIBUTES.map(attr => {
+                        const row = result.rows.find(r => r.scenario === scenarioItem && r.attribute === attr);
                         if (!row) return null;
                         const max = 100;
                         const pctA = (row.valueA / max) * 100;

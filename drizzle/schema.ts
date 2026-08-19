@@ -95,3 +95,23 @@ export const commentVotes = mysqlTable(
 
 export type CommentVote = typeof commentVotes.$inferSelect;
 export type InsertCommentVote = typeof commentVotes.$inferInsert;
+
+/**
+ * Votos comunitários na tier list de classes: um voto por usuário por cenário e classe.
+ * vote = 1 (classe merece tier maior) | -1 (classe merece tier menor) | 0 (removido).
+ */
+export const tierlistVotes = mysqlTable(
+  "tierlist_votes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    scenario: varchar("scenario", { length: 40 }).notNull(),
+    classKey: varchar("classKey", { length: 40 }).notNull(),
+    vote: int("vote").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_scenario_class").on(t.userId, t.scenario, t.classKey)],
+);
+export type TierlistVote = typeof tierlistVotes.$inferSelect;
+export type InsertTierlistVote = typeof tierlistVotes.$inferInsert;
