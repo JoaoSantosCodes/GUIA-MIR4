@@ -26,7 +26,7 @@ export default function Classes() {
     <div>
       <PageBanner
         title="Guia de Classes"
-        subtitle="Cinco classes, cada uma com papel definido: Warrior (tanque), Sorcerer (DPS mágico), Taoist (suporte), Lancer (DPS híbrido) e Arbalist (DPS à distância). Ranking PvE: 1º Lancer, 2º Taoist, 3º Arbalist, 4º Warrior, 5º Sorcerer."
+        subtitle="Oito classes, cada uma com papel definido: Warrior (tanque), Sorcerer (DPS mágico), Taoist (suporte), Lancer (DPS híbrido), Arbalist (DPS à distância), Darkist (veneno/maldições), Lionheart (cargas/suporte) e Invocador/Spirit Summoner — a 8ª classe, lançada no Capítulo 21 (agosto de 2026)."
         image={undefined}
         className="!py-10"
       />

@@ -288,3 +288,13 @@
 - [x] Filtro por raridade na tier list de espíritos (Todas/UC/Raro/Épico/Lendário/Mítico com chips coloridos por RARITY_STYLES)
 - [x] Ajustes de UX: aba sincronizada com ?tab=spirits na URL (link compartilhável), raridade no header do SpiritTierBoard junto ao placar de votos, microcopy dos filtros mais clara, estados vazios
 - [x] Testes vitest (155 aprovados, incl. ajuste do teste do card de espíritos para o novo layout de raridade/legenda) + screenshots desktop + mobile verificados (/tier-list, /tier-list?tab=spirits) + TSC limpo
+
+## Validação oficial (mir4global.com, ago/2026) — correções de conteúdo
+
+- [x] Classes.tsx subtítulo: "Cinco classes" → "Oito classes" com lista completa (o site oficial lista 8 classes totais, com Invocador/Spirit Summoner como 8ª no Cap. 21); card de Classes da Home também corrigido
+- [x] Nome oficial PT da 8ª classe: descrição da Spirit Summoner reescrita com "Invocador" (8ª classe, Cap. 21, 18/08/2026) e restrição oficial de Mudança de Classe
+- [x] Leveling guide: faixa 100+ expandida — Soturna (150+, especial), Nine Dragon Ice Field e nível máximo 170 (cap. 10) citados; tip do 5º aniversário e da migração mainnet
+- [x] Economia: nova dica oficial "Migração DRACO/HYDRA para mainnet WEMIX3.0 (agosto 2026)" com conversão 1:1, fim das chains Tornado/PLAY e HSPFE4 até 3/jan/2027
+- [x] Sabuk: nota oficial sobre a Fusão de Servidores e o adiamento do 23º Confronto para outubro (anúncio 18/08/2026)
+- [x] Codex: badge "Badge da Lenda do MIR4" atualizado para o 5º aniversário do MIR4 (agosto de 2026)
+- [x] Testes vitest (155 aprovados — Soturna marcada como zona especial), screenshots (/classes, /economia, /nivel) verificados + TSC limpo

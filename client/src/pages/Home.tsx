@@ -54,7 +54,7 @@ const SECTIONS = [
     path: "/classes",
     icon: Swords,
     title: "Classes",
-    desc: "Guia completo das 5 classes — Warrior, Sorcerer, Taoist, Lancer e Arbalist — com skills, combos e builds.",
+    desc: "Guia completo das 8 classes — Warrior, Sorcerer, Taoist, Lancer, Arbalist, Darkist, Lionheart e Invocador/Spirit Summoner — com skills, combos e builds.",
     image: SECTION_IMAGES.hero,
     accent: "text-amber-400",
   },

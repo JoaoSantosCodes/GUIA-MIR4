@@ -168,7 +168,7 @@ export const CODEX_ITEMS: CodexItem[] = [
   { key: "l-rep-badge-warlord", name: "Badge do Senhor da Guerra", category: "Badges de Reputação", rarity: "Lendário", tier: 4, tip: "Faixa 60–80: obtido em Sabuk Clash e missões de Warlord." },
   // Badges de Reputação — faixa 80–100+
   { key: "m-rep-badge", name: "Badge de Reputação Mítico", category: "Badges de Reputação", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: eventos sazonais e reputação máxima — item de colecionador." },
-  { key: "m-rep-badge-legend", name: "Badge da Lenda do MIR4", category: "Badges de Reputação", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: raro badge de eventos de aniversário do jogo." },
+  { key: "m-rep-badge-legend", name: "Badge da Lenda do MIR4", category: "Badges de Reputação", rarity: "Mítico", tier: 5, tip: "Faixa 80–100+: badge raro do 5º aniversário do MIR4 (agosto de 2026) — evento de presença, bênção do Dragão Divino e loja do Goblin de Ouro." },
 ];
 
 export interface CodexBonus {
@@ -460,7 +460,7 @@ export const CLASSES: GameClass[] = [
     role: "DPS Mágico (invocação)",
     gender: "Feminino",
     image: "/manus-storage/class-spiritsummoner-portrait_52130936.png",
-    description: "A Spirit Summoner (4ª nova classe, Capítulo 21, 2026) é uma invocadora que controla os espíritos de toda a criação usando uma vara mágica como meio. Descendente da família que guarda o Navio da Miragem, domina um combate versátil à distância: atrás da aparência inocente esconde um poder sufocante.",
+    description: "O Invocador (nome oficial em português da Spirit Summoner) é a 8ª classe do MIR4, lançada no Capítulo 21 (18 de agosto de 2026). É uma invocadora de ataque mágico que usa uma vara mágica para invocar e comandar os espíritos de toda a criação, lutando ao lado deles com combate versátil à distância. Descendente da família que guarda o Navio da Miragem: atrás da aparência inocente esconde um poder sufocante. Atenção: a classe não pode realizar Mudança de Classe (oficial).",
     strengths: ["Dano mágico versátil à distância", "Invocações que atacam e protegem", "Combate adaptável (single-target e AoE)", "Posicionamento seguro"],
     weaknesses: ["Frágil se focada", "Dano depende dos espíritos ativos", "Classe recente: meta ainda em evolução"],
     skills: [
@@ -515,6 +515,7 @@ export const ECONOMY_TIPS: EconomyTip[] = [
   { title: "Economia de clã", desc: "Clãs acumulam Fundo, Blacksteel, Energia e Ouro de Clã para Expedition Bosses e conquistas. Clãs fortes distribuem Epic Dragon Statues nos boss raids semanais." },
   { title: "Cuidado com golpes", desc: "Nunca confie em 'trocas diretas' fora do Mercado oficial; verifique os itens antes de confirmar transações. O jogo pune RMT, bots e account sharing." },
   { title: "DRACO: conversão e contexto", desc: "100.000 Darksteel = 1 DRACO via smelting. No auge (2021–2022) o DRACO valia centenas de dólares; o valor caiu drasticamente desde então. Hoje o foco voltou ao uso in-game do Darksteel." },
+  { title: "Migração DRACO/HYDRA para mainnet WEMIX3.0 (agosto 2026)", desc: "A Wemade retomou a migração dos tokens DRACO e HYDRA para a mainnet WEMIX3.0, com conversão 1:1 dos tokens legados (Tornado Chain/PLAY Chain). As pools pHYDRA-pWEMIX$ e pDRACO-pWEMIX$ foram encerradas; a migração é unidirecional e pode levar até 24h em status de espera. O sistema HSPFE4 funciona apenas com HYDRA da mainnet e fica disponível até 3 de janeiro de 2027 (fonte: aviso oficial de 14/08/2026)." },
 ];
 
 export const SECTION_IMAGES = {
@@ -1168,21 +1169,24 @@ export const LEVELING_GUIDE: LevelBand[] = [
   },
   {
     range: "100+",
-    title: "Endgame: Sabuk e Nine Dragon",
+    title: "Endgame: Sabuk, Nine Dragon e além (nível máximo atual: 170)",
     goals: [
       "Dominar Sabuk (105+) — o campo de batalha definitivo entre clãs",
-      "Explorar Nine Dragon (130+) — o conteúdo mais desafiador do jogo",
+      "Explorar Nine Dragon (130+) — bosses e drops de raridade máxima",
+      "Avançar para Soturna (150+) e o conteúdo pós-170 — o nível máximo do jogo foi ampliado para 170 (Capítulo 10)",
       "Competir no ranking do Collection Codex e das raids",
     ],
     zones: [
       { name: "Sabuk", note: "105+ — PvP massivo; o clã que controla Sabuk domina o servidor." },
-      { name: "Nine Dragon", note: "130+ — bosses e drops de raridade máxima." },
+      { name: "Nine Dragon Ice Field", note: "130+ — ervas lendárias e bosses (Azureum, Eternal Snow Panax)." },
+      { name: "Soturna", special: true, note: "150+ — área pós-Nine Dragon introduzida no Capítulo 13; o teto atual do jogo é o nível 170." },
       { name: "Phantasia Desert", note: "100 — rota de farm endgame quando Sabuk estiver fechado." },
     ],
     tips: [
       "No endgame, a coordenação de clã vale mais que gear individual.",
       "Mantenha espíritos lendários/míticos equipados: a diferença de atributos é brutal.",
-      "Continue convertendo Darksteel em DRACO conforme o mercado — é sua renda passiva.",
+      "O MIR4 está no 5º aniversário (agosto de 2026, Capítulos 21/22): eventos de presença, bênção do Dragão Divino e a nova classe Invocador chegaram junto.",
+      "Continue convertendo Darksteel em DRACO conforme o mercado — é sua renda passiva (ver nota da migração para a mainnet WEMIX3.0 na seção de Economia).",
     ],
   },
 ];
@@ -1206,6 +1210,7 @@ export const SABUK_CONTENT: SabukEntry[] = [
       "A Guerra de Sabuk é a batalha semanal entre clãs do próprio servidor pelo controle do Castelo de Sabuk. O clã que acumula mais pontos ao final de aproximadamente 1 hora de batalha conquista o castelo — o líder do clã vencedor se torna o Rei do Castelo de Bicheon/Sabuk.",
     details: [
       "A batalha acontece entre clãs do mesmo servidor, geralmente ao fim de semana (sábado, horário anunciado no servidor).",
+      "Nota oficial (agosto 2026): está em andamento a Fusão de Servidores anunciada pela Wemade — o 23º Confronto de Sabuk, previsto para agosto, foi adiado para outubro para garantir uma fusão tranquila. Durante períodos de fusão, o Saque entre servidores fica temporariamente restrito e o mapa de forças é reorganizado; verifique sempre o fórum oficial antes de planejar a estratégia do clã.",
       "Pontos são ganhos ao matar inimigos na área do castelo, destruir estruturas de defesa e controlar pontos estratégicos.",
       "Organize a party em grupos: tanques nas linhas de frente, DPS em flancos e healers protegidos atrás de pilares.",
       "Membros que não estão em combate direto podem farmar recursos na periferia — cada membro contribui para o score do clã.",
