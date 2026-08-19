@@ -13,6 +13,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import EventNotificationsBell from "@/components/EventNotificationsBell";
 import LiveEventBanner from "@/components/LiveEventBanner";
 import GoblinBanner from "@/components/GoblinBanner";
+import FusionCountdownBanner from "@/components/FusionCountdownBanner";
 import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
@@ -311,6 +312,7 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const [goblinVisible, setGoblinVisible] = useState(false);
+  const [fusionVisible, setFusionVisible] = useState(false);
 
   const index = useMemo(() => BUILD_SEARCH_INDEX(), []);
   const filtered = useMemo(() => {
@@ -381,6 +383,7 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
 
             <EventNotificationsBell />
             <LiveEventBanner />
+            <FusionCountdownBanner onVisibilityChange={setFusionVisible} />
 
             <Button variant="ghost" size="icon" className="md:hidden text-amber-200" onClick={() => setMobileOpen(v => !v)}>
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -409,7 +412,7 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
       <div className="fixed top-14 inset-x-0 z-40 pointer-events-none">
         <GoblinBanner onVisibilityChange={setGoblinVisible} />
       </div>
-      <main className={cn("flex-1", goblinVisible ? "pt-[4.75rem]" : "pt-16")}>{children}</main>
+      <main className={cn("flex-1", goblinVisible && fusionVisible ? "pt-[7.5rem]" : goblinVisible || fusionVisible ? "pt-[4.75rem]" : "pt-16")}>{children}</main>
 
       <footer className="border-t border-amber-800/40 bg-[oklch(0.12_0.01_280)] py-8 mt-12">
         <div className="container flex flex-col items-center gap-4 text-sm text-slate-500">

@@ -329,3 +329,11 @@
 - [x] Seção de fusões na página /sabuk (card "Fusão de Servidores — Capítulo 21" com impacto no Sabuk Clash, tabela compacta das fusões reais e link para /novidades)
 - [x] Apresentação em slides: novidades do Capítulo 21 + regras da Fusão de Servidores (12 slides entregues)
 - [x] Testes vitest + screenshots + TSC limpo + checkpoint e entrega
+
+## Nova funcionalidade: countdown da fusão, filtro Veterano e alerta Goblin
+
+- [x] Banner de countdown no header para a manutenção da Fusão de Servidores (01/09/2026) — FusionCountdownBanner.tsx integrado ao GuideLayout, countdown até 01/09 00:00 UTC+8, destaque do Passe promocional 500 Copper (nível 40+), pulso nos últimos 2 dias, dispensar/lembrar depois, link para /novidades
+- [x] Filtro de "Veterano" no placar destacando usuários com 21/21 capítulos marcados — botão Veterano no Leaderboard (/placar) ativo para usuário logado veterano, banner Modo Veterano de Sabuk e selo dourado nos cards do placar
+- [x] Notificação visual quando a Loja do Goblin de Ouro estiver perto do fim (14/09) — GoblinBanner.tsx já implementado (<24h com pulso nos últimos 6h); validado com teste de janela de alerta (fusionBanner.test.ts)
+- [x] Sincronizar com repositório GitHub github.com/JoaoSantosCodes/GUIA-MIR4 — remote "github" adicionado e branch main enviada
+- [x] Testes vitest (fusionBanner.test.ts: 8 testes de data-alvo/formatação/urgência; 177 aprovados) + screenshots + TSC limpo + checkpoint e entrega

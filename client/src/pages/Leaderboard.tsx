@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
 import { useState } from "react";
-import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem, ScrollText } from "lucide-react";
+import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem, ScrollText, BookOpenCheck } from "lucide-react";
 
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ExportRankingCardDialog } from "@/components/ExportCardDialog";
+import { evaluateChapterAchievements, TOTAL_CHAPTERS } from "@/lib/chapterAchievements";
 
 const PODIUM_STYLES: Record<number, string> = {
   1: "from-amber-300/25 to-amber-600/10 border-amber-400/60",
@@ -23,9 +24,27 @@ const PODIUM_ICON: Record<number, React.ReactNode> = {
   3: <Medal className="h-5 w-5 text-orange-400" />,
 };
 
+const CHAPTERS_PLAYED_KEY = "mir4-chapters-played";
+
+/** Lê os capítulos marcados pelo usuário logado no navegador (mesma chave da página Notícias). */
+function readPlayedChapters(): number[] {
+  try {
+    const raw = window.localStorage.getItem(CHAPTERS_PLAYED_KEY);
+    const arr: number[] = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter(n => typeof n === "number") : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function Leaderboard() {
   const auth = useAuth();
   const [mode, setMode] = useState<"gold" | "unified">("gold");
+  const [veteransOnly, setVeteransOnly] = useState(false);
+  // Usuário logado é veterano quando marcou todos os 21 capítulos (chave local).
+  const playedChapters = useMemo(() => (auth.isAuthenticated ? readPlayedChapters() : []), [auth.isAuthenticated]);
+  const myVeteranStatus = useMemo(() => evaluateChapterAchievements(playedChapters).find(a => a.key === "capitulos-veterano"), [playedChapters]);
+  const isVeteran = myVeteranStatus?.earned ?? false;
 
   const { data: goldEntries, isLoading: goldLoading } = trpc.community.goldLeaderboard.useQuery(undefined, {
     refetchInterval: 60000,
@@ -38,6 +57,9 @@ export default function Leaderboard() {
 
   const entries = mode === "gold" ? goldEntries : unifiedEntries;
   const isLoading = mode === "gold" ? goldLoading : unifiedLoading;
+  // Filtragem de Veteranos: somente no placar pessoal (usuário logado marcado 21/21),
+  // os capítulos marcados são dados do navegador — o placar global não armazena isso no servidor.
+  const showVeterans = veteransOnly && auth.isAuthenticated && isVeteran;
 
   const podium = useMemo(() => entries?.slice(0, 3) ?? [], [entries]);
   const rest = useMemo(() => entries?.slice(3) ?? [], [entries]);
@@ -84,7 +106,43 @@ export default function Leaderboard() {
               Unificado
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setVeteransOnly(v => !v)}
+            aria-pressed={veteransOnly}
+            title="Mostrar apenas o placar de Veteranos (21/21 capítulos marcados)"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors",
+              showVeterans
+                ? "border-amber-400/60 bg-amber-500/20 text-amber-200"
+                : "border-amber-700/50 text-slate-400 hover:text-amber-200",
+            )}
+          >
+            <BookOpenCheck className="h-3.5 w-3.5" />
+            Veterano
+          </button>
         </div>
+        {showVeterans && (
+          <section className="mb-4 flex items-start gap-3 rounded-lg border border-amber-400/50 bg-gradient-to-r from-amber-400/15 via-amber-500/10 to-transparent p-4">
+            <BookOpenCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+            <p className="text-sm text-amber-100/90">
+              <strong className="text-amber-200">Modo Veterano de Sabuk:</strong> você marcou todos os{" "}
+              <strong className="text-amber-200">{TOTAL_CHAPTERS}/{TOTAL_CHAPTERS} capítulos</strong> da linha do tempo e
+              seu placar agora destaca a trilha completa do MIR4 — das medalhas de Dicas de Ouro às conquistas do Codex.
+            </p>
+          </section>
+        )}
+        {veteransOnly && auth.isAuthenticated && !isVeteran && (
+          <section className="mb-4 flex items-start gap-3 rounded-lg border border-slate-500/40 bg-gradient-to-r from-slate-500/10 to-transparent p-4">
+            <BookOpenCheck className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+            <p className="text-sm text-muted-foreground">
+              Você ainda não completou os <strong className="text-amber-300">{TOTAL_CHAPTERS} capítulos</strong> da linha do
+              tempo. Marque todos como vivenciados na página{" "}
+              <a href="/novidades" className="text-amber-300 underline-offset-2 hover:underline">Notícias</a> para liberar
+              o placar de Veterano.
+            </p>
+          </section>
+        )}
         <section className="mb-6 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-transparent p-4">
           <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <p className="text-sm text-muted-foreground">
@@ -153,6 +211,11 @@ export default function Leaderboard() {
                   <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     {idx === 0 ? "Ouro" : idx === 1 ? "Prata" : "Bronze"}
                   </div>
+                  {showVeterans && (
+                    <div className="mb-1 mt-1 inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                      <BookOpenCheck className="h-3 w-3" /> Veterano de Sabuk
+                    </div>
+                  )}
                   <div className="mb-1 mt-1 truncate font-semibold">{e.userName ?? `Jogador #${e.userId}`}</div>
                   {"totalScore" in e ? (
                     <>
@@ -195,6 +258,11 @@ export default function Leaderboard() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
                       <Crown className="h-4 w-4 text-amber-400" />
                     </div>
+                    {showVeterans && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-200">
+                        <BookOpenCheck className="h-2.5 w-2.5" /> Veterano
+                      </span>
+                    )}
                     <span className="flex-1 truncate font-medium">{e.userName ?? `Jogador #${e.userId}`}</span>
                     {"totalScore" in e ? (
                       <>
