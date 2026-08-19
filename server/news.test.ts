@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTER21_NEWS, MIR4_CHAPTERS, CHAPTER22_COMING_SOON } from "../shared/newsData";
+import { CHAPTER21_NEWS, MIR4_CHAPTERS, CHAPTER22_COMING_SOON, SERVER_MERGE_MAP } from "../shared/newsData";
 
 describe("notícias do Capítulo 21 e 5º aniversário", () => {
   it("lista as novidades oficiais do Capítulo 21 com conteúdo válido", () => {
@@ -73,5 +73,36 @@ describe("linha do tempo dos capítulos do MIR4", () => {
 
   it("anuncia o próximo capítulo", () => {
     expect(CHAPTER22_COMING_SOON).toContain("22");
+  });
+});
+
+describe("Tabela de fusões de servidores (SERVER_MERGE_MAP)", () => {
+  it("contém todas as 7 regiões com servidores resultantes", () => {
+    const regions = Object.keys(SERVER_MERGE_MAP);
+    expect(regions).toHaveLength(7);
+    for (const region of regions) {
+      expect(Object.keys(SERVER_MERGE_MAP[region]).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("cada servidor resultante contém a si mesmo na lista de fundidos e nenhum servidor aparece como absorvido em duas fusões", () => {
+    const absorbed = new Set<string>();
+    for (const servers of Object.values(SERVER_MERGE_MAP)) {
+      for (const [result, merge] of Object.entries(servers)) {
+        expect(merge.mergedServers.length).toBeGreaterThan(0);
+        expect(merge.mergedServers).toContain(result);
+        for (const name of merge.mergedServers) {
+          expect(absorbed.has(name), `servidor absorvido duas vezes: ${name}`).toBe(false);
+          absorbed.add(name);
+        }
+      }
+    }
+  });
+
+  it("a região NA1 inclui fusões reais (NA012+NA041) e a EU1 funde EU011+EU013", () => {
+    const na1 = SERVER_MERGE_MAP.NA1;
+    expect(na1.NA012.mergedServers).toEqual(["NA012", "NA041"]);
+    const eu1 = SERVER_MERGE_MAP.EU1;
+    expect(eu1.EU011.mergedServers).toEqual(["EU011", "EU013"]);
   });
 });

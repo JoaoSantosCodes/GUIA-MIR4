@@ -110,6 +110,90 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
   },
 ];
 
+// Fusão de Servidores — mapa completo por região (fonte: post oficial 2542, atualizado 05/08/2026)
+export interface ServerMerge {
+  mergedInto: string;
+  mergedServers: string[];
+}
+
+export const SERVER_MERGE_MAP: Record<string, Record<string, ServerMerge>> = {
+  ASIA1: {
+    ASIA011: { mergedInto: "ASIA011", mergedServers: ["ASIA011"] },
+    ASIA012: { mergedInto: "ASIA012", mergedServers: ["ASIA012"] },
+    ASIA021: { mergedInto: "ASIA021", mergedServers: ["ASIA021", "ASIA013"] },
+    ASIA022: { mergedInto: "ASIA022", mergedServers: ["ASIA022", "ASIA014"] },
+    ASIA023: { mergedInto: "ASIA023", mergedServers: ["ASIA023", "ASIA024"] },
+    ASIA031: { mergedInto: "ASIA031", mergedServers: ["ASIA031", "ASIA041"] },
+    ASIA032: { mergedInto: "ASIA032", mergedServers: ["ASIA032"] },
+    ASIA033: { mergedInto: "ASIA033", mergedServers: ["ASIA033"] },
+    ASIA034: { mergedInto: "ASIA034", mergedServers: ["ASIA034"] },
+    ASIA042: { mergedInto: "ASIA042", mergedServers: ["ASIA042"] },
+  },
+  ASIA2: {
+    ASIA051: { mergedInto: "ASIA051", mergedServers: ["ASIA051", "ASIA082"] },
+    ASIA052: { mergedInto: "ASIA052", mergedServers: ["ASIA052", "ASIA071"] },
+    ASIA053: { mergedInto: "ASIA053", mergedServers: ["ASIA053"] },
+    ASIA061: { mergedInto: "ASIA061", mergedServers: ["ASIA061", "ASIA072"] },
+    ASIA062: { mergedInto: "ASIA062", mergedServers: ["ASIA062", "ASIA073"] },
+    ASIA063: { mergedInto: "ASIA063", mergedServers: ["ASIA063", "ASIA091"] },
+    ASIA081: { mergedInto: "ASIA081", mergedServers: ["ASIA081"] },
+    ASIA083: { mergedInto: "ASIA083", mergedServers: ["ASIA083"] },
+    ASIA092: { mergedInto: "ASIA092", mergedServers: ["ASIA092"] },
+  },
+  ASIA3: {
+    ASIA311: { mergedInto: "ASIA311", mergedServers: ["ASIA311", "ASIA314"] },
+    ASIA312: { mergedInto: "ASIA312", mergedServers: ["ASIA312", "ASIA341"] },
+    ASIA313: { mergedInto: "ASIA313", mergedServers: ["ASIA313", "ASIA324"] },
+    ASIA321: { mergedInto: "ASIA321", mergedServers: ["ASIA321"] },
+    ASIA322: { mergedInto: "ASIA322", mergedServers: ["ASIA322"] },
+    ASIA323: { mergedInto: "ASIA323", mergedServers: ["ASIA323"] },
+    ASIA331: { mergedInto: "ASIA331", mergedServers: ["ASIA331"] },
+    ASIA332: { mergedInto: "ASIA332", mergedServers: ["ASIA332"] },
+    ASIA333: { mergedInto: "ASIA333", mergedServers: ["ASIA333"] },
+    ASIA334: { mergedInto: "ASIA334", mergedServers: ["ASIA334"] },
+    ASIA342: { mergedInto: "ASIA342", mergedServers: ["ASIA342"] },
+  },
+  NA1: {
+    NA011: { mergedInto: "NA011", mergedServers: ["NA011"] },
+    NA012: { mergedInto: "NA012", mergedServers: ["NA012", "NA041"] },
+    NA013: { mergedInto: "NA013", mergedServers: ["NA013"] },
+    NA014: { mergedInto: "NA014", mergedServers: ["NA014"] },
+    NA021: { mergedInto: "NA021", mergedServers: ["NA021"] },
+    NA022: { mergedInto: "NA022", mergedServers: ["NA022"] },
+    NA023: { mergedInto: "NA023", mergedServers: ["NA023"] },
+    NA031: { mergedInto: "NA031", mergedServers: ["NA031", "NA033"] },
+    NA032: { mergedInto: "NA032", mergedServers: ["NA032"] },
+    NA042: { mergedInto: "NA042", mergedServers: ["NA042"] },
+  },
+  EU1: {
+    EU011: { mergedInto: "EU011", mergedServers: ["EU011", "EU013"] },
+    EU012: { mergedInto: "EU012", mergedServers: ["EU012"] },
+    EU021: { mergedInto: "EU021", mergedServers: ["EU021", "EU023"] },
+    EU022: { mergedInto: "EU022", mergedServers: ["EU022", "EU031"] },
+    EU024: { mergedInto: "EU024", mergedServers: ["EU024", "EU014"] },
+    EU032: { mergedInto: "EU032", mergedServers: ["EU032"] },
+  },
+  SA1: {
+    SA011: { mergedInto: "SA011", mergedServers: ["SA011"] },
+    SA012: { mergedInto: "SA012", mergedServers: ["SA012"] },
+    SA013: { mergedInto: "SA013", mergedServers: ["SA013", "SA041"] },
+    SA021: { mergedInto: "SA021", mergedServers: ["SA021"] },
+    SA022: { mergedInto: "SA022", mergedServers: ["SA022"] },
+    SA023: { mergedInto: "SA023", mergedServers: ["SA023", "SA014"] },
+    SA031: { mergedInto: "SA031", mergedServers: ["SA031", "SA033"] },
+    SA032: { mergedInto: "SA032", mergedServers: ["SA032"] },
+    SA042: { mergedInto: "SA042", mergedServers: ["SA042"] },
+  },
+  INMENA1: {
+    INMENA011: { mergedInto: "INMENA011", mergedServers: ["INMENA011", "INMENA012"] },
+    INMENA013: { mergedInto: "INMENA013", mergedServers: ["INMENA013", "INMENA014"] },
+    INMENA021: { mergedInto: "INMENA021", mergedServers: ["INMENA021", "INMENA022"] },
+    INMENA023: { mergedInto: "INMENA023", mergedServers: ["INMENA023", "INMENA024"] },
+    INMENA031: { mergedInto: "INMENA031", mergedServers: ["INMENA031"] },
+    INMENA032: { mergedInto: "INMENA032", mergedServers: ["INMENA032"] },
+  },
+};
+
 export interface ChapterTimelineItem {
   number: number;
   title: string;

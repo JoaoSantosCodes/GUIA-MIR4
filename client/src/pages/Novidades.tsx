@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import PageBanner from "@/components/guide/PageBanner";
-import { CHAPTER21_NEWS, CHAPTER22_COMING_SOON, MIR4_CHAPTERS, type Chapter21NewsItem } from "@shared/newsData";
+import { CHAPTER21_NEWS, CHAPTER22_COMING_SOON, MIR4_CHAPTERS, SERVER_MERGE_MAP, type Chapter21NewsItem } from "@shared/newsData";
 import { ChevronLeft, ChevronRight, Newspaper, Crown, Sparkles, Gift, Gem, Wrench, Coins, Calendar, ExternalLink, CheckCircle2, Circle, Download, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -8,6 +8,16 @@ import { toast } from "sonner";
 import { exportTimelineProgressCard } from "@/lib/timelineExport";
 
 const CHAPTERS_PLAYED_KEY = "mir4-chapters-played";
+
+const REGION_LABELS: Record<string, string> = {
+  ASIA1: "Ásia 1 (ASIA1)",
+  ASIA2: "Ásia 2 (ASIA2)",
+  ASIA3: "Ásia 3 (ASIA3)",
+  NA1: "América do Norte (NA1)",
+  EU1: "Europa (EU1)",
+  SA1: "América do Sul (SA1)",
+  INMENA1: "Índia/Oriente Médio/África do Norte (INMENA1)",
+};
 
 function readPlayed(): Set<number> {
   try {
@@ -201,6 +211,75 @@ export default function Novidades() {
           {filtered.length === 0 && (
             <p className="text-sm text-slate-500 text-center py-8">Nenhuma novidade nesta categoria.</p>
           )}
+        </section>
+
+        {/* ===== Tabela de Fusões por Região ===== */}
+        <section>
+          <h2 className="gold-text text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
+            <Crown className="h-6 w-6 text-sky-400" /> Fusão de Servidores — Tabela Completa por Região
+          </h2>
+          <div className="mb-5 flex flex-wrap items-start gap-3 rounded-lg border border-sky-800/50 bg-[oklch(0.19_0.015_280)] p-4 text-sm text-slate-300">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+            <div className="space-y-1.5">
+              <p>
+                A fusão foi executada em <strong className="text-amber-300">18/08/2026</strong> durante a manutenção oficial. As tabelas abaixo mostram, para cada região, qual servidor absorve a fusão e quais servidores foram unificados nele (dados do aviso oficial nº 2542 da Wemade).
+              </p>
+              <p className="text-xs text-slate-400">
+                Servidores que aparecem sozinhos na coluna "servidores fundidos" não mudaram de nome. A história territorial de clãs (Bicheon, Sabuk, Vales e territórios), rankings e dados de correio foram zerados — o Passe de Viagem do Viajante (500 Cobre, nível 40+) ficou à venda até 1º/09 para quem quisesse mudar de servidor antes da fusão.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-5 xl:grid-cols-2">
+            {Object.entries(SERVER_MERGE_MAP).map(([region, regionServers]) => {
+              const serverEntries = Object.entries(regionServers);
+              const mergedCount = serverEntries.filter(([, m]) => m.mergedServers.length > 1).length;
+              const regionLabel = REGION_LABELS[region] ?? region;
+              return (
+                <div key={region} className="rounded-lg border border-slate-800 bg-[oklch(0.19_0.015_280)] overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-slate-800 bg-black/30 px-4 py-2.5">
+                    <h3 className="text-sm font-bold text-sky-300">{regionLabel}</h3>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {serverEntries.length} servidores · {mergedCount} fus{mergedCount === 1 ? "ão" : "ões"}
+                    </span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-800/70 text-left text-[10px] uppercase tracking-wider text-slate-500">
+                          <th className="px-3 py-2 font-semibold">Servidor resultante</th>
+                          <th className="px-3 py-2 font-semibold">Servidores fundidos</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {serverEntries.map(([result, merge]) => {
+                          const isMerged = merge.mergedServers.length > 1;
+                          return (
+                            <tr
+                              key={result}
+                              className={cn(
+                                "border-b border-slate-800/50 transition-colors",
+                                isMerged ? "bg-amber-950/10 hover:bg-amber-950/20" : "hover:bg-white/[0.03]",
+                              )}
+                            >
+                              <td className="px-3 py-1.5 font-semibold text-amber-300">{result}</td>
+                              <td className="px-3 py-1.5">
+                                <span className={cn("font-mono", isMerged ? "text-slate-200" : "text-slate-500")}>
+                                  {merge.mergedServers.join(" + ")}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-[11px] text-slate-500">
+            Fonte: Aviso nº 2542 — "Fusão de Servidores" (forum.mir4global.com/post/2542), atualizado em 05/08/2026. O estado final dos servidores pode variar conforme avisos adicionais da Wemade.
+          </p>
         </section>
 
         {/* ===== Linha do tempo dos capítulos ===== */}

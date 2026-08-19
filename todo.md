@@ -321,3 +321,11 @@
 - [x] Banner de alerta no topo do site quando a Loja Goblin (14/09 23:59 KST/UTC+8) estiver a menos de 24h do fim (GoblinBanner.tsx: countdown-pulse nos últimos 6h, dispensar/lembrar depois, main compensa o espaço)
 - [x] Filtro ativos/encerrados na página de Notícias (chips Todos/Ativos/Encerrados com cores verde/vermelho/âmbar ao lado dos filtros de categoria)
 - [x] Testes vitest (chapterAchievements.test.ts, 166 aprovados) + screenshots /novidades e /perfil verificados + TSC limpo
+
+## Tabela de fusões e apresentação
+
+- [ ] Dados estruturados da fusão por região no newsData (SERVER_MERGE_MAP: região → servidor resultante → servidores fundidos, fonte: post 2542 oficial)
+- [ ] Seção/tabela completa de fusões na página /novidades (card da Fusão de Servidores: tabela por região ASIA1/ASIA2/ASIA3/NA/EU/SA/INMENA)
+- [ ] Seção de fusões na página /sabuk (impacto no Confronto de Sabuk + tabela de servidores fundidos)
+- [ ] Apresentação em slides: novidades do Capítulo 21 + regras da Fusão de Servidores (máx. 12 slides)
+- [ ] Testes vitest + screenshots + TSC limpo + checkpoint e entrega

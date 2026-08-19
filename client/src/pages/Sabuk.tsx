@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Sword, Crown, Users, Trophy, Castle, ScrollText } from "lucide-react";
 import { SABUK_CONTENT, CONQUEST_INFO } from "@shared/guideData";
+import { SERVER_MERGE_MAP } from "@shared/newsData";
 
 const ENTRY_ICONS: Record<string, React.ReactNode> = {
   "guerra-sabuk": <Sword className="h-5 w-5" />,
@@ -181,6 +182,61 @@ export default function Sabuk() {
             <div className="mt-4 flex justify-end">
               <FavButton itemId="sabuk:torre-conquista" itemType="sabuk" isFavorite={false} />
             </div>
+          </Card>
+        </section>
+
+        {/* Fusão de Servidores — Capítulo 21 */}
+        <section>
+          <h2 className="text-2xl font-bold text-amber-400 mb-3 flex items-center gap-2">
+            <Castle className="h-6 w-6" />
+            Fusão de Servidores — Capítulo 21 (18/08/2026)
+          </h2>
+          <Card className="p-6 bg-gradient-to-br from-sky-950/40 to-slate-900/60 border-sky-700/30">
+            <p className="text-sm text-slate-300 leading-relaxed mb-3">
+              Com o Capítulo 21, a Wemade fundiu servidores para unificar as forças. O Mapa das Forças foi reorganizado e o <strong className="text-amber-300">23º Confronto de Sabuk foi remarcado para outubro</strong>, substituindo o 24º. Atenção: a história territorial dos clãs foi zerada — as posições de Rei de Bicheon, Sabuk e dos Vales não contam mais para a qualificação do Sabuk Clash.
+            </p>
+            <div className="rounded-md border border-amber-700/30 bg-amber-950/30 px-4 py-3 text-sm text-amber-100/90 mb-4">
+              <Badge variant="outline" className="border-amber-600/60 text-amber-300 mb-1">
+                Impacto no Sabuk
+              </Badge>
+              <p>
+                Clãs que eram Reis de Bicheon antes da fusão perderam a elegibilidade herdada para o Sabuk Clash — será preciso reconquistar o trono no servidor resultante. Quem ainda joga em um servidor que será absorvido pode usar o <strong>Passe de Viagem do Viajante</strong> (500 Copper, nível 40+, 1 por personagem) até 1º de setembro para escolher um novo servidor.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-slate-700/70 text-left text-[10px] uppercase tracking-wider text-slate-500">
+                    <th className="px-2 py-2 font-semibold">Região</th>
+                    <th className="px-2 py-2 font-semibold">Servidores fundidos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(SERVER_MERGE_MAP)
+                    .filter(([, servers]) => Object.values(servers).some(m => m.mergedServers.length > 1))
+                    .map(([region, servers]) => (
+                      <tr key={region} className="border-b border-slate-800/50 align-top hover:bg-white/[0.03]">
+                        <td className="px-2 py-2 font-semibold text-sky-300 whitespace-nowrap">{region}</td>
+                        <td className="px-2 py-2">
+                          <div className="space-y-0.5">
+                            {Object.entries(servers)
+                              .filter(([, m]) => m.mergedServers.length > 1)
+                              .map(([result, m]) => (
+                                <div key={result}>
+                                  <span className="font-semibold text-amber-300">{result}</span>
+                                  <span className="text-slate-400"> ← {m.mergedServers.join(" + ")}</span>
+                                </div>
+                              ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-[11px] text-slate-500">
+              Apenas as fusões reais estão listadas. Tabela completa por região (61 servidores) disponível na página de <a href="/novidades" className="text-amber-400 underline underline-offset-2 hover:text-amber-300">Notícias</a>. Fonte: Aviso nº 2542 da Wemade (05/08/2026).
+            </p>
           </Card>
         </section>
 
