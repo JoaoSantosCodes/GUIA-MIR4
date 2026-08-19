@@ -255,15 +255,15 @@
 
 ## Nova funcionalidade: skill atualizada, tier list, radar PvP e builds específicas
 
-- [ ] Atualizar a skill game-guide-builder via /skill-creator com o processo completo (8 classes, tier list, radar, builds específicas) e validar
-- [ ] Página de Tier List interativa (/tierlist): 8 classes ranqueadas por cenário (PvP massivo/Sabuk, farm de Darksteel, Bosses) com tiers S–C editáveis, ordenação e filtros
-- [ ] Gráfico de radar no comparador PvP (dano/defesa/utilidade/CC/sustain, Canvas puro)
-- [ ] Abas de builds específicas para Darkist (sustain vs. burst) e Spirit Summoner (espíritos) em Subclasses
-- [ ] Testes vitest + screenshots + checkpoint e entrega
+- [x] Atualizar a skill game-guide-builder via /skill-creator com o processo completo (8 classes, tier list, radar, builds específicas) e validar — feito na seção posterior (itens 266-273)
+- [x] Página de Tier List interativa (/tier-list): implementada com tiers S–C, votação comunitária e overrides pessoais (ver seção posterior)
+- [x] Gráfico de radar no comparador PvP: implementado (ver seção posterior)
+- [x] Abas de builds específicas Darkist e Spirit Summoner: implementadas (ver seção posterior)
+- [x] Testes vitest + screenshots + checkpoint: entregues (ver seção posterior)
 
 ## Nova funcionalidade: tier list interativa com votação, radar PvP, builds específicas, export em lote e validação móvel
 
-- [x] Skill game-guide-builder atualizada e entregue (description atualizado, nova seção 11 "Class content completeness": modelagem de todas as classes, sweep de contagens hardcoded, builds específicas, tier list interativa com localStorage, radar canvas puro; seções 12–15 renumeradas; quick_validate "Skill is valid")
+- [x] Skill game-guide-builder atualizada e revalidada ("Skill is valid"): description incluiu tier list comunitária com votos e batch export; seção 11 ampliada (tier list com backing DB tierlist_votes + estabilidade de tier com mínimo de 2 votos, radar chart com drawRadarExport e canvas hygiene, build modes Darkist/Spirit Summoner); seção 12 ganhou batch PNG export (scripts/export-pvp-cards.mjs com esbuild em memória + node-canvas/JSDOM) e relatório de validação móvel; sección 11 antiga + common pitfalls (tier list stability, duplicate checklist items)
 - [x] Página Tier List interativa (/tier-list): 8 classes ranqueadas por cenário (PvP massivo, farm Darksteel, Bosses) com tiers S–C, tiers pessoais editáveis e persistidas em localStorage (resolveClassTier em tierlistLogic), contador de votos, limpar overrides
 - [x] Votação comunitária na Tier List: tabela tierlist_votes criada e migration aplicada, router tRPC tierlist.vote/tierlist.results, logado vota por cenário/classe (mín. 2 votos p/ mover tier, média decide direção), prevalece voto pessoal quando presente
 - [x] Gráfico de radar no comparador PvP (RadarChart.tsx canvas puro, dano/defesa/utilidade, legenda gold/red, seletor de cenário duel/group/boss) e no card exportado (drawRadarExport em timelineExport.ts com valuesA/valuesB por cenário)
