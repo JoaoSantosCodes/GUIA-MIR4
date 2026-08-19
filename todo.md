@@ -324,8 +324,8 @@
 
 ## Tabela de fusões e apresentação
 
-- [ ] Dados estruturados da fusão por região no newsData (SERVER_MERGE_MAP: região → servidor resultante → servidores fundidos, fonte: post 2542 oficial)
-- [ ] Seção/tabela completa de fusões na página /novidades (card da Fusão de Servidores: tabela por região ASIA1/ASIA2/ASIA3/NA/EU/SA/INMENA)
-- [ ] Seção de fusões na página /sabuk (impacto no Confronto de Sabuk + tabela de servidores fundidos)
-- [ ] Apresentação em slides: novidades do Capítulo 21 + regras da Fusão de Servidores (máx. 12 slides)
-- [ ] Testes vitest + screenshots + TSC limpo + checkpoint e entrega
+- [x] Dados estruturados da fusão por região no newsData (SERVER_MERGE_MAP: 7 regiões → servidor resultante → servidores fundidos, fonte: post 2542 oficial)
+- [x] Seção/tabela completa de fusões na página /novidades ("Fusão de Servidores — Tabela Completa por Região": cards por região com contador "servidores · fusões", tabela resultante+fundidos, fusões reais destacadas em âmbar)
+- [x] Seção de fusões na página /sabuk (card "Fusão de Servidores — Capítulo 21" com impacto no Sabuk Clash, tabela compacta das fusões reais e link para /novidades)
+- [x] Apresentação em slides: novidades do Capítulo 21 + regras da Fusão de Servidores (12 slides entregues)
+- [x] Testes vitest + screenshots + TSC limpo + checkpoint e entrega
