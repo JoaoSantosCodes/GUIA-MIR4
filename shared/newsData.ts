@@ -9,12 +9,17 @@ export interface Chapter21NewsItem {
   title: string;
   description: string;
   detail: string;
+  /** Data de fim da oferta/evento em ISO 8601 com fuso UTC+8 (apenas para vigências limitadas). */
+  endDate?: string;
+  /** Link da nota de patch oficial da Wemade no fórum do MIR4 Global. */
+  url: string;
 }
 
 export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
   {
     key: "invocador",
     category: "Classe",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
     title: "Nova classe: Invocador (Spirit Summoner)",
     description:
       "A 8ª classe do MIR4 chegou no Capítulo 21: uma invocadora de ataque mágico que comanda os espíritos de toda a criação com uma vara mágica.",
@@ -23,6 +28,8 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
   },
   {
     key: "fusao-servidores",
+    endDate: "2026-09-01T00:00:00+08:00",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
     category: "Servidores",
     title: "Fusão de Servidores",
     description:
@@ -33,6 +40,7 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
   {
     key: "mundo-impulsionador",
     category: "Servidores",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
     title: "Servidor Especializado em Crescimento: Mundo Impulsionador",
     description:
       "4º servidor do jogo, dedicado a acelerar a progressão de novos jogadores.",
@@ -42,11 +50,23 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
   {
     key: "5aniversario",
     category: "Sistemas",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
     title: "5º Aniversário do MIR4 (agosto 2026)",
     description:
       "O jogo completa 5 anos em agosto de 2026 com uma série de eventos comemorativos.",
     detail:
       "Eventos: Presença de 14 dias, Presença de 7 dias, Bênção do Dragão Divino, Loja de Troca de Moeda de Agradecimento, Invocação + Invocação do 5º Aniversário, A Grande Fortuna de Osher, Obtenção de Raide/Raide de Boss do evento, Presente Surpresa de Mir e eventos de comunidade (Tomo Secreto do Invocador e Festa de Aniversário de 5 Anos).",
+  },
+  {
+    key: "goblin-ouro-bolo",
+    category: "Itens",
+    title: "Bolo de Agradecimento (destaque da loja Goblin de Ouro)",
+    description:
+      "A venda do Bolo de Agradecimento termina em 1º de setembro e desbloqueia a loja do Goblin de Ouro até 14/09.",
+    detail:
+      "Bolo de Agradecimento de 5 Anos em venda até 1º de setembro (23h59 UTC+8). A loja do Goblin de Ouro funciona até 14 de setembro, 23h59 UTC+8, com Caixas de Material de Dragão Lendário, Pedras de Aprimoramento do Dragão Divino, Bilhetes de Praça Mágica/Pico Secreto Fissurados e Caixas de Aço de Dragão Épico.",
+    endDate: "2026-09-14T23:59:00+08:00",
+    url: "https://forum.mir4global.com/post/470?lang=pt",
   },
   {
     key: "loja-goblin",
@@ -56,6 +76,7 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
       "NPC 'Celebração do 5º Aniversário' nas principais cidades, trocando itens pelo Bolo de Agradecimento.",
     detail:
       "Os 19 produtos em oferta incluem o 'Bolo de Agradecimento do Aniversário de 5 Anos' (venda até 1º de setembro), que desbloqueia a loja do Goblin de Ouro (até 14 de setembro, 23h59 UTC+8). Itens da loja: Caixas de Material de Dragão Lendário, Pedras de Aprimoramento do Dragão Divino, Bilhetes de Praça Mágica/Pico Secreto Fissurados, Caixas de Aço de Dragão Épico e mais.",
+    url: "https://forum.mir4global.com/post/470?lang=pt",
   },
   {
     key: "artefatos-miticos",
@@ -65,6 +86,7 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
       "A raridade Mítica chegou aos Artefatos de Dragão no Capítulo 21.",
     detail:
       "Novos Artefatos de Dragão de raridade Mítica foram adicionados, no topo da progressão dos 5 slots de Artefatos de Dragão. A Loja de NPC do aniversário também vende Pedra de Aprimoramento de Artefato de Dragão do Dragão Divino Lendária.",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
   },
   {
     key: "missao-pedido",
@@ -74,6 +96,7 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
       "Sistema de conclusão instantânea de missões e pedidos para agilizar a progressão.",
     detail:
       "Adicionado o sistema 'Concluir Agora Missão e Pedido', junto com melhorias no sistema de Aprimoramento de Constituição e Chi e o novo item 'Credencial de Missão'.",
+    url: "https://forum.mir4global.com/post/2598?lang=pt",
   },
   {
     key: "migracao-mainnet",
@@ -83,6 +106,7 @@ export const CHAPTER21_NEWS: Chapter21NewsItem[] = [
       "A migração dos tokens para a mainnet foi retomada, com conversão 1:1 dos legados.",
     detail:
       "As pools pHYDRA-pWEMIX$ e pDRACO-pWEMIX$ foram encerradas com o fim das chains Tornado e PLAY. A migração é unidirecional e pode levar até 24h em status de espera. O sistema HSPFE4 funciona apenas com HYDRA da mainnet e fica disponível até 3 de janeiro de 2027. A troca PLAY Token → EXDRA4 e o HSPFE4 foram retomados em 19/08/2026.",
+    url: "https://forum.mir4global.com/post/469?lang=pt",
   },
 ];
 
@@ -245,6 +269,13 @@ export const MIR4_CHAPTERS: ChapterTimelineItem[] = [
     date: "18 de agosto de 2026",
     year: "2026",
     highlights: ["8ª classe: Invocador (Spirit Summoner)", "Fusão de Servidores", "Servidor Mundo Impulsionador", "5º aniversário do MIR4", "Artefatos de Dragão Míticos", "Loja do Goblin de Ouro", "Migração mainnet WEMIX3.0"],
+  },
+  {
+    number: 22,
+    title: "Coming Soon",
+    date: "A confirmar",
+    year: "2026",
+    highlights: ["Próxima grande atualização oficial — acompanhe o fórum da Wemade"],
   },
 ];
 

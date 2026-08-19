@@ -78,6 +78,16 @@
 .pulse-banner {
   animation: banner-pulse 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
+
+@keyframes countdown-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(0.5 0.19 25 / 0.35); }
+  50% { opacity: 0.82; box-shadow: 0 0 8px 2px oklch(0.5 0.19 25 / 0.45); }
+}
+.countdown-pulse {
+  animation: countdown-pulse 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdown-pulse { animation: none; } }
 @media (prefers-reduced-motion: reduce) {
   .pulse-banner { animation: none; }
 }

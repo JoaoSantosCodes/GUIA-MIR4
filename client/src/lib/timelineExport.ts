@@ -1099,3 +1099,89 @@ export async function exportSpiritCompareCard({
   if (!drawTo) await downloadCanvas(canvas, "comparador-espiritos");
   onDone?.();
 }
+
+/**
+ * Exporta um card PNG com os capítulos do MIR4 que o jogador marcou como
+ * "já vividos" na linha do tempo, com barra de progresso e selo de 100%.
+ */
+export async function exportTimelineProgressCard({
+  played,
+  userName = "Jogador",
+  style = DEFAULT_CARD_STYLE,
+  onDone,
+  drawTo,
+}: {
+  played: number[];
+  userName?: string;
+  style?: CardStyle;
+  onDone?: () => void;
+  drawTo?: HTMLCanvasElement;
+}): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const total = 21;
+  const done = played.filter(n => n >= 1 && n <= total);
+  canvas.width = 1200;
+  canvas.height = Math.max(720, 560 + Math.ceil(done.length / 2) * 74);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas context unavailable");
+
+  const palette = THEMES_PRIVATE[style.theme];
+
+  const bg = ctx.createLinearGradient(0, 0, 1200, canvas.height);
+  palette.stops.forEach(([stop, color]) => bg.addColorStop(stop, color));
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1200, canvas.height);
+  ctx.strokeStyle = palette.border;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 1194, canvas.height - 6);
+
+  ctx.textBaseline = "top";
+  ctx.font = "bold 54px Georgia, serif";
+  ctx.fillStyle = palette.title;
+  ctx.fillText("Guia MIR4 — Capítulos Vividos", 48, 44);
+  ctx.font = "28px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = palette.sub;
+  ctx.fillText(`${userName} · ${done.length} de ${total} capítulos`, 48, 120);
+
+  // Barra de progresso
+  const barY = 180;
+  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  ctx.fillRect(48, barY, 1104, 22);
+  ctx.fillStyle = done.length === total ? "#16a34a" : palette.accent;
+  ctx.fillRect(48, barY, 1104 * (done.length / total), 22);
+  ctx.font = "bold 24px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = palette.title;
+  ctx.textAlign = "right";
+  ctx.fillText(`${Math.round((done.length / total) * 100)}%`, 1152, barY + 26);
+  ctx.textAlign = "left";
+
+  // Selos de conclusão
+  if (done.length === total) {
+    ctx.save();
+    ctx.font = "bold 30px 'Segoe UI', Arial, sans-serif";
+    ctx.fillStyle = "#16a34a";
+    ctx.fillText("✔ 100% CONCLUÍDO", 48, barY + 44);
+    ctx.restore();
+  }
+
+  // Grade dos capítulos marcados (colunas)
+  let y = barY + 92;
+  const colW = (1200 - 96) / 2;
+  done.forEach((n, i) => {
+    const col = i % 2;
+    const rowY = y + Math.floor(i / 2) * 74;
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(48 + col * (colW + 16), rowY, colW, 58);
+    ctx.fillStyle = palette.accent;
+    ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`#${n}`, 68, rowY + 8);
+    ctx.font = "20px 'Segoe UI', Arial, sans-serif";
+    ctx.fillStyle = "#f3f4f6";
+    ctx.fillText(`Capítulo ${n} completado`, 68, rowY + 34);
+  });
+
+  drawWatermark(ctx, canvas, userName);
+  drawFooter(ctx, canvas);
+  if (!drawTo) await downloadCanvas(canvas, "capitulos-mir4");
+  onDone?.();
+}

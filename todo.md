@@ -305,3 +305,12 @@
 - [x] Linha do tempo dos 21 capítulos (shared/newsData.ts + seção interativa em /novidades: trilha clicável, navegação por ano e setas, cards com destaques por capítulo, rodapé Chapter 22 Coming Soon)
 - [x] Aviso "Meta em avaliação" na tier list (tab Classes, banner violeta com info sobre o Invocador — 8ª classe, Cap. 21, 18/08/2026)
 - [x] Testes vitest (162 aprovados — news.test.ts com 7 testes novos de notícias e timeline), screenshots desktop + mobile verificados (/novidades, /tier-list) + TSC limpo
+
+## Melhorias na página Notícias (contagem regressiva, links oficiais, timeline marcada)
+
+- [x] Datas de expiração (endDate) e URLs oficiais (url) em todas as 10 notícias do newsData.ts — Fusão até 1º/09, Loja Goblin até 14/09
+- [x] Contador regressivo nos cards com endDate (CountdownTimer.tsx: "Resta Xd Yh Zmin", pulso vermelho nos últimos 15 min, "Evento encerrado" após fim; .countdown-pulse no index.css com prefers-reduced-motion)
+- [x] Botão "Ver nota oficial" em todos os cards (forum.mir4global.com/post/2598, /470, /469 — target blank)
+- [x] Marcar capítulos vivenciados na timeline (mir4-chapters-played em localStorage, botão Marcar/Vivenciado no card, selo verde na trilha, contador X/21)
+- [x] Card compartilhável do progresso (exportTimelineProgressCard em timelineExport.ts: barra de progresso, selo 100% CONCLUÍDO, marca d'água com nome/data; share nativo → clipboard → download)
+- [x] Timeline ganha item 22 "Coming Soon"; testes news.test.ts atualizados (162 aprovados); screenshots desktop + mobile verificados; TSC limpo

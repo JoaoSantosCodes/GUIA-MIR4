@@ -34,25 +34,29 @@ describe("notícias do Capítulo 21 e 5º aniversário", () => {
 });
 
 describe("linha do tempo dos capítulos do MIR4", () => {
-  it("cobre os 21 capítulos em ordem numérica", () => {
-    expect(MIR4_CHAPTERS.length).toBe(21);
-    for (let i = 0; i < MIR4_CHAPTERS.length; i++) {
-      expect(MIR4_CHAPTERS[i].number).toBe(i + 1);
-      expect(MIR4_CHAPTERS[i].title.length).toBeGreaterThan(0);
-      expect(MIR4_CHAPTERS[i].date.length).toBeGreaterThan(0);
-      expect(MIR4_CHAPTERS[i].highlights.length).toBeGreaterThan(0);
-      expect(["2021", "2022", "2023", "2024", "2025", "2026"]).toContain(MIR4_CHAPTERS[i].year);
+  it("cobre os 21 capítulos históricos em ordem numérica (mais o próximo Coming Soon)", () => {
+    expect(MIR4_CHAPTERS.length).toBe(22);
+    const chapters = MIR4_CHAPTERS.slice(0, 21);
+    for (let i = 0; i < chapters.length; i++) {
+      expect(chapters[i].number).toBe(i + 1);
+      expect(chapters[i].title.length).toBeGreaterThan(0);
+      expect(chapters[i].date.length).toBeGreaterThan(0);
+      expect(chapters[i].highlights.length).toBeGreaterThan(0);
+      expect(["2021", "2022", "2023", "2024", "2025", "2026"]).toContain(chapters[i].year);
     }
+    const next = MIR4_CHAPTERS[21];
+    expect(next.title).toContain("Coming Soon");
   });
 
-  it("começa em Névoa de Guerra (2021) e termina em Invocador (2026)", () => {
+  it("começa em Névoa de Guerra (2021) e o capítulo 21 é o Invocador (2026)", () => {
     const first = MIR4_CHAPTERS[0];
-    const last = MIR4_CHAPTERS[MIR4_CHAPTERS.length - 1];
+    const cap21 = MIR4_CHAPTERS.find(c => c.number === 21);
     expect(first.title).toBe("Névoa de Guerra");
     expect(first.year).toBe("2021");
-    expect(last.title).toBe("Invocador");
-    expect(last.year).toBe("2026");
-    expect(last.highlights.some(h => h.includes("Spirit Summoner"))).toBe(true);
+    expect(cap21).toBeDefined();
+    expect(cap21!.title).toBe("Invocador");
+    expect(cap21!.year).toBe("2026");
+    expect(cap21!.highlights.some(h => h.includes("Spirit Summoner"))).toBe(true);
   });
 
   it("registra marcos oficiais corretos nos capítulos-chave", () => {

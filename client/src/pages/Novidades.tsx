@@ -1,8 +1,23 @@
 import { useMemo, useState } from "react";
 import PageBanner from "@/components/guide/PageBanner";
 import { CHAPTER21_NEWS, CHAPTER22_COMING_SOON, MIR4_CHAPTERS, type Chapter21NewsItem } from "@shared/newsData";
-import { ChevronLeft, ChevronRight, Newspaper, Crown, Sparkles, Gift, Gem, Wrench, Coins, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Newspaper, Crown, Sparkles, Gift, Gem, Wrench, Coins, Calendar, ExternalLink, CheckCircle2, Circle, Download, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CountdownTimer from "@/components/CountdownTimer";
+import { toast } from "sonner";
+import { exportTimelineProgressCard } from "@/lib/timelineExport";
+
+const CHAPTERS_PLAYED_KEY = "mir4-chapters-played";
+
+function readPlayed(): Set<number> {
+  try {
+    const raw = localStorage.getItem(CHAPTERS_PLAYED_KEY);
+    const arr: number[] = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr.filter(n => typeof n === "number") : []);
+  } catch {
+    return new Set();
+  }
+}
 
 const CATEGORY_STYLES: Record<Chapter21NewsItem["category"], { border: string; text: string; icon: React.ComponentType<{ className?: string }> }> = {
   Classe: { border: "border-violet-700/50", text: "text-violet-300", icon: Sparkles },
@@ -27,6 +42,58 @@ const CATEGORY_ICONS = { Classe: Sparkles, Servidores: Crown, Sistemas: Wrench, 
 export default function Novidades() {
   const [newsFilter, setNewsFilter] = useState<Chapter21NewsItem["category"] | "Todos">("Todos");
   const [timelineIndex, setTimelineIndex] = useState(MIR4_CHAPTERS.length - 1);
+  const [played, setPlayed] = useState<Set<number>>(readPlayed);
+  const [, rerender] = useState(0);
+  const toggleChapter = (number: number) => {
+    setPlayed(prev => {
+      const next = new Set(prev);
+      if (next.has(number)) next.delete(number);
+      else next.add(number);
+      localStorage.setItem(CHAPTERS_PLAYED_KEY, JSON.stringify(Array.from(next).sort((a, b) => a - b)));
+      rerender(n => n + 1);
+      return next;
+    });
+  };
+  const openTimelineCard = async () => {
+    const done = Array.from(played).sort((a, b) => a - b);
+    let userName = "Jogador";
+    try {
+      const raw = localStorage.getItem("mir4-user-name");
+      const parsed = raw ? JSON.parse(raw) : null;
+      userName = typeof parsed === "string" ? parsed : "Jogador";
+    } catch {
+      userName = "Jogador";
+    }
+    const canvas = document.createElement("canvas");
+    try {
+      await exportTimelineProgressCard({ played: done, userName, drawTo: canvas });
+    } catch {
+      toast.error("Não foi possível gerar o card.");
+      return;
+    }
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return;
+    const dataUrl = canvas.toDataURL("image/png");
+    try {
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [] })) {
+        const file = new File([blob], "meus-capitulos-mir4.png", { type: "image/png" });
+        await navigator.share({ files: [file], title: "Meus Capítulos do MIR4", text: `${done.length} de ${MIR4_CHAPTERS.length} capítulos vividos no MIR4!` });
+        return;
+      }
+    } catch (e) {
+      if ((e as DOMException)?.name !== "AbortError") {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "meus-capitulos-mir4.png";
+        link.click();
+      }
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "meus-capitulos-mir4.png";
+    link.click();
+  };
   const filtered = useMemo(
     () => (newsFilter === "Todos" ? CHAPTER21_NEWS : CHAPTER21_NEWS.filter(n => n.category === newsFilter)),
     [newsFilter],
@@ -87,6 +154,17 @@ export default function Novidades() {
                       <p className={cn("text-[10px] font-bold uppercase tracking-wider", style.text)}>{n.category}</p>
                       <h3 className="font-bold text-amber-200 mt-1">{n.title}</h3>
                       <p className="text-sm text-slate-300 mt-1 leading-relaxed">{n.description}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {n.endDate && <CountdownTimer endDate={n.endDate} />}
+                        <a
+                          href={n.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full border border-amber-700/50 bg-amber-950/25 px-2.5 py-1 text-[10px] font-semibold text-amber-300 transition-colors hover:border-amber-500 hover:bg-amber-900/30 active:scale-[0.97]"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Ver nota oficial
+                        </a>
+                      </div>
                       <p className="text-xs text-slate-400 mt-2 leading-relaxed border-t border-slate-800/60 pt-2">{n.detail}</p>
                     </div>
                   </div>
@@ -104,9 +182,24 @@ export default function Novidades() {
           <h2 className="gold-text text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
             <Calendar className="h-6 w-6 text-amber-500" /> Linha do Tempo — Os 21 Capítulos do MIR4
           </h2>
-          <p className="text-sm text-slate-400 mb-6">
-            O cronograma oficial de atualizações (Chronicle) desde o lançamento global em agosto de 2021 até o Capítulo 21, Invocador. Use as setas ou clique em um ano para navegar.
-          </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-slate-400 max-w-3xl">
+              O cronograma oficial de atualizações (Chronicle) desde o lançamento global em agosto de 2021 até o Capítulo 21, Invocador. Marque os capítulos que você já vivenciou — o progresso fica salvo neste navegador e pode virar um card compartilhável.
+            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-semibold text-amber-300">
+                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5 text-emerald-400" />
+                {played.size}/{MIR4_CHAPTERS.length} capítulos
+              </span>
+              <button
+                onClick={openTimelineCard}
+                disabled={played.size === 0}
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber-700/50 bg-amber-950/25 px-3 py-1.5 text-xs font-semibold text-amber-300 transition-all hover:border-amber-500 hover:bg-amber-900/30 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Share2 className="h-3.5 w-3.5" /> Exportar card
+              </button>
+            </div>
+          </div>
 
           {/* Navegação por ano */}
           <div className="flex flex-wrap gap-2 mb-6">
@@ -139,9 +232,9 @@ export default function Novidades() {
                         ? "border-violet-500/60 text-violet-300 hover:bg-violet-500/10"
                         : "border-slate-700 text-slate-400 hover:border-amber-800/60 hover:text-amber-300",
                   )}
-                  title={`Capítulo ${c.number}: ${c.title}`}
+                  title={played.has(c.number) ? `Capítulo ${c.number}: ${c.title} (vivenciado)` : `Capítulo ${c.number}: ${c.title}`}
                 >
-                  {c.number}
+                  {c.number}{played.has(c.number) && <CheckCircle2 className="ml-0.5 inline h-2.5 w-2.5 text-emerald-400" />}
                 </button>
               ))}
             </div>
@@ -162,7 +255,26 @@ export default function Novidades() {
                         <p className="text-xs text-slate-400">{c.date}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleChapter(c.number)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-all active:scale-[0.97]",
+                          played.has(c.number)
+                            ? "border-emerald-600 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/30"
+                            : "border-slate-700 text-slate-300 hover:border-emerald-700/60 hover:text-emerald-300",
+                        )}
+                      >
+                        {played.has(c.number) ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" /> Vivenciado
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="h-4 w-4" /> Marcar como vivenciado
+                          </>
+                        )}
+                      </button>
                       <button
                         onClick={() => setTimelineIndex(Math.max(0, timelineIndex - 1))}
                         disabled={timelineIndex === 0}
