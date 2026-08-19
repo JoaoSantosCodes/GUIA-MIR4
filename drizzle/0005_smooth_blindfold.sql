@@ -1,0 +1,1 @@
+ALTER TABLE `farm_comments` ADD `pageKey` varchar(60) DEFAULT 'farm' NOT NULL;
