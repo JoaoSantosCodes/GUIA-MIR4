@@ -345,3 +345,10 @@
 - [x] Seção "Pós-Fusão" na página de Notícias com orientações do que fazer após 01/09 (6 cards: conferir personagens/servidor, reconstruir guildas, Sabuk adiado p/ outubro, Mundo Impulsionador, recompensas até 14/09 e 28/09, avisos oficiais + banner resumo de datas)
 - [x] Preparar projeto para deploy na Vercel (vercel.json com @vercel/node e rotas para dist/index.js; VERCEL.md com envs DATABASE_URL/JWT_SECRET/OAuth, banco MySQL externo e limitações serverless)
 - [x] Testes vitest (chapterProgress.test.ts: 6 testes — gravação, validação de intervalo, sync completo, lista vazia, upsert, regra de veterano; 183 aprovados) + screenshot /novidades verificado + TSC limpo + build ok + checkpoint + GitHub sincronizado
+
+## Nova funcionalidade: migração local, card Veterano, countdown placar + skill
+- [x] Migração automática dos capítulos do localStorage para o servidor no primeiro login (useChapterMigration.ts montado no GuideLayout: união local∪servidor via sync, remove a chave local após sucesso, falha preserva para retry, guarda de uma execução por sessão)
+- [x] Card compartilhável de Veterano (exportVeteranCard no timelineExport.ts: PNG 1200px com selo dourado "VETERANO de Sabuk · 21/21" quando completo ou card de progresso X/21; VeteranCardDialog no Profile com pickers de avatar/tema e Compartilhar/Copiar/Baixar; botão na conquista capitulos-veterano)
+- [x] Countdown regressivo da manutenção da fusão na página do placar (/placar) (CountdownTimer 2026-09-01T00:00:00+08:00 via prop actions do PageBanner)
+- [x] Atualizar a skill game-guide-builder (novas seções 14a persistência+migração+card veterano+countdown e 14b preparo Vercel)
+- [x] Testes vitest (chapterMigration.test.ts: 7 testes de união/validação/regra de veterano; 190 aprovados em 16 arquivos) + screenshots /placar /perfil /novidades verificados + TSC limpo + checkpoint + GitHub sincronizado

@@ -1185,3 +1185,114 @@ export async function exportTimelineProgressCard({
   if (!drawTo) await downloadCanvas(canvas, "capitulos-mir4");
   onDone?.();
 }
+
+export interface VeteranCardData {
+  userName: string;
+  chaptersPlayed: number;
+  totalChapters: number;
+  /** Lista dos capítulos marcados, ex. [1, 5, 21]. */
+  chapters?: number[];
+  style?: CardStyle;
+  onDone?: () => void;
+  /** Canvas pré-criado para receber o desenho (compartilhamento direto, sem download). */
+  drawTo?: HTMLCanvasElement;
+}
+
+/**
+ * Exporta o card de "Veterano de Sabuk" — medalha por marcar todos os 21
+ * capítulos da linha do tempo do MIR4. Mostra um selo dourado, o progresso
+ * (X/21) e, no card completo, a trilha dos capítulos vivenciados.
+ */
+export async function exportVeteranCard({ userName, chaptersPlayed, totalChapters, chapters, style = DEFAULT_CARD_STYLE, onDone, drawTo }: VeteranCardData): Promise<void> {
+  const canvas = drawTo ?? document.createElement("canvas");
+  const isVeteran = chaptersPlayed >= totalChapters;
+  canvas.width = WIDTH;
+  canvas.height = HEADER_H + (isVeteran ? 360 : 280) + FOOTER_H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado neste navegador");
+
+  drawBaseCard(ctx, canvas, style);
+  drawHeader(ctx, style, {
+    userName,
+    subtitle: "— Linha do Tempo MIR4",
+    badgeText: "Trajeto completo dos 21 capítulos",
+  });
+
+  const palette = THEMES_PRIVATE[style.theme];
+  const midY = HEADER_H + 20;
+
+  if (isVeteran) {
+    // Selo dourado de Veterano
+    const cx = WIDTH / 2;
+    const cy = midY + 120;
+    const outerR = 86;
+    // Raios do selo
+    ctx.save();
+    for (let i = 0; i < 24; i++) {
+      const angle = (i * Math.PI) / 12;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + outerR * Math.cos(angle), cy + outerR * Math.sin(angle));
+      ctx.strokeStyle = i % 2 === 0 ? "#b8860b" : "#7c5c14";
+      ctx.lineWidth = 7;
+      ctx.stroke();
+    }
+    // Círculo do selo
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR - 20, 0, Math.PI * 2);
+    ctx.fillStyle = "#1a0e08";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR - 20, 0, Math.PI * 2);
+    ctx.strokeStyle = "#b8860b";
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#f5d76e";
+    ctx.font = "bold 56px Georgia, serif";
+    ctx.fillText("⭐", cx, cy - 44);
+    ctx.font = "bold 34px Georgia, serif";
+    ctx.fillText("VETERANO", cx, cy + 10);
+    ctx.font = "24px 'Segoe UI', Arial, sans-serif";
+    ctx.fillStyle = "#e5e7eb";
+    ctx.fillText(`de Sabuk · ${totalChapters}/${totalChapters}`, cx, cy + 46);
+
+    ctx.fillStyle = palette.faded;
+    ctx.font = "22px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`Todos os 21 capítulos do MIR4 vivenciados — ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}`, cx, midY + 300);
+    ctx.textAlign = "left";
+  } else {
+    // Card de progresso em direção ao Veterano
+    ctx.fillStyle = "#8b94a0";
+    ctx.font = "24px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText("Progresso para a medalha de Veterano de Sabuk", MARGIN, midY + 24);
+
+    const ratio = totalChapters > 0 ? chaptersPlayed / totalChapters : 0;
+    const barW = WIDTH - MARGIN * 2 - 120;
+    const barY = midY + 70;
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(MARGIN, barY, barW, 24);
+    ctx.fillStyle = "#b8860b";
+    ctx.fillRect(MARGIN, barY, barW * ratio, 24);
+    ctx.fillStyle = palette.title;
+    ctx.font = "bold 44px Georgia, serif";
+    ctx.fillText(`${chaptersPlayed}/${totalChapters}`, MARGIN, barY + 70);
+    ctx.fillStyle = "#8b94a0";
+    ctx.font = "22px 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(`Marque mais ${totalChapters - chaptersPlayed} capítulo${totalChapters - chaptersPlayed !== 1 ? "s" : ""} na linha do tempo`, MARGIN, barY + 110);
+
+    if (chapters && chapters.length > 0) {
+      const chips = chapters.slice(0, 16).map(n => String(n)).join("  ");
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "20px 'Segoe UI', Arial, sans-serif";
+      ctx.fillText(`Vivenciados: ${chips}${chapters.length > 16 ? "…" : ""}`, MARGIN, barY + 152);
+    }
+  }
+
+  drawFooter(ctx, canvas);
+
+  if (!drawTo) await downloadCanvas(canvas, isVeteran ? "veterano-sabuk" : "progresso-veterano");
+  onDone?.();
+}

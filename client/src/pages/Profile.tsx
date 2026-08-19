@@ -19,6 +19,7 @@ import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as I
 import AchievementCardDialog from "@/components/AchievementCardDialog";
 import AchievementConfetti from "@/components/AchievementConfetti";
 import HistoryCardDialog from "@/components/HistoryCardDialog";
+import VeteranCardDialog from "@/components/VeteranCardDialog";
 
 const SECTION_META: Record<string, { label: string; path: string; Icon: typeof Star }> = {
   spirit: { label: "Espíritos", path: "/espiritos", Icon: Star },
@@ -267,6 +268,7 @@ function achievementTooltip(key: string, iconKey: string): string {
   const [historyType, setHistoryType] = useState<HistoryType>("all");
   const [historyCardOpen, setHistoryCardOpen] = useState(false);
   const [celebrationEnabled, setCelebrationEnabled] = useState(() => readCelebrationEnabled());
+  const [veteranCardOpen, setVeteranCardOpen] = useState(false);
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
@@ -594,6 +596,16 @@ function achievementTooltip(key: string, iconKey: string): string {
       </div>
 
       {/* Progresso codex */}
+      {isAuthenticated && (
+        <VeteranCardDialog
+          open={veteranCardOpen}
+          onOpenChange={setVeteranCardOpen}
+          userName={user.name ?? "Aventureiro"}
+          chaptersPlayed={playedChapters.length}
+          totalChapters={TOTAL_CHAPTERS}
+          chapters={playedChapters}
+        />
+      )}
       {achCardOpen && celebrationAchievement && (
         <AchievementCardDialog
           open={achCardOpen}
@@ -707,7 +719,17 @@ function achievementTooltip(key: string, iconKey: string): string {
                   </div>
                   <p className="mt-1 text-[10px] text-slate-500">{a.progress}/{a.goal}</p>
                 </div>
-                {a.earned && (
+                {a.key === "capitulos-veterano" && isAuthenticated && (
+                  <button
+                    type="button"
+                    aria-label="Abrir card de Veterano de Sabuk"
+                    onClick={() => setVeteranCardOpen(true)}
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded border border-amber-600/50 bg-amber-950/50 px-2 py-1 text-[10px] font-medium text-amber-200 transition-colors hover:bg-amber-900/60"
+                  >
+                    <Crown className="h-3 w-3" /> {playedChapters.length >= TOTAL_CHAPTERS ? "Card de Veterano" : "Card de progresso"}
+                  </button>
+                )}
+                {a.earned && a.key !== "capitulos-veterano" && (
                   <button
                     type="button"
                     aria-label={`Exportar card da conquista ${a.title}`}

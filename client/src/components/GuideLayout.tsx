@@ -14,6 +14,7 @@ import EventNotificationsBell from "@/components/EventNotificationsBell";
 import LiveEventBanner from "@/components/LiveEventBanner";
 import GoblinBanner from "@/components/GoblinBanner";
 import FusionCountdownBanner from "@/components/FusionCountdownBanner";
+import { useChapterMigration } from "@/hooks/useChapterMigration";
 import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
@@ -313,6 +314,9 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
 
   const [goblinVisible, setGoblinVisible] = useState(false);
   const [fusionVisible, setFusionVisible] = useState(false);
+
+  // Migração automática: capítulos do localStorage → servidor no primeiro login.
+  useChapterMigration();
 
   const index = useMemo(() => BUILD_SEARCH_INDEX(), []);
   const filtered = useMemo(() => {

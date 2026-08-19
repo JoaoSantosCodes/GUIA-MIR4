@@ -1,11 +1,11 @@
-import { useMemo } from "react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Crown, Medal, Trophy, TrendingUp, Sparkles, ImageDown, Gem, ScrollText, BookOpenCheck } from "lucide-react";
 
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import PageBanner from "@/components/guide/PageBanner";
+import CountdownTimer from "@/components/CountdownTimer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -92,6 +92,7 @@ export default function Leaderboard() {
             : "Ranking unificado: Dicas de Ouro + medalhas do Codex somadas"
         }
         className="gold-text"
+        actions={<CountdownTimer endDate="2026-09-01T00:00:00+08:00" label="Fusão de Servidores" />}
       />
       <div className="container max-w-4xl px-4">
         <div className="mb-4 flex items-center justify-between gap-3">
