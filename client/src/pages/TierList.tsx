@@ -167,6 +167,13 @@ export default function TierList() {
           prevalece sobre o voto da comunidade — use para ajustar à sua experiência.
         </p>
 
+        <div className="mt-4 flex items-start gap-2 rounded-md border border-violet-700/50 bg-violet-950/25 px-3 py-2 text-xs text-slate-300">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+          <span>
+            <strong className="text-violet-300">Meta em avaliação:</strong> o Invocador (Spirit Summoner) é a 8ª classe do jogo, lançada no Capítulo 21 (18/08/2026). Por ser recente, sua meta ainda está sendo avaliada pela comunidade — os tiers exibidos aqui podem mudar à medida que novos dados e builds surgirem.
+          </span>
+        </div>
+
         <div className="mt-5 flex flex-wrap gap-2">
           {TIERLIST_SCENARIOS.map(s => (
             <button

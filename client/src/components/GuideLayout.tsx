@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers, Package } from "lucide-react";
+import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Coins, Home, Star, Skull, Trophy, TrendingUp, Moon, Sun, Castle, Gem, Calendar, Calculator, Layers, Package, Newspaper } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import EventNotificationsBell from "@/components/EventNotificationsBell";
 import LiveEventBanner from "@/components/LiveEventBanner";
@@ -43,6 +43,7 @@ export const GUIDE_SECTIONS = [
   { key: "materiais", label: "Materiais", path: "/materiais" },
   { key: "faq", label: "FAQ", path: "/faq" },
   { key: "placar", label: "Placar", path: "/placar" },
+  { key: "novidades", label: "Notícias", path: "/novidades" },
   { key: "perfil", label: "Meu Perfil", path: "/perfil" },
 ];
 
@@ -271,6 +272,22 @@ const BUILD_SEARCH_INDEX = (): SearchHit[] => {
     sectionLabel: "Placar",
     path: "/placar",
   });
+  hits.push({
+    id: "novidades-cap21",
+    type: "news",
+    title: "Notícias — Capítulo 21 e 5º Aniversário: nova classe Invocador (Spirit Summoner), Fusão de Servidores, Mundo Impulsionador e eventos de aniversário",
+    section: "news",
+    sectionLabel: "Notícias",
+    path: "/novidades",
+  });
+  hits.push({
+    id: "timeline-capitulos",
+    type: "news",
+    title: "Linha do Tempo dos 21 Capítulos do MIR4 — de Névoa de Guerra (2021) a Invocador (2026)",
+    section: "news",
+    sectionLabel: "Notícias",
+    path: "/novidades",
+  });
   ENHANCE_COSTS.forEach(c =>
     hits.push({
       id: `enhance-${c.stage}`,
@@ -468,6 +485,9 @@ function HitIcon({ type }: { type: string }) {
     case "skills": return <Layers className={cls} />;
     case "gear": return <Gem className={cls} />;
     case "materials": return <Package className={cls} />;
+    case "news": return <Newspaper className={cls} />;
+    case "placar": return <Trophy className={cls} />;
+    case "faq": return <BookOpen className={cls} />;
     default: return <Coins className={cls} />;
   }
 }

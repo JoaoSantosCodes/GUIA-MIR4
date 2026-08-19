@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import SharedProfile from "./pages/SharedProfile";
 import Faq from "./pages/Faq";
 import Leaderboard from "./pages/Leaderboard";
+import Novidades from "./pages/Novidades";
 import ScrollToTop from "./components/ScrollToTop";
 
 function Router() {
@@ -52,6 +53,7 @@ function Router() {
       <Route path={"/share/:id"} component={SharedProfile} />
       <Route path={"/faq"} component={Faq} />
       <Route path={"/placar"} component={Leaderboard} />
+      <Route path={"/novidades"} component={Novidades} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

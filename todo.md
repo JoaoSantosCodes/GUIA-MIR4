@@ -298,3 +298,10 @@
 - [x] Sabuk: nota oficial sobre a Fusão de Servidores e o adiamento do 23º Confronto para outubro (anúncio 18/08/2026)
 - [x] Codex: badge "Badge da Lenda do MIR4" atualizado para o 5º aniversário do MIR4 (agosto de 2026)
 - [x] Testes vitest (155 aprovados — Soturna marcada como zona especial), screenshots (/classes, /economia, /nivel) verificados + TSC limpo
+
+## Nova funcionalidade: notícias Cap. 21 / 5º aniversário, timeline de capítulos e aviso de meta do Invocador
+
+- [x] Página /novidades com 8 novidades oficiais do Capítulo 21 filtradas por categoria (Classe/Servidores/Sistemas/Itens), seção de destaques do 5º aniversário e item no menu + busca global
+- [x] Linha do tempo dos 21 capítulos (shared/newsData.ts + seção interativa em /novidades: trilha clicável, navegação por ano e setas, cards com destaques por capítulo, rodapé Chapter 22 Coming Soon)
+- [x] Aviso "Meta em avaliação" na tier list (tab Classes, banner violeta com info sobre o Invocador — 8ª classe, Cap. 21, 18/08/2026)
+- [x] Testes vitest (162 aprovados — news.test.ts com 7 testes novos de notícias e timeline), screenshots desktop + mobile verificados (/novidades, /tier-list) + TSC limpo
