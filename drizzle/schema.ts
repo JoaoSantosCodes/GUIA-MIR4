@@ -175,3 +175,22 @@ export const tierlistHistorySpirit = mysqlTable(
 );
 export type TierlistHistorySpirit = typeof tierlistHistorySpirit.$inferSelect;
 export type InsertTierlistHistorySpirit = typeof tierlistHistorySpirit.$inferInsert;
+
+/**
+ * Progresso dos capítulos vivenciados da linha do tempo (21 capítulos do MIR4).
+ * Um registro por usuário por capítulo marcado; usado para calcular as conquistas
+ * "Viajante do Tempo" (10+) e "Veterano de Sabuk" (21/21) de forma sincronizada
+ * entre os dispositivos do usuário.
+ */
+export const chapterProgress = mysqlTable(
+  "chapter_progress",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    chapter: int("chapter").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("userId_chapter").on(t.userId, t.chapter)],
+);
+export type ChapterProgress = typeof chapterProgress.$inferSelect;
+export type InsertChapterProgress = typeof chapterProgress.$inferInsert;

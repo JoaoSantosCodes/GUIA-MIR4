@@ -147,6 +147,15 @@ export const appRouter = router({
         return { success: true } as const;
       }),
   }),
+  chapterProgress: router({
+    list: protectedProcedure.query(({ ctx }) => db.listChapterProgress(ctx.user.id)),
+    sync: protectedProcedure
+      .input(z.object({ chapters: z.array(z.number().int().min(1).max(21)).min(0).max(21) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.setChapterProgress(ctx.user.id, input.chapters);
+        return { success: true } as const;
+      }),
+  }),
 
   comments: router({
     list: publicProcedure

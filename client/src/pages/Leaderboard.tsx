@@ -41,8 +41,19 @@ export default function Leaderboard() {
   const auth = useAuth();
   const [mode, setMode] = useState<"gold" | "unified">("gold");
   const [veteransOnly, setVeteransOnly] = useState(false);
-  // Usuário logado é veterano quando marcou todos os 21 capítulos (chave local).
-  const playedChapters = useMemo(() => (auth.isAuthenticated ? readPlayedChapters() : []), [auth.isAuthenticated]);
+  // Status de veterano: mescla os capítulos do servidor (sincronizados entre dispositivos)
+  // com os marcados no navegador deste dispositivo.
+  const { data: serverChapters } = trpc.chapterProgress.list.useQuery(undefined, {
+    enabled: auth.isAuthenticated,
+    refetchOnWindowFocus: false,
+  });
+  const playedChapters = useMemo(() => {
+    if (!auth.isAuthenticated) return [];
+    const merged = new Set<number>();
+    readPlayedChapters().forEach(n => merged.add(n));
+    if (serverChapters) serverChapters.forEach(r => merged.add(Number(r.chapter)));
+    return Array.from(merged).sort((a, b) => a - b);
+  }, [auth.isAuthenticated, serverChapters]);
   const myVeteranStatus = useMemo(() => evaluateChapterAchievements(playedChapters).find(a => a.key === "capitulos-veterano"), [playedChapters]);
   const isVeteran = myVeteranStatus?.earned ?? false;
 

@@ -141,6 +141,10 @@ export default function Profile() {
   const toggleCodex = trpc.codexProgress.toggle.useMutation({
     onSuccess: () => utils.codexProgress.list.invalidate(),
   });
+  const { data: serverChapters } = trpc.chapterProgress.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    refetchOnWindowFocus: false,
+  });
 
   const collectedIds = new Set(progress?.map(p => p.itemId) ?? []);
   const codexTotal = CODEX_ITEMS.length;
@@ -152,11 +156,19 @@ export default function Profile() {
     try {
       const raw = localStorage.getItem("mir4-chapters-played");
       const parsed = raw ? JSON.parse(raw) : null;
-      return Array.isArray(parsed) ? (parsed as number[]) : [];
+      const local = Array.isArray(parsed) ? (parsed as number[]) : [];
+      // Mescla com os capítulos persistidos no servidor (sincronização entre dispositivos).
+      if (isAuthenticated && serverChapters) {
+        const merged = new Set<number>();
+        local.forEach(n => merged.add(n));
+        serverChapters.forEach(r => merged.add(Number(r.chapter)));
+        return Array.from(merged).sort((a, b) => a - b);
+      }
+      return local;
     } catch {
       return [];
     }
-  }, []);
+  }, [isAuthenticated, serverChapters]);
 
 const RARITY_LABEL: Record<string, string> = {
   "faixa-t1": "UC",

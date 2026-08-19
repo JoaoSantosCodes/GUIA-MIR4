@@ -1,9 +1,8 @@
-import { eq, and, asc, gte, inArray, desc, isNotNull } from "drizzle-orm";
+import { eq, and, asc, gte, inArray, desc, isNotNull, notInArray, sql } from "drizzle-orm";
 import { CODEX_ITEMS } from "../shared/guideData";
 import { evaluateCodexAchievements } from "../client/src/lib/codexAchievements";
-import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote, tierlistVotesSpirit, InsertTierlistVoteSpirit, tierlistHistory, InsertTierlistHistory, tierlistHistorySpirit } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote, tierlistVotesSpirit, InsertTierlistVoteSpirit, tierlistHistory, InsertTierlistHistory, tierlistHistorySpirit, chapterProgress, InsertChapterProgress } from "../drizzle/schema";
 import { GOLD_TIP_UPVOTES } from "../shared/const";
 import { ENV } from './_core/env';
 
@@ -124,6 +123,25 @@ export async function listCodexProgress(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(codexProgress).where(eq(codexProgress.userId, userId));
+}
+
+export async function listChapterProgress(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(chapterProgress).where(eq(chapterProgress.userId, userId));
+}
+
+/** Marca ou desmarca capítulos vivenciados do usuário (21 capítulos da linha do tempo). */
+export async function setChapterProgress(userId: number, chapters: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const valid = chapters.filter(n => Number.isInteger(n) && n >= 1 && n <= 21);
+  if (valid.length > 0) {
+    const rows: InsertChapterProgress[] = valid.map(chapter => ({ userId, chapter }));
+    await db.insert(chapterProgress).values(rows).onDuplicateKeyUpdate({ set: { createdAt: new Date() } });
+  }
+  await db.delete(chapterProgress).where(and(eq(chapterProgress.userId, userId), notInArray(chapterProgress.chapter, valid)));
+  return { success: true };
 }
 
 export async function setCodexProgress(userId: number, itemId: string, collected: boolean) {

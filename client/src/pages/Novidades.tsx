@@ -1,11 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageBanner from "@/components/guide/PageBanner";
 import { CHAPTER21_NEWS, CHAPTER22_COMING_SOON, MIR4_CHAPTERS, SERVER_MERGE_MAP, type Chapter21NewsItem } from "@shared/newsData";
-import { ChevronLeft, ChevronRight, Newspaper, Crown, Sparkles, Gift, Gem, Wrench, Coins, Calendar, ExternalLink, CheckCircle2, Circle, Download, Share2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Newspaper, Crown, Sparkles, Gift, Gem, Wrench, Coins, Calendar, ExternalLink, CheckCircle2, Circle, Download, Share2, Clock, ShieldAlert, Users, ScrollText, Flag, MapPinned, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CountdownTimer from "@/components/CountdownTimer";
 import { toast } from "sonner";
 import { exportTimelineProgressCard } from "@/lib/timelineExport";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+
+const TOTAL_CHAPTERS = 21;
 
 const CHAPTERS_PLAYED_KEY = "mir4-chapters-played";
 
@@ -50,18 +54,45 @@ const CATEGORY_ICONS = { Classe: Sparkles, Servidores: Crown, Sistemas: Wrench, 
  * mais a linha do tempo completa dos 21 capítulos do MIR4.
  */
 export default function Novidades() {
+  const auth = useAuth();
   const [newsFilter, setNewsFilter] = useState<Chapter21NewsItem["category"] | "Todos">("Todos");
   type NewsStatusFilter = "Todos" | "Ativos" | "Encerrados";
   const [newsStatus, setNewsStatus] = useState<NewsStatusFilter>("Todos");
   const [timelineIndex, setTimelineIndex] = useState(MIR4_CHAPTERS.length - 1);
   const [played, setPlayed] = useState<Set<number>>(readPlayed);
   const [, rerender] = useState(0);
+  const utils = trpc.useUtils();
+  const syncMutation = trpc.chapterProgress.sync.useMutation({
+    onSuccess: () => utils.chapterProgress.list.invalidate(),
+  });
+  const { data: serverChapters } = trpc.chapterProgress.list.useQuery(undefined, {
+    enabled: auth.isAuthenticated,
+    refetchOnWindowFocus: false,
+  });
+
+  // Inicializa o estado a partir do servidor (login) mesclado com o localStorage local.
+  const initialized = useMemo(() => {
+    if (!auth.isAuthenticated || !serverChapters) return readPlayed();
+    const merged = new Set<number>();
+    for (const row of serverChapters) merged.add(Number(row.chapter));
+    const local = readPlayed();
+    local.forEach(n => merged.add(n));
+    return merged;
+  }, [auth.isAuthenticated, serverChapters]);
+  useEffect(() => {
+    setPlayed(initialized);
+  }, [initialized]);
+
   const toggleChapter = (number: number) => {
     setPlayed(prev => {
       const next = new Set(prev);
       if (next.has(number)) next.delete(number);
       else next.add(number);
-      localStorage.setItem(CHAPTERS_PLAYED_KEY, JSON.stringify(Array.from(next).sort((a, b) => a - b)));
+      const sorted = Array.from(next).sort((a, b) => a - b);
+      localStorage.setItem(CHAPTERS_PLAYED_KEY, JSON.stringify(sorted));
+      if (auth.isAuthenticated) {
+        syncMutation.mutate({ chapters: sorted });
+      }
       rerender(n => n + 1);
       return next;
     });
@@ -420,10 +451,20 @@ export default function Novidades() {
 
         {/* ===== Eventos do 5º aniversário (chamada final) ===== */}
         <section className="rounded-lg border border-amber-700/50 bg-gradient-to-br from-red-950/40 via-[oklch(0.19_0.015_280)] to-black/60 p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Crown className="h-5 w-5 text-amber-400" />
-            <h2 className="gold-text text-xl font-bold">Destaques do 5º Aniversário (agosto 2026)</h2>
+          <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+            <h2 className="gold-text text-xl font-bold flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-400" /> Destaques do 5º Aniversário (agosto 2026)
+            </h2>
+            <CountdownTimer
+              endDate="2026-09-01T00:00:00+08:00"
+              label="Passe de Viagem encerrado"
+              className="text-[11px]"
+            />
           </div>
+          <p className="text-xs text-amber-200/80 mb-4">
+            <Clock className="mr-1 inline h-3.5 w-3.5 text-amber-400" />
+            Passe de Viagem do Viajante (500 Copper, nível 40+) encerra junto com o início da manutenção da fusão — os servidores foram unificados em 18/08 e os mapas territoriais foram zerados.
+          </p>
           <div className="grid gap-3 text-xs sm:grid-cols-2">
             {[
               "Presença de 14 e 7 dias com recompensas de participação",
@@ -442,6 +483,68 @@ export default function Novidades() {
           <p className="mt-4 text-[11px] text-slate-500">
             Fonte: notas de patch e avisos oficiais de 14/08/2026 e 18/08/2026 (mir4global.com). Datas e vigências podem mudar conforme novos avisos da Wemade.
           </p>
+        </section>
+
+        {/* ===== Pós-Fusão: o que fazer após 01/09 ===== */}
+        <section>
+          <h2 className="gold-text text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
+            <ShieldAlert className="h-6 w-6 text-amber-400" /> Pós-Fusão — O que fazer após 1º de setembro
+          </h2>
+          <p className="text-sm text-slate-400 mb-5">
+            Com a manutenção da fusão concluída e o Passe de Viagem encerrado, o jogo segue em um mundo unificado. As orientações abaixo ajudam os jogadores a retomarem a jornada com segurança após o dia 1º/09.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              {
+                Icon: RotateCcw,
+                title: "Confira seus personagens e itens",
+                text: "Todos os personagens, itens, espíritos e progresso de conta foram preservados. O servidor do seu personagem mudou para o servidor resultante da fusão da sua região — verifique no seletor de servidor e reconecte pela conta normal.",
+              },
+              {
+                Icon: Users,
+                title: "Reconstrua suas relações de guilda",
+                text: "Territórios, clãs, guildas e rankings territoriais foram zerados na fusão. Convide antigos aliados, participe das eleições de território do novo ciclo e aproveite o 23º Confronto de Sabuk, adiado para outubro, para conquistar posições do zero.",
+              },
+              {
+                Icon: Flag,
+                title: "Saiba que o Sabuk Clash foi adiado",
+                text: "O 23º Confronto de Sabuk previsto para agosto foi movido para outubro pela Wemade, garantindo um período estável após a fusão. Use esse intervalo para treinar composições de grupo e organizar seu time de cerco.",
+              },
+              {
+                Icon: MapPinned,
+                title: "Se você ainda joga no Mundo Impulsionador",
+                text: "Os personagens do Mundo Impulsionador retornam automaticamente ao servidor padrão durante a manutenção — eles não participam da fusão. Confira a página de regras da transferência para saber quais personagens retornam e quando.",
+              },
+              {
+                Icon: Coins,
+                title: "Use as recompensas do 5º aniversário",
+                text: "A Loja do Goblin de Ouro continua aberta até 14/09 (23h59 UTC+8) e os presentes do aniversário ficam disponíveis até 28/09. Resgate Caixas de Aço de Dragão Épico, Pedras de Aprimoramento do Dragão Divino e Bilhetes Fissurados antes do encerramento.",
+              },
+              {
+                Icon: ScrollText,
+                title: "Acompanhe os avisos oficiais",
+                text: "O 23º Confronto de Sabuk em outubro terá regras e inscrições atualizadas pela Wemade. Fique atento às notas de patch em mir4global.com e à seção de calendário de eventos deste guia para os horários por servidor.",
+              },
+            ].map(({ Icon, title, text }) => (
+              <div key={title} className="rounded-lg border border-slate-700/70 bg-[oklch(0.19_0.015_280)] p-5">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 rounded-full border border-amber-800/50 bg-black/40 p-1.5">
+                    <Icon className="h-4 w-4 text-amber-400" />
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-amber-200 text-sm">{title}</h3>
+                    <p className="text-sm text-slate-300 mt-1.5 leading-relaxed">{text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex items-start gap-3 rounded-lg border border-amber-800/50 bg-amber-950/25 p-4 text-sm text-amber-200/90">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+            <p>
+              Resumo das datas finais: manutenção da fusão concluída em <strong>01/09/2026</strong> · Loja do Goblin de Ouro fecha em <strong>14/09 (23h59 UTC+8)</strong> · eventos de aniversário encerram em <strong>28/09</strong> · 23º Confronto de Sabuk em <strong>outubro</strong>.
+            </p>
+          </div>
         </section>
       </div>
     </div>

@@ -337,3 +337,11 @@
 - [x] Notificação visual quando a Loja do Goblin de Ouro estiver perto do fim (14/09) — GoblinBanner.tsx já implementado (<24h com pulso nos últimos 6h); validado com teste de janela de alerta (fusionBanner.test.ts)
 - [x] Sincronizar com repositório GitHub github.com/JoaoSantosCodes/GUIA-MIR4 — remote "github" adicionado e branch main enviada
 - [x] Testes vitest (fusionBanner.test.ts: 8 testes de data-alvo/formatação/urgência; 177 aprovados) + screenshots + TSC limpo + checkpoint e entrega
+
+## Nova funcionalidade: capítulos server-side, Passe countdown e pós-fusão + Vercel
+- [x] Persistência server-side dos capítulos marcados (tabela chapter_progress criada e aplicada: migração 0013, userId + capítulo com unique index; helpers db.listChapterProgress/setChapterProgress com validação 1-21 e sync completo por lista; router chapterProgress.list/sync; UI em Novidades faz sync a cada toggle e mescla localStorage + servidor na inicialização)
+- [x] Status de Veterano sincronizado entre dispositivos (Profile e Leaderboard mesclam capítulos do servidor com o localStorage local antes de calcular capitulos-veterano)
+- [x] Contador regressivo do Passe de Viagem na página de Notícias ao lado dos eventos de aniversário (CountdownTimer 2026-09-01T00:00:00+08:00 no header de Destaques do 5º Aniversário, com nota do encerramento)
+- [x] Seção "Pós-Fusão" na página de Notícias com orientações do que fazer após 01/09 (6 cards: conferir personagens/servidor, reconstruir guildas, Sabuk adiado p/ outubro, Mundo Impulsionador, recompensas até 14/09 e 28/09, avisos oficiais + banner resumo de datas)
+- [x] Preparar projeto para deploy na Vercel (vercel.json com @vercel/node e rotas para dist/index.js; VERCEL.md com envs DATABASE_URL/JWT_SECRET/OAuth, banco MySQL externo e limitações serverless)
+- [x] Testes vitest (chapterProgress.test.ts: 6 testes — gravação, validação de intervalo, sync completo, lista vazia, upsert, regra de veterano; 183 aprovados) + screenshot /novidades verificado + TSC limpo + build ok + checkpoint + GitHub sincronizado
