@@ -11,6 +11,8 @@ import { Star, BookOpen, Pickaxe, Swords, Coins, LogIn, Loader2, Skull, Castle, 
 import { GOLD_TIP_UPVOTES } from "@/components/guide/CommentsSection";
 import { ExportActivityCardDialog } from "@/components/ExportCardDialog";
 import { evaluateCodexAchievements } from "@/lib/codexAchievements";
+import { evaluateChapterAchievements, TOTAL_CHAPTERS } from "@/lib/chapterAchievements";
+import { Scroll as IconScroll } from "lucide-react";
 import { readCelebrationEnabled, readLastAchievement, writeCelebrationEnabled, writeLastAchievement, readAchievementHistory, appendAchievementHistory } from "@/lib/celebrationState";
 import { backfillRetroHistory, reconstructRetroAchievements } from "@/lib/achievementRetroDates";
 import { BookOpen as IconBook, Gem as IconGem, Crown as IconCrown, Sparkles as IconSparkles, Swords as IconSwords, Star as IconStar, Info as IconInfo, ScrollText } from "lucide-react";
@@ -144,7 +146,17 @@ export default function Profile() {
   const codexTotal = CODEX_ITEMS.length;
   const codexDone = progress?.length ?? 0;
 
-  const ACHIEVEMENT_ICONS = { book: IconBook, gem: IconGem, crown: IconCrown, sparkle: IconSparkles, sword: IconSwords, star: IconStar } as const;
+  const ACHIEVEMENT_ICONS = { book: IconBook, gem: IconGem, crown: IconCrown, sparkle: IconSparkles, sword: IconSwords, star: IconStar, scroll: IconScroll, clock: IconStar } as const;
+
+  const playedChapters = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("mir4-chapters-played");
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) ? (parsed as number[]) : [];
+    } catch {
+      return [];
+    }
+  }, []);
 
 const RARITY_LABEL: Record<string, string> = {
   "faixa-t1": "UC",
@@ -183,6 +195,10 @@ function achievementTooltip(key: string, iconKey: string): string {
       return "Colete 5 itens de raridade Raro ou superior no Codex.";
     case "lendario-1":
       return "Colete pelo menos 1 item de raridade Lendária ou Mítica no Codex.";
+    case "capitulos-10":
+      return "Marque 10 capítulos como vivenciados na linha do tempo da página Notícias.";
+    case "capitulos-veterano":
+      return `Marque todos os ${TOTAL_CHAPTERS} capítulos da história do MIR4 como vivenciados na página Notícias — a medalha de veterano é concedida quando o circuito completo é concluído.`;
     default:
       if (/^faixa-t[2-5]$/.test(key)) return `Registre todos os itens de raridade ${rarityLabelFor(key)} do Codex marcando-os como coletados — quando TODOS os itens dessa raridade estiverem registrados, a conquista é desbloqueada.`;
       return "Complete o marco correspondente na página Codex marcando itens como coletados.";
@@ -194,8 +210,12 @@ function achievementTooltip(key: string, iconKey: string): string {
     [progress],
   );
 
+  const chapterAchievements = useMemo(() => evaluateChapterAchievements(playedChapters), [playedChapters]);
+
+  const allAchievements = useMemo(() => [...codexAchievements, ...chapterAchievements], [codexAchievements, chapterAchievements]);
+
   const filteredAchievements = useMemo(() => {
-    let list = codexAchievements.slice();
+    let list = allAchievements.slice();
     if (achFilter === "earned") list = list.filter(a => a.earned);
     else if (achFilter === "progress") list = list.filter(a => !a.earned);
     else if (achFilter === "rarity") {
@@ -207,10 +227,10 @@ function achievementTooltip(key: string, iconKey: string): string {
       });
     }
     return list;
-  }, [codexAchievements, achFilter]);
+  }, [allAchievements, achFilter]);
 
-  const earnedCount = codexAchievements.filter(a => a.earned).length;
-  const rarityBadges = codexAchievements.filter(a => /^faixa-t[2-5]$/.test(a.key) && a.earned).length;
+  const earnedCount = allAchievements.filter(a => a.earned).length;
+  const rarityBadges = allAchievements.filter(a => /^faixa-t[2-5]$/.test(a.key) && a.earned).length;
 
   /** Notificação de conquista recém-desbloqueada: compara conquistas entre revalidações do progresso. */
   const prevEarnedRef = useRef<Set<string>>(new Set());
@@ -299,12 +319,12 @@ function achievementTooltip(key: string, iconKey: string): string {
   useEffect(() => {
     if (!initializedRef.current) {
       // carga inicial: apenas registra as conquistas já existentes (sem notificação)
-      prevEarnedRef.current = new Set(codexAchievements.filter(a => a.earned).map(a => a.key));
+      prevEarnedRef.current = new Set(allAchievements.filter(a => a.earned).map(a => a.key));
       initializedRef.current = true;
       return;
     }
-    const newly = codexAchievements.filter(a => a.earned && !prevEarnedRef.current.has(a.key));
-    prevEarnedRef.current = new Set(codexAchievements.filter(a => a.earned).map(a => a.key));
+    const newly = allAchievements.filter(a => a.earned && !prevEarnedRef.current.has(a.key));
+    prevEarnedRef.current = new Set(allAchievements.filter(a => a.earned).map(a => a.key));
     // notifica apenas conquistas desbloqueadas durante a sessão (após a carga inicial)
     if (newly.length > 0) {
       const latest = newly[newly.length - 1];
@@ -337,7 +357,7 @@ function achievementTooltip(key: string, iconKey: string): string {
       if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
       celebrationTimerRef.current = setTimeout(() => setShowCelebration(false), 2500);
     }
-  }, [celebrationEnabled, earnedCount, codexAchievements]);
+  }, [celebrationEnabled, earnedCount, allAchievements]);
   useEffect(() => () => {
     if (unlockedTimerRef.current) clearTimeout(unlockedTimerRef.current);
     if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
@@ -370,8 +390,8 @@ function achievementTooltip(key: string, iconKey: string): string {
   }
 
   const celebrationAchievement = useMemo(
-    () => codexAchievements.find(a => a.key === unlockedKey) ?? null,
-    [codexAchievements, unlockedKey],
+    () => allAchievements.find(a => a.key === unlockedKey) ?? null,
+    [allAchievements, unlockedKey],
   );
 
   const resolveTitle = (fav: { itemId: string; itemType: string }) => {
@@ -607,11 +627,11 @@ function achievementTooltip(key: string, iconKey: string): string {
         )}
       </section>
 
-      {/* Conquistas do Codex */}
+      {/* Conquistas */}
       <section className="mt-8 rounded-lg border border-amber-800/40 bg-[oklch(0.19_0.015_280)] p-5">
-        <h2 className="font-bold text-amber-300">Conquistas do Codex</h2>
+        <h2 className="font-bold text-amber-300">Conquistas</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Complete marcos no Codex para desbloquear medalhas visuais.
+          Complete marcos no Codex e na linha do tempo de capítulos para desbloquear medalhas visuais.
           {earnedCount > 0 && (
             <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-amber-500/60 bg-amber-900/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
               <Medal className="h-2.5 w-2.5" /> {earnedCount} conquistad{earnedCount !== 1 ? "as" : "a"}

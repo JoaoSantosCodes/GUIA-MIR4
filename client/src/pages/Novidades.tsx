@@ -41,6 +41,8 @@ const CATEGORY_ICONS = { Classe: Sparkles, Servidores: Crown, Sistemas: Wrench, 
  */
 export default function Novidades() {
   const [newsFilter, setNewsFilter] = useState<Chapter21NewsItem["category"] | "Todos">("Todos");
+  type NewsStatusFilter = "Todos" | "Ativos" | "Encerrados";
+  const [newsStatus, setNewsStatus] = useState<NewsStatusFilter>("Todos");
   const [timelineIndex, setTimelineIndex] = useState(MIR4_CHAPTERS.length - 1);
   const [played, setPlayed] = useState<Set<number>>(readPlayed);
   const [, rerender] = useState(0);
@@ -94,10 +96,15 @@ export default function Novidades() {
     link.download = "meus-capitulos-mir4.png";
     link.click();
   };
-  const filtered = useMemo(
-    () => (newsFilter === "Todos" ? CHAPTER21_NEWS : CHAPTER21_NEWS.filter(n => n.category === newsFilter)),
-    [newsFilter],
-  );
+  const filtered = useMemo(() => {
+    let list = newsFilter === "Todos" ? CHAPTER21_NEWS : CHAPTER21_NEWS.filter(n => n.category === newsFilter);
+    if (newsStatus === "Ativos") {
+      list = list.filter(n => !n.endDate || Date.now() < new Date(n.endDate).getTime());
+    } else if (newsStatus === "Encerrados") {
+      list = list.filter(n => !!n.endDate && Date.now() >= new Date(n.endDate).getTime());
+    }
+    return list;
+  }, [newsFilter, newsStatus]);
 
   return (
     <div>
@@ -115,7 +122,7 @@ export default function Novidades() {
             <h2 className="gold-text text-2xl md:text-3xl font-bold flex items-center gap-2">
               <Newspaper className="h-6 w-6 text-red-500" /> Novidades do Capítulo 21
             </h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {(["Todos", "Classe", "Servidores", "Sistemas", "Itens"] as const).map(c => (
                 <button
                   key={c}
@@ -128,6 +135,25 @@ export default function Novidades() {
                   )}
                 >
                   {c}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-slate-700 px-1.5 py-0.5">
+              <Calendar className="ml-1 h-3.5 w-3.5 text-slate-500" aria-hidden="true" />
+              {(["Todos", "Ativos", "Encerrados"] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setNewsStatus(s)}
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-all duration-200 active:scale-[0.97]",
+                    newsStatus === s
+                      ? s === "Ativos" ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/60"
+                        : s === "Encerrados" ? "bg-red-900/40 text-red-300 ring-1 ring-red-500/50"
+                        : "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/60"
+                      : "text-slate-500 hover:text-amber-300",
+                  )}
+                >
+                  {s}
                 </button>
               ))}
             </div>

@@ -12,6 +12,7 @@ import { Search, Menu, X, LogIn, Swords, BookOpen, Pickaxe, User as UserIcon, Co
 import { useTheme } from "@/contexts/ThemeContext";
 import EventNotificationsBell from "@/components/EventNotificationsBell";
 import LiveEventBanner from "@/components/LiveEventBanner";
+import GoblinBanner from "@/components/GoblinBanner";
 import { CODEX_ITEMS, CLASSES, CURRENCIES, ECONOMY_TIPS, FARM_SPOTS, LEVELING_GUIDE, MAGIC_SQUARE_CHAMBERS, RAIDS, SPIRITS, TIER_SCENARIOS, SABUK_CONTENT, MYSTERIES, SEAL_GUIDE, GAME_EVENTS, CLASS_SKILLS, MINE_AREAS, EQUIPMENT_TYPES, GRADE_INFO, MATERIALS, ENHANCE_COSTS } from "@shared/guideData";
 import { cn } from "@/lib/utils";
 
@@ -309,6 +310,8 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [goblinVisible, setGoblinVisible] = useState(false);
+
   const index = useMemo(() => BUILD_SEARCH_INDEX(), []);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -403,7 +406,10 @@ export default function GuideLayout({ children }: { children: React.ReactNode })
         )}
       </header>
 
-      <main className="flex-1 pt-16">{children}</main>
+      <div className="fixed top-14 inset-x-0 z-40 pointer-events-none">
+        <GoblinBanner onVisibilityChange={setGoblinVisible} />
+      </div>
+      <main className={cn("flex-1", goblinVisible ? "pt-[4.75rem]" : "pt-16")}>{children}</main>
 
       <footer className="border-t border-amber-800/40 bg-[oklch(0.12_0.01_280)] py-8 mt-12">
         <div className="container flex flex-col items-center gap-4 text-sm text-slate-500">

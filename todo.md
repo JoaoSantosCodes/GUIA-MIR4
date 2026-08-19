@@ -314,3 +314,10 @@
 - [x] Marcar capítulos vivenciados na timeline (mir4-chapters-played em localStorage, botão Marcar/Vivenciado no card, selo verde na trilha, contador X/21)
 - [x] Card compartilhável do progresso (exportTimelineProgressCard em timelineExport.ts: barra de progresso, selo 100% CONCLUÍDO, marca d'água com nome/data; share nativo → clipboard → download)
 - [x] Timeline ganha item 22 "Coming Soon"; testes news.test.ts atualizados (162 aprovados); screenshots desktop + mobile verificados; TSC limpo
+
+## Medalha de veterano, banner de alerta e filtro de eventos
+
+- [x] Medalha de veterano no perfil ao marcar todos os 21 capítulos (chapterAchievements.ts: conquistas Viajante do Tempo 0/10 e Veterano de Sabuk 21/21, integradas à seção unificada de Conquistas do Profile, celebração som+confete, tooltip e filtro por raridade/tipo aplicados)
+- [x] Banner de alerta no topo do site quando a Loja Goblin (14/09 23:59 KST/UTC+8) estiver a menos de 24h do fim (GoblinBanner.tsx: countdown-pulse nos últimos 6h, dispensar/lembrar depois, main compensa o espaço)
+- [x] Filtro ativos/encerrados na página de Notícias (chips Todos/Ativos/Encerrados com cores verde/vermelho/âmbar ao lado dos filtros de categoria)
+- [x] Testes vitest (chapterAchievements.test.ts, 166 aprovados) + screenshots /novidades e /perfil verificados + TSC limpo
