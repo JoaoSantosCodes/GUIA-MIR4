@@ -59,6 +59,23 @@ function resolveClassTierStatic(
   return { tier: t };
 }
 
+/** Resolve o tier comunitário de um espírito a partir do shift médio dos votos (mesma regra da lógica client-side). */
+function resolveSpiritTierStatic(
+  scenarioKey: string,
+  spiritKey: string,
+  communityShift = 0,
+): { tier: "S" | "A" | "B" | "C" } {
+  const base = (SPIRIT_TIER_RANKINGS[scenarioKey]?.[spiritKey]?.tier ?? "B") as "S" | "A" | "B" | "C";
+  const clamped = Math.max(-2, Math.min(2, Math.round(communityShift)));
+  let t = base;
+  for (let i = 0; i < Math.abs(clamped); i++) {
+    const idx = CLASS_TIER_ORDER.indexOf(t);
+    const next = clamped > 0 ? idx - 1 : idx + 1;
+    t = CLASS_TIER_ORDER[Math.max(0, Math.min(CLASS_TIER_ORDER.length - 1, next))];
+  }
+  return { tier: t };
+}
+
 const favoriteInput = z.object({
   itemId: z.string().min(1).max(120),
   itemType: favoritesItemType,
@@ -251,6 +268,19 @@ export const appRouter = router({
         if (!TIERLIST_SCENARIOS.some(s => s.key === input.scenario)) throw new Error("Cenário inválido");
         if (!SPIRIT_TIER_LIST_KEYS.includes(input.spiritKey)) throw new Error("Espírito inválido para este cenário");
         const result = await db.setSpiritTierlistVote(ctx.user.id, input.scenario, input.spiritKey, input.vote as 1 | -1 | 0);
+        // Snapshot semanal do tier comunitário do espírito votado (histórico de evolução).
+        const aggregated = await db.getSpiritTierlistVotes(undefined, input.scenario);
+        const rawVotes = Object.entries(aggregated.community).flatMap(([spiritKey, { sums, count }]) =>
+          Array.from({ length: count }, () => ({ spiritKey, vote: sums / count > 0 ? 1 as const : -1 as const })),
+        );
+        const shifts: Record<string, number> = {};
+        for (const v of rawVotes) {
+          const vvote = v.vote as 0 | 1 | -1;
+          if (vvote !== 0) shifts[v.spiritKey] = (shifts[v.spiritKey] ?? 0) + vvote;
+        }
+        const shift = shifts[input.spiritKey] ?? 0;
+        const resolved = resolveSpiritTierStatic(input.scenario, input.spiritKey, shift);
+        await db.recordTierlistHistorySpirit(currentWeekISO(), input.scenario, input.spiritKey, resolved.tier);
         return result;
       }),
     results: publicProcedure
@@ -263,6 +293,15 @@ export const appRouter = router({
           Promise.resolve(SPIRIT_TIER_RANKINGS[input.scenario] ?? {}),
         ]);
         return { community: aggregated.community, userVotes: aggregated.userVotes, rankings };
+      }),
+  }),
+  /** Histórico semanal da tier list de espíritos: evolução dos tiers comunitários. */
+  spiritTierlistHistory: router({
+    list: publicProcedure
+      .input(z.object({ scenario: z.string().min(1).max(40) }))
+      .query(async ({ input }) => {
+        if (!TIERLIST_SCENARIOS.some(s => s.key === input.scenario)) throw new Error("Cenário inválido");
+        return db.getTierlistHistorySpirit(input.scenario);
       }),
   }),
   /** Histórico semanal da tier list de classes: evolução dos tiers comunitários. */

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { ChevronUp, ChevronDown, Lock, RotateCcw, Users, UserRound, Info, Sparkles } from "lucide-react";
+import { ChevronUp, ChevronDown, Lock, RotateCcw, Users, UserRound, Info, Sparkles, History } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import PageBanner from "@/components/guide/PageBanner";
@@ -20,6 +20,9 @@ import {
   TIERLIST_TIERS,
   TIERLIST_TIER_STYLE,
   type TierListTier,
+  RARITY_ORDER,
+  RARITY_STYLES,
+  SPIRITS,
 } from "@shared/guideData";
 import {
   aggregateCommunityVotes,
@@ -92,7 +95,10 @@ function useTierlistVote(scenario: string, classKey: string) {
 
 export default function TierList() {
   const [scenario, setScenario] = useState<string>(TIERLIST_SCENARIOS[0].key);
-  const [tab, setTab] = useState<string>("classes");
+  const [tab, setTab] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") === "spirits" ? "spirits" : "classes";
+  });
   const auth = useAuth();
   const [, rerender] = useState(0);
 
@@ -139,7 +145,17 @@ export default function TierList() {
         image={SECTION_IMAGES.hero}
       />
       <div className="container py-10">
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs
+          value={tab}
+          onValueChange={v => {
+            setTab(v);
+            const url = new URL(window.location.href);
+            if (v === "spirits") url.searchParams.set("tab", "spirits");
+            else url.searchParams.delete("tab");
+            window.history.replaceState({}, "", url.toString());
+          }}
+          className="w-full"
+        >
         <TabsList className="mb-6 border border-amber-800/40 bg-black/40 p-[3px]">
           <TabsTrigger value="classes" className="data-[state=active]:border-amber-500/70 data-[state=active]:bg-amber-900/40 data-[state=active]:text-amber-300 rounded-md px-4 text-slate-400">Classes</TabsTrigger>
           <TabsTrigger value="spirits" className="data-[state=active]:border-amber-500/70 data-[state=active]:bg-amber-900/40 data-[state=active]:text-amber-300 rounded-md px-4 text-slate-400">Espíritos</TabsTrigger>
@@ -428,10 +444,12 @@ function SpiritTierBoard({
 }) {
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.spiritTierlist.results.useQuery({ scenario }, { enabled: !!scenario });
+  const historyQuery = trpc.spiritTierlistHistory.list.useQuery({ scenario });
   const community = data?.community ?? {};
   const rankings = data?.rankings ?? {};
 
   const overrides = getPersonalSpiritOverrideCount(scenario, SPIRIT_TIER_LIST_KEYS);
+  const [rarityFilter, setRarityFilter] = useState<string | null>(null);
   const [, rerender] = useState(0);
 
   const aggregated = useMemo(
@@ -449,9 +467,16 @@ function SpiritTierBoard({
   const rows = useMemo(() => {
     return TIERLIST_TIERS.map(tier => ({
       tier,
-      spirits: SPIRIT_TIER_LIST_KEYS.filter(s => resolveSpiritTier(scenario, s, aggregated[s]).tier === tier),
+      spirits: SPIRIT_TIER_LIST_KEYS.filter(s => {
+        if (resolveSpiritTier(scenario, s, aggregated[s]).tier !== tier) return false;
+        if (rarityFilter) {
+          const spirit = SPIRITS.find(sp => sp.key === s);
+          if (spirit?.rarity !== rarityFilter) return false;
+        }
+        return true;
+      }),
     }));
-  }, [scenario, aggregated]);
+  }, [scenario, aggregated, rarityFilter]);
 
   const voteMutation = trpc.spiritTierlist.vote.useMutation({
     onSuccess: () => void utils.spiritTierlist.results.invalidate({ scenario }),
@@ -480,7 +505,42 @@ function SpiritTierBoard({
         <SpiritCompareDialog />
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-slate-400">
+      {/* Filtro de raridade */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Raridade:</span>
+        <button
+          onClick={() => setRarityFilter(null)}
+          className={cn(
+            "rounded-md border px-3 py-1 text-xs font-semibold transition-all active:scale-[0.97]",
+            rarityFilter === null
+              ? "border-amber-500 bg-amber-900/40 text-amber-300"
+              : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200",
+          )}
+        >
+          Todas
+        </button>
+        {RARITY_ORDER.map(r => {
+          const style = (RARITY_STYLES as Record<string, { color: string; border: string; bg: string }> | undefined)?.[r];
+          return (
+            <button
+              key={r}
+              onClick={() => setRarityFilter(rarityFilter === r ? null : r)}
+              className={cn(
+                "rounded-md border px-3 py-1 text-xs font-semibold transition-all active:scale-[0.97]",
+                rarityFilter === r
+                  ? "border-amber-500 bg-amber-900/40 text-amber-300"
+                  : style
+                    ? `${style.border} ${style.bg} ${style.color} opacity-75 hover:opacity-100`
+                    : "border-amber-800/40 bg-black/30 text-slate-400 hover:text-amber-200",
+              )}
+            >
+              {r}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-400">
         <span className="flex items-center gap-1.5">
           <Users className="h-4 w-4" /> Votos da comunidade: {Object.values(community).reduce((acc, v) => acc + v.count, 0)}
         </span>
@@ -645,6 +705,26 @@ function SpiritTierBoard({
               </div>
             );
           })}
+      </div>
+
+      {/* Histórico semanal */}
+      <div className="mt-8">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-amber-200">
+          <History className="h-5 w-5" /> Histórico de evolução
+        </h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Os tiers comunitários são registrados semanalmente a cada voto registrado. O gráfico mostra a evolução de cada espírito.
+        </p>
+        <div className="mt-3">
+          {historyQuery.isLoading && <Skeleton className="h-[220px] w-full" />}
+          {!historyQuery.isLoading && (
+            <TierHistoryChart
+              data={(historyQuery.data ?? []).map(d => ({ week: d.week, classKey: d.spiritKey, tier: d.tier }))}
+              scenarioLabel={TIERLIST_SCENARIOS.find(s => s.key === scenario)?.label ?? scenario}
+              kind="spirit"
+            />
+          )}
+        </div>
       </div>
 
       {/* Combos recomendados */}

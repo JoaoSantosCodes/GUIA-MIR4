@@ -1029,7 +1029,7 @@ export async function exportSpiritCompareCard({
   const gold = "#f59e0b";
   const red = "#ef4444";
 
-  // Placar agregado
+  // Placar agregado — nome em cima, raridade abaixo em linha própria
   let y = HEADER_H;
   ctx.textAlign = "center";
   ctx.font = "bold 40px Georgia, serif";
@@ -1038,34 +1038,35 @@ export async function exportSpiritCompareCard({
   ctx.fillText(truncate(data.nameB, 20), WIDTH - 240, y + 4);
   ctx.font = "bold 52px Georgia, serif";
   ctx.fillStyle = gold;
-  ctx.fillText(String(data.totals.a), WIDTH / 2 - 80, y + 6);
+  ctx.fillText(String(data.totals.a), WIDTH / 2 - 80, y + 18);
   ctx.fillStyle = "#9ca3af";
   ctx.font = "36px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText("×", WIDTH / 2, y + 8);
+  ctx.fillText("×", WIDTH / 2, y + 22);
   ctx.fillStyle = red;
   ctx.font = "bold 52px Georgia, serif";
-  ctx.fillText(String(data.totals.b), WIDTH / 2 + 80, y + 6);
-  // Raridades
-  ctx.font = "18px 'Segoe UI', Arial, sans-serif";
+  ctx.fillText(String(data.totals.b), WIDTH / 2 + 80, y + 18);
+  // Raridades em linha própria (mais abaixo, sem sobrepor o placar)
+  ctx.font = "bold 17px 'Segoe UI', Arial, sans-serif";
   ctx.fillStyle = palette.faded;
-  if (data.rarityA) ctx.fillText(data.rarityA, 240, y + 36);
-  if (data.rarityB) ctx.fillText(data.rarityB, WIDTH - 240, y + 36);
+  if (data.rarityA) ctx.fillText(`Raridade: ${data.rarityA}`, 240, y + 52);
+  if (data.rarityB) ctx.fillText(`Raridade: ${data.rarityB}`, WIDTH - 240, y + 52);
   ctx.textAlign = "left";
   y += 96;
 
-  // Radar
+  // Radar — diagrama à esquerda, legenda compacta à direita
   const radarCX = MARGIN + 180;
-  const radarCY = y + 118;
+  const radarCY = y + 122;
   drawGenericRadarExport(ctx, radarCX, radarCY, 74, data.valuesA, data.valuesB, data.radarLabels);
-  ctx.font = "bold 20px 'Segoe UI', Arial, sans-serif";
-  ctx.fillStyle = gold;
-  ctx.fillText(truncate(data.nameA, 18), radarCX + 165, radarCY - 42);
-  ctx.fillStyle = red;
-  ctx.fillText(truncate(data.nameB, 18), radarCX + 165, radarCY - 12);
-  ctx.fillStyle = palette.faded;
-  ctx.font = "17px 'Segoe UI', Arial, sans-serif";
-  ctx.fillText(`radar: ${data.radarLabels.join(" · ")}`, radarCX + 165, radarCY + 42);
   ctx.textAlign = "left";
+  ctx.font = "bold 21px 'Segoe UI', Arial, sans-serif";
+  ctx.fillStyle = gold;
+  ctx.fillText(truncate(data.nameA, 18), radarCX + 172, radarCY - 30);
+  ctx.fillStyle = red;
+  ctx.fillText(truncate(data.nameB, 18), radarCX + 172, radarCY);
+  ctx.fillStyle = palette.faded;
+  ctx.font = "15px 'Segoe UI', Arial, sans-serif";
+  const legend = data.radarLabels.join(" · ");
+  ctx.fillText(`Radar: ${legend}`, radarCX + 172, radarCY + 30);
   ctx.textBaseline = "alphabetic";
   y += 250;
 

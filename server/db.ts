@@ -3,7 +3,7 @@ import { CODEX_ITEMS } from "../shared/guideData";
 import { evaluateCodexAchievements } from "../client/src/lib/codexAchievements";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote, tierlistVotesSpirit, InsertTierlistVoteSpirit, tierlistHistory, InsertTierlistHistory } from "../drizzle/schema";
+import { InsertUser, users, favorites, codexProgress, farmComments, InsertFavorite, InsertCodexProgress, commentVotes, tierlistVotes, InsertTierlistVote, tierlistVotesSpirit, InsertTierlistVoteSpirit, tierlistHistory, InsertTierlistHistory, tierlistHistorySpirit } from "../drizzle/schema";
 import { GOLD_TIP_UPVOTES } from "../shared/const";
 import { ENV } from './_core/env';
 
@@ -666,5 +666,42 @@ export async function getTierlistHistory(scenario: string): Promise<{ week: stri
     .from(tierlistHistory)
     .where(eq(tierlistHistory.scenario, scenario))
     .orderBy(asc(tierlistHistory.week));
+  return rows;
+}
+
+/**
+ * Registrar o snapshot semanal de tiers dos espíritos (upsert — semana + cenário + espírito).
+ * Chamado automaticamente a cada voto para manter o histórico atualizado.
+ */
+export async function recordTierlistHistorySpirit(
+  week: string,
+  scenario: string,
+  spiritKey: string,
+  tier: string,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db
+    .select()
+    .from(tierlistHistorySpirit)
+    .where(and(eq(tierlistHistorySpirit.week, week), eq(tierlistHistorySpirit.scenario, scenario), eq(tierlistHistorySpirit.spiritKey, spiritKey)))
+    .limit(1);
+  if (existing[0]?.tier === tier) return;
+  if (existing[0]) {
+    await db.update(tierlistHistorySpirit).set({ tier }).where(and(eq(tierlistHistorySpirit.week, week), eq(tierlistHistorySpirit.scenario, scenario), eq(tierlistHistorySpirit.spiritKey, spiritKey)));
+  } else {
+    await db.insert(tierlistHistorySpirit).values({ week, scenario, spiritKey, tier });
+  }
+}
+
+/** Histórico de tiers de espíritos por cenário, ordenado por semana (para o gráfico de evolução). */
+export async function getTierlistHistorySpirit(scenario: string): Promise<{ week: string; spiritKey: string; tier: string }[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ week: tierlistHistorySpirit.week, spiritKey: tierlistHistorySpirit.spiritKey, tier: tierlistHistorySpirit.tier })
+    .from(tierlistHistorySpirit)
+    .where(eq(tierlistHistorySpirit.scenario, scenario))
+    .orderBy(asc(tierlistHistorySpirit.week));
   return rows;
 }

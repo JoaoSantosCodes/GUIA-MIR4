@@ -505,10 +505,10 @@ describe("card do comparador de espíritos (exportSpiritCompareCard)", () => {
     expect(calls).toContain("Goldking");
     expect(calls).toContain("315");
     expect(calls).toContain("308");
-    expect(calls).toContain("UC (Incomum)");
+    expect(calls.some(c => c.includes("UC (Incomum)"))).toBe(true);
     expect(calls).toContain("Styx leva a vantagem");
     expect(calls.some(c => c.startsWith("Dano: 92 × 78"))).toBe(true);
-    expect(calls.some(c => c.includes("radar: Dano · Suporte · Defesa · Farm · Versatilidade"))).toBe(true);
+    expect(calls.some(c => c.includes("Radar: Dano · Suporte · Defesa · Farm · Versatilidade"))).toBe(true);
   });
   it("desenha o empate quando os totais são iguais", async () => {
     const calls: string[] = [];

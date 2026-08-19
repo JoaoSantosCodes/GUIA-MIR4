@@ -155,3 +155,23 @@ export const tierlistHistory = mysqlTable(
 );
 export type TierlistHistory = typeof tierlistHistory.$inferSelect;
 export type InsertTierlistHistory = typeof tierlistHistory.$inferInsert;
+
+/**
+ * Histórico de tiers por espírito e cenário, amostrado por semana.
+ * Um snapshot por (week, scenario, spiritKey): tier exibido para a comunidade
+ * naquela semana (computed a partir dos votos existentes). Permite plotar a evolução.
+ */
+export const tierlistHistorySpirit = mysqlTable(
+  "tierlist_history_spirit",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    week: varchar("week", { length: 10 }).notNull(), // formato YYYY-Www (ISO 8601)
+    scenario: varchar("scenario", { length: 40 }).notNull(),
+    spiritKey: varchar("spiritKey", { length: 60 }).notNull(),
+    tier: varchar("tier", { length: 2 }).notNull(), // S/A/B/C
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("week_scenario_spirit").on(t.week, t.scenario, t.spiritKey)],
+);
+export type TierlistHistorySpirit = typeof tierlistHistorySpirit.$inferSelect;
+export type InsertTierlistHistorySpirit = typeof tierlistHistorySpirit.$inferInsert;

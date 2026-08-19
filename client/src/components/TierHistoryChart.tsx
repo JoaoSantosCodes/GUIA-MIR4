@@ -1,12 +1,19 @@
 import { useEffect, useRef } from "react";
 import { CLASSES } from "@shared/guideData";
 
+function capitalize(s: string): string {
+  return s.replace(/([a-z])([A-Z0-9])/g, "$1 $2").replace(/^[a-z]/, m => m.toUpperCase());
+}
+
 /**
  * Gráfico de linha em canvas puro: evolução semanal do tier comunitário
  * de cada classe em um cenário (dados de tierlist_history do backend).
  * Eixo Y: tiers S=4, A=3, B=2, C=1. Eixo X: semanas ISO (YYYY-Wnn).
  */
 const CLASS_TIER_KEYS = ["warrior", "sorcerer", "taoist", "lancer", "arbalist", "darkist", "lionheart", "spiritsummoner"] as const;
+
+/** Ordem estável dos espíritos elegíveis para a tier list. */
+const SPIRIT_TIER_KEYS = ["styx", "goldking", "biyoho", "reaper", "snowfox", "lulu", "wooska", "doggo", "solari", "bichon"] as const;
 
 function tierLevel(tier: string): number {
   switch (tier) {
@@ -19,12 +26,19 @@ function tierLevel(tier: string): number {
 
 const COLORS = ["#fbbf24", "#f43f5e", "#a78bfa", "#34d399", "#60a5fa", "#fb923c", "#f472b6", "#94a3b8"];
 
+const TIER_ORDER_MAP: Record<string, readonly string[]> = {
+  class: CLASS_TIER_KEYS,
+  spirit: SPIRIT_TIER_KEYS,
+};
+
 export default function TierHistoryChart({
   data,
   scenarioLabel,
+  kind = "class",
 }: {
   data: { week: string; classKey: string; tier: string }[];
   scenarioLabel: string;
+  kind?: "class" | "spirit";
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,6 +60,7 @@ export default function TierHistoryChart({
     if (!ctx) return;
     ctx.scale(dpr, dpr);
 
+    const tierKeys = TIER_ORDER_MAP[kind];
     const byClass = new Map<string, { week: string; tier: string }[]>();
     for (const row of data) {
       const list = byClass.get(row.classKey) ?? [];
@@ -87,9 +102,9 @@ export default function TierHistoryChart({
       ctx.fillText(["C", "B", "A", "S"][t - 1], padX - 10, y);
     }
 
-    // Séries por classe, na ordem fixa de CLASS_KEYS (ordem estável).
+    // Séries na ordem fixa de tierKeys (ordem estável).
     let seriesIdx = 0;
-    for (const classKey of CLASS_TIER_KEYS) {
+    for (const classKey of tierKeys) {
       const list = byClass.get(classKey);
       if (!list) continue;
       const color = COLORS[seriesIdx % COLORS.length];
@@ -135,11 +150,13 @@ export default function TierHistoryChart({
     let col = 0;
     let colX = padX;
     seriesIdx = 0;
-    for (const classKey of CLASS_TIER_KEYS) {
+    for (const classKey of tierKeys) {
       if (!byClass.has(classKey)) continue;
       const color = COLORS[seriesIdx % COLORS.length];
       seriesIdx += 1;
-      const name = (CLASSES.find(c => c.key === classKey)?.name) ?? classKey;
+      const name = kind === "class"
+        ? (CLASSES.find(c => c.key === classKey)?.name) ?? classKey
+        : capitalize(classKey);
       const metrics = ctx.measureText(name);
       if (colX + metrics.width + 30 > width - padX) {
         col += 1;

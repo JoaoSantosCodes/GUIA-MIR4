@@ -279,3 +279,12 @@
 - [x] Comparador de espíritos: SpiritCompareDialog + SpiritCompareCardDialog (radar de 5 eixos Dano/Suporte/Defesa/Farm/Versatilidade, placar geral, deltas), exportação PNG (exportSpiritCompareCard + drawGenericRadarExport com marca d'água); botão "Comparar espíritos" no SpiritTierBoard; bichon adicionado a SPIRITS
 - [x] Ajustes de layout: tabs Classes/Espíritos com visual dourado, header do SpiritTierBoard com cenário selecionado, grid responsivo; card PNG validado (1200×1088, placar+rada r+barras+marca d'água)
 - [x] Testes vitest: 155 aprovados (3 novos do card de espíritos: placar/empate/altura); screenshots desktop/mobile validados (/tier-list tab espíritos + comparador + export no browser)
+
+## Nova funcionalidade: batch espíritos, histórico espíritos, filtros e refinamento UX
+
+- [x] Batch export do comparador de espíritos (scripts/export-spirit-cards.mjs: 45 pares em spirit-cards/, parser de blocos balanceados, card 1200×1088; placar com raridade em linha própria + legenda do radar compacta à direita)
+- [x] Histórico semanal da tier list de espíritos (tierlist_history_spirit + snapshot automático pós-voto em spiritTierlist.vote, gráfico TierHistoryChart por espírito na tab Espíritos, router spiritTierlistHistory.list)
+- [x] Filtros de cenário na tier list de espíritos (PvP Massivo/Sabuk, Farm de Darksteel, Bosses e Raids) — SPIRIT_TIER_RANKINGS por cenário com seletor compartilhado entre as abas
+- [x] Filtro por raridade na tier list de espíritos (Todas/UC/Raro/Épico/Lendário/Mítico com chips coloridos por RARITY_STYLES)
+- [x] Ajustes de UX: aba sincronizada com ?tab=spirits na URL (link compartilhável), raridade no header do SpiritTierBoard junto ao placar de votos, microcopy dos filtros mais clara, estados vazios
+- [x] Testes vitest (155 aprovados, incl. ajuste do teste do card de espíritos para o novo layout de raridade/legenda) + screenshots desktop + mobile verificados (/tier-list, /tier-list?tab=spirits) + TSC limpo
